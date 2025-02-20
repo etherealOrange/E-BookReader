@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:showIn="navigation_view"
+    >
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/fragment_book_shelf"
+            android:title="@string/bookshelf"
+            android:icon="@drawable/baseline_menu_book_24"
+            />
+        <item
+            android:id="@+id/fragment_my_space"
+            android:title="@string/My"
+            android:icon="@drawable/baseline_account_box_24"
+            />
+    </group>
+</menu>

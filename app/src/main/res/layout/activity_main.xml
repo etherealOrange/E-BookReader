@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:theme="@style/Theme.EBookReader"
+    tools:context=".Main_Activity"
+    >
+
+    <!-- <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/Bookshelf_TopBar"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:background="#000"
+        >
+        <TextView
+            android:id="@+id/Bookshelf_StartTop_tv"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:layout_gravity="start|center"
+            android:gravity="center"
+            android:textColor="#ffffff"
+            android:text="@string/Main_YourBookShelf_StartTop_tv"
+            android:textSize="50sp" />
+
+        <Button
+            android:id="@+id/InputBooks_btn_Bookshelf_EndTop"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:layout_width="100dp"
+            android:layout_height="wrap_content"
+            android:layout_margin="10dp"
+            android:padding="0dp"
+            android:gravity="center"
+            android:text="@string/Main_InputBooks_EndTop_btn"
+            style="@style/DefaultButton"
+
+            />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/Bookshelf_edit_SedTopBar"
+        android:layout_width="match_parent"
+        android:layout_height="30dp"
+        app:layout_constraintTop_toBottomOf="@id/Bookshelf_TopBar"
+        app:layout_constraintBottom_toTopOf="@+id/BookRecyclerView"
+        android:background="@color/grey"
+        >
+        <Button
+            android:id="@+id/Bookshelf_EditBook_btn"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/SedTopBar_divider1"
+            android:text="编辑"
+            style="@style/Bookshelf_SedTopBar_btn"
+            />
+        <View
+            android:id="@+id/SedTopBar_divider1"
+            android:layout_width="2dp"
+            app:layout_constraintStart_toEndOf="@id/Bookshelf_EditBook_btn"
+            app:layout_constraintEnd_toStartOf="@+id/Bookshelf_SortBook_btn"
+            android:layout_height="match_parent"
+            android:background="@color/black"
+            />
+
+        <Button
+            android:id="@+id/Bookshelf_SortBook_btn"
+            app:layout_constraintStart_toEndOf="@id/SedTopBar_divider1"
+            app:layout_constraintEnd_toStartOf="@+id/SedTopBar_divider2"
+            app:layout_constraintTop_toTopOf="parent"
+            android:text="排序"
+            style="@style/Bookshelf_SedTopBar_btn"/>
+        <View
+            android:id="@+id/SedTopBar_divider2"
+            android:layout_width="2dp"
+            app:layout_constraintStart_toEndOf="@id/Bookshelf_SortBook_btn"
+            app:layout_constraintEnd_toStartOf="@+id/Bookshelf_NewFolder_btn"
+            android:layout_height="match_parent"
+            android:background="@color/black"
+            />
+
+        <Button
+            android:id="@+id/Bookshelf_NewFolder_btn"
+            app:layout_constraintStart_toEndOf="@+id/SedTopBar_divider2"
+            app:layout_constraintTop_toTopOf="parent"
+            android:text="新建文件夹"
+            style="@style/Bookshelf_SedTopBar_btn"/>
+
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <androidx.recyclerview.widget.RecyclerView
+        app:layout_constraintTop_toBottomOf="@id/Bookshelf_edit_SedTopBar"
+        android:id="@+id/BookRecyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:padding="10dp"
+        android:scrollbars="vertical"
+
+        />
+
+
+    <include layout="@layout/bottom_btn"
+        android:id="@+id/Bottom_btn_Bookshelf"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:background="@color/grey"
+        />
+    -->
+    <fragment
+        android:id="@+id/nav_host_main_content_fragment"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_constraintTop_toTopOf="parent"
+
+        app:layout_constraintBottom_toTopOf="@+id/nav_main"
+        android:name="androidx.navigation.fragment.NavHostFragment"
+        app:defaultNavHost="true"
+        app:navGraph="@navigation/nav_main_content"
+
+        />
+
+
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/nav_main"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:menu="@menu/main_content_bottom_nav" />
+
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,3 +1,11 @@
 <resources>
     <string name="app_name">EBook-Reader</string>
+    <string name="Main_YourBookShelf_StartTop_tv">你的书架</string>
+    <string name="Main_InputBooks_EndTop_btn">...</string>
+    <string name="Main_YourBookSHelf_StartBottom_btn">书架</string>
+    <string name="Main_YourOwnSpace_EndBottom_btn">我的</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="bookshelf">书架</string>
+    <string name="My">我的</string>
 </resources>
