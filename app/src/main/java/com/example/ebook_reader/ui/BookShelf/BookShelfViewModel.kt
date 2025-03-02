@@ -5,21 +5,27 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-
+sealed class BookAndFolderItem {}
 data class BookView(
-    val uid: String,
+    val uid: Long,
     val name: String,
     val currentChapter: Int,
     val currentPage: Int,
     val totalChapter: Int,
     val cover: String,
-)
+):BookAndFolderItem()
+data class FolderView(
+    val uid: Long,
+    val name: String,
+    val booksNum: Long,
+    val cover: String,
+):BookAndFolderItem()
 
+//负责数据的 获取 处理 打包 更新 添加 删除
 class BookShelfViewModel : ViewModel() {
-    private val _books = MutableStateFlow<List<BookView>>(emptyList())
-    val books: StateFlow<List<BookView>> = _books
+    private val _items = MutableStateFlow<List<BookAndFolderItem>>(emptyList())
+    val items: StateFlow<List<BookAndFolderItem>> = _items
 
     init {
         loadBooks()
@@ -28,16 +34,14 @@ class BookShelfViewModel : ViewModel() {
         viewModelScope.launch {
             // 示例数据，实际应从数据库或网络获取
             var mockBooks = listOf(
-                BookView(
-                    uid = "qwerty",
-                    name = "Android开发艺术探索",
-                    currentChapter = 5,
-                    currentPage = 14,
-                    totalChapter = 20,
+                FolderView(
+                    uid = 1,
+                    name = "Android开发",
+                    booksNum = 5,
                     cover = "https://img"
                 ),
                 BookView(
-                    uid = "qwesdsarty",
+                    uid = 2,
                     name = "Android开发艺术探索2",
                     currentChapter = 1,
                     currentPage = 14,
@@ -45,7 +49,7 @@ class BookShelfViewModel : ViewModel() {
                     cover = "https://img"
                 ),
                 BookView(
-                    uid = "qwesdsarty",
+                    uid = 3,
                     name = "Android开发艺术探索2",
                     currentChapter = 1,
                     currentPage = 14,
@@ -53,7 +57,7 @@ class BookShelfViewModel : ViewModel() {
                     cover = "https://img"
                 ),
                 BookView(
-                    uid = "qwesdsarty",
+                    uid = 4,
                     name = "Android开发艺术探索2",
                     currentChapter = 1,
                     currentPage = 14,
@@ -61,7 +65,7 @@ class BookShelfViewModel : ViewModel() {
                     cover = "https://img"
                 ),
                 BookView(
-                    uid = "qwesdsarty",
+                    uid = 5,
                     name = "Android开发艺术探索2",
                     currentChapter = 1,
                     currentPage = 14,
@@ -69,7 +73,7 @@ class BookShelfViewModel : ViewModel() {
                     cover = "https://img"
                 ),
                 BookView(
-                    uid = "qwesdsarty",
+                    uid = 6,
                     name = "Android开发艺术探索2",
                     currentChapter = 1,
                     currentPage = 14,
@@ -77,14 +81,14 @@ class BookShelfViewModel : ViewModel() {
                     cover = "https://img"
                 ),
                 BookView(
-                    uid = "qwesdsarty",
+                    uid = 11,
                     name = "Android开发艺术探索2",
                     currentChapter = 1,
                     currentPage = 14,
                     totalChapter = 20,
                     cover = "https://img"
                 ),BookView(
-                    uid = "qwesdsarty",
+                    uid = 12,
                     name = "Android开发艺术探索2",
                     currentChapter = 1,
                     currentPage = 14,
@@ -92,7 +96,7 @@ class BookShelfViewModel : ViewModel() {
                     cover = "https://img"
                 ),
                 BookView(
-                    uid = "qwesdsarty",
+                    uid = 13,
                     name = "Android开发艺术探索2",
                     currentChapter = 1,
                     currentPage = 14,
@@ -100,7 +104,7 @@ class BookShelfViewModel : ViewModel() {
                     cover = "https://img"
                 ),
                 BookView(
-                    uid = "qwesdsarty",
+                    uid = 14,
                     name = "Android开发艺术探索2",
                     currentChapter = 1,
                     currentPage = 14,
@@ -108,25 +112,31 @@ class BookShelfViewModel : ViewModel() {
                     cover = "https://img"
                 ),
             )
-            _books.value = mockBooks
+            _items.value = mockBooks
             delay(5000)
             mockBooks = listOf(
+                FolderView(
+                    uid = 2,
+                    name = "Android开发",
+                    booksNum = 5,
+                    cover = "https://img"
+                ),
                 BookView(
-                    uid = "qwerty",
-                    name = "Android开发艺术探索",
-                    currentChapter = 5,
+                    uid = 7,
+                    name = "Android开发艺术探索2",
+                    currentChapter = 1,
                     currentPage = 14,
                     totalChapter = 20,
                     cover = "https://img"
                 ),
             )
-            _books.value = mockBooks
+            _items.value = mockBooks
 
         }
 
     }
     fun addBook(book: BookView) {
-        _books.value = _books.value + book
+
     }
     fun handleBookClick(book: BookView) {
         // 处理点击事件

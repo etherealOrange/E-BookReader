@@ -6,9 +6,8 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ListAdapter
 import androidx.lifecycle.lifecycleScope
-import com.example.ebook_reader.R
+import androidx.recyclerview.widget.GridLayoutManager
 import com.example.ebook_reader.databinding.FragmentBookShelfBinding
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -17,10 +16,6 @@ class BookShelf : Fragment() {
     private var _binding: FragmentBookShelfBinding? = null
     private val binding get() = _binding!!
     private val viewModel: BookShelfViewModel by viewModels()
-
-    companion object {
-        fun newInstance() = BookShelf()
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -38,9 +33,11 @@ class BookShelf : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         val bookAdapter = BookAdapter()
+        binding.BookRecyclerView.layoutManager = GridLayoutManager(context, 3)
         binding.BookRecyclerView.adapter = bookAdapter
+        //动态更新数据逻辑
         lifecycleScope.launch {
-            viewModel.books.collectLatest { newList ->
+            viewModel.items.collectLatest { newList ->
                 bookAdapter.submitList(newList)
             }
 
