@@ -6,50 +6,98 @@
     android:layout_margin="10dp"
     style="@style/Theme.EBookReader">
 
-    <ImageView
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/CardView_Book"
+        android:visibility="visible"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/BookTitle_tv_cardview"
-        android:id="@+id/BookCover_Iv_cardview"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        >
+        <ImageView
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/CD_BookTitle_TV"
+        android:id="@+id/CD_BookCover_IV"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:src="@drawable/ic_launcher_foreground"
         android:scaleType="centerCrop"
         />
-    <TextView
-        app:layout_constraintTop_toBottomOf="@id/BookCover_Iv_cardview"
-        app:layout_constraintBottom_toTopOf="@+id/ChapterProgress_tv_cardview"
-        android:id="@+id/BookTitle_tv_cardview"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:maxLines="1"
-        android:ellipsize="end"
-        android:text="Book Title"
-        android:textSize="12sp"
-        android:textColor="@color/black"
-        android:gravity="center"
-        />
-    <TextView
-        app:layout_constraintTop_toBottomOf="@id/BookTitle_tv_cardview"
-        app:layout_constraintBottom_toTopOf="@+id/ReadingProgress_pb_cardview"
-        android:id="@+id/ChapterProgress_tv_cardview"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="读到第?章/总共?章"
-        android:textSize="10sp"
-        android:textColor="@color/black"
-        android:gravity="start"
-        />
+        <TextView
+            app:layout_constraintTop_toBottomOf="@id/CD_BookCover_IV"
+            app:layout_constraintBottom_toTopOf="@+id/CD_ChapterProgress_TV"
+            android:id="@+id/CD_BookTitle_TV"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:text="Book Title"
+            android:textSize="12sp"
+            android:textColor="@color/black"
+            android:gravity="center"
+            />
+        <TextView
+            app:layout_constraintTop_toBottomOf="@id/CD_BookTitle_TV"
+            app:layout_constraintBottom_toTopOf="@+id/CD_ReadProgress_PB"
+            android:id="@+id/CD_ChapterProgress_TV"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="读到第?章/总共?章"
+            android:textSize="10sp"
+            android:textColor="@color/black"
+            android:gravity="start"
+            />
 
-    <ProgressBar
-        app:layout_constraintTop_toBottomOf="@id/ChapterProgress_tv_cardview"
-        app:layout_constraintBottom_toBottomOf="parent"
-        android:id="@+id/ReadingProgress_pb_cardview"
+        <ProgressBar
+            app:layout_constraintTop_toBottomOf="@id/CD_ChapterProgress_TV"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:id="@+id/CD_ReadProgress_PB"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:progress="50"
+            android:max="100"
+            style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+            />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/CardView_Folder"
+        android:visibility="visible"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:progress="50"
-        android:max="100"
-        style="@style/Widget.AppCompat.ProgressBar.Horizontal"
-        />
+        android:layout_height="match_parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        >
+        <ImageView
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toTopOf="@id/CD_ContainBooks_TV"
+            android:id="@+id/CD_FolderCover_IV"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:src="@drawable/ic_launcher_foreground"
+            android:scaleType="centerCrop"
+            />
+        <TextView
+            app:layout_constraintTop_toBottomOf="@id/CD_FolderCover_IV"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:id="@+id/CD_ContainBooks_TV"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:text="共几本书"
+            android:textSize="12sp"
+            android:textColor="@color/black"
+            android:gravity="center"
+            />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>
