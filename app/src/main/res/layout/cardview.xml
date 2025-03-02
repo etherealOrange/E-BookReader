@@ -8,7 +8,7 @@
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/CardView_Book"
-        android:visibility="visible"
+        android:visibility="invisible"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -74,7 +74,7 @@
         >
         <ImageView
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toTopOf="@id/CD_ContainBooks_TV"
+            app:layout_constraintBottom_toTopOf="@id/CD_FolderContainBooks_TV"
             android:id="@+id/CD_FolderCover_IV"
             android:layout_width="match_parent"
             android:layout_height="0dp"
@@ -82,9 +82,25 @@
             android:scaleType="centerCrop"
             />
         <TextView
+            app:layout_constraintTop_toTopOf="@+id/CD_FolderCover_IV"
+            app:layout_constraintStart_toStartOf="@+id/CD_FolderCover_IV"
+            app:layout_constraintEnd_toEndOf="@+id/CD_FolderCover_IV"
+            app:layout_constraintBottom_toBottomOf="@+id/CD_FolderCover_IV"
+            android:id="@+id/CD_FolderName_TV"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:maxLines="3"
+            android:ellipsize="end"
+            android:layout_margin="10dp"
+            android:text="文件夹名称"
+            android:textSize="12sp"
+            android:textColor="@color/black"
+            android:gravity="center"
+            />
+        <TextView
             app:layout_constraintTop_toBottomOf="@id/CD_FolderCover_IV"
             app:layout_constraintBottom_toBottomOf="parent"
-            android:id="@+id/CD_ContainBooks_TV"
+            android:id="@+id/CD_FolderContainBooks_TV"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:maxLines="1"
@@ -94,6 +110,7 @@
             android:textColor="@color/black"
             android:gravity="center"
             />
+
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
