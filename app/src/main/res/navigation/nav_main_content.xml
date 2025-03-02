@@ -8,7 +8,7 @@
     <fragment
         android:id="@+id/fragment_book_shelf"
         android:name="com.example.ebook_reader.ui.BookShelf.BookShelf"
-        android:label="@string/bookshelf"
+        android:label="@string/MyBookshelf"
         tools:layout="@layout/fragment_book_shelf" >
 
     </fragment>

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:showIn="navigation_view">
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/fragment_book_shelf"
+            android:title="@string/MyBookshelf"
+            android:icon="@drawable/baseline_create_new_folder_24"
+            />
+        <item
+            android:id="@+id/fragment_personal_company"
+            android:title="@string/PersonalCompany"
+            android:icon="@drawable/baseline_account_box_24"
+            />
+        <item
+            android:id="@+id/fragment_time_travel"
+            android:title="@string/TimeTravel"
+            android:icon="@drawable/baseline_access_time_24"
+            />
+        <item
+            android:id="@+id/fragment_data_statistic"
+            android:title="@string/DataStatistic"
+            android:icon="@drawable/baseline_analytics_24"
+            />
+        <item
+            android:id="@+id/fragment_settings"
+            android:title="@string/Settings"
+            android:icon="@drawable/baseline_settings_24"
+            />
+
+
+    </group>
+
+</menu>

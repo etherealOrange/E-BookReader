@@ -6,6 +6,12 @@
     <string name="Main_YourOwnSpace_EndBottom_btn">我的</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
-    <string name="bookshelf">书架</string>
+    <string name="MyBookshelf">我的书架</string>
+    <string name="PersonalCompany">个性化陪伴</string>
+    <string name="TimeTravel">时光旅行</string>
+    <string name="DataStatistic">数据统计</string>
+    <string name="Settings">设置</string>
+
+
     <string name="My">我的</string>
 </resources>

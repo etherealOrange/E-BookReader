@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_main_nav"
+    app:startDestination="@id/fragment_book_shelf" >
+    <fragment
+        android:id="@+id/fragment_book_shelf"
+        android:name="com.example.ebook_reader.ui.BookShelf.BookShelf"
+        android:label="@string/MyBookshelf"
+        tools:layout="@layout/fragment_book_shelf" />
+    <fragment
+        android:id="@+id/fragment_personal_company"
+        android:name="com.example.ebook_reader.ui.PersonalCompany.PersonalCompany"
+        android:label="@string/PersonalCompany"
+        tools:layout="@layout/fragment_personal_company"/>
+    <fragment
+        android:id="@+id/fragment_time_travel"
+        android:name="com.example.ebook_reader.ui.TimeTravel.TimeTravel"
+        android:label="@string/TimeTravel"
+        tools:layout="@layout/fragment_time_travel"/>
+    <fragment
+        android:id="@+id/fragment_data_statistic"
+        android:name="com.example.ebook_reader.ui.DataStatistic.DataStatistic"
+        android:label="@string/DataStatistic"
+        tools:layout="@layout/fragment_data_statistic"/>
+    <fragment
+        android:id="@+id/fragment_settings"
+        android:name="com.example.ebook_reader.ui.Settings.Settings"
+        android:label="@string/Settings"
+        tools:layout="@layout/fragment_settings">
+
+    </fragment>
+
+
+</navigation>
