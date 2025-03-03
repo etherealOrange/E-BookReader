@@ -7,55 +7,14 @@
     tools:context=".ui.BookShelf.BookShelf"
     android:id="@+id/fragment_book_shelf"
     >
-
-    <com.google.android.material.card.MaterialCardView
+    <include
+        android:id="@+id/BookShelf_TopBar_ICD"
+        layout="@layout/bookshelf_topbar_icd"
         android:layout_width="match_parent"
-        android:layout_height="48dp"
-        android:id="@+id/Bookshelf_edit_SedTopBar"
+        android:layout_height="wrap_content"
         app:layout_constraintTop_toTopOf="parent"
-        app:cardElevation="2dp"
-        app:cardBackgroundColor="@android:color/white">
+        />
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="horizontal"
-            android:gravity="center_vertical">
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/Bookshelf_EditBook_btn"
-                style="@style/ActionButton"
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                app:icon="@drawable/ic_edit"
-                app:iconSize="18dp" />
-
-            <View
-                android:layout_width="1dp"
-                android:layout_height="24dp"
-                android:background="@color/divider" />
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/Bookshelf_SortBook_btn"
-                style="@style/ActionButton"
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                app:icon="@drawable/baseline_sort_24"
-                app:iconSize="18dp" />
-
-            <View
-                android:layout_width="1dp"
-                android:layout_height="24dp"
-                android:background="@color/divider" />
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/Bookshelf_NewFolder_btn"
-                style="@style/ActionButton"
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                app:icon="@drawable/baseline_create_new_folder_24"
-                app:iconSize="18dp" />
-
-        </LinearLayout>
-    </com.google.android.material.card.MaterialCardView>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/BookRecyclerView"
@@ -64,10 +23,16 @@
         android:paddingVertical="16dp"
         android:clipToPadding="false"
         android:overScrollMode="never"
-        app:layout_constraintTop_toBottomOf="@id/Bookshelf_edit_SedTopBar"
-        app:layout_constraintBottom_toBottomOf="parent"/>
-
-
+        app:layout_constraintTop_toBottomOf="@id/BookShelf_TopBar_ICD"
+        app:layout_constraintBottom_toTopOf="@+id/Bookshelf_BottomBar_ICD"/>
+    <include
+        android:id="@+id/Bookshelf_BottomBar_ICD"
+        layout="@layout/bookshelf_botbar_icd"
+        android:visibility="visible"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        />
 
 
 

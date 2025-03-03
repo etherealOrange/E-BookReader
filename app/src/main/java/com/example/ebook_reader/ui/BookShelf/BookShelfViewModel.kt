@@ -4,7 +4,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 sealed class BookAndFolderItem {}
 data class BookView(
@@ -26,6 +29,14 @@ data class FolderView(
 class BookShelfViewModel : ViewModel() {
     private val _items = MutableStateFlow<List<BookAndFolderItem>>(emptyList())
     val items: StateFlow<List<BookAndFolderItem>> = _items
+
+    val folderItem: StateFlow<List<FolderView>> = _items.map { i ->
+        i.filterIsInstance<FolderView>()
+    }.stateIn(
+        viewModelScope,
+        started = SharingStarted.WhileSubscribed(),
+        initialValue = emptyList()
+    )
 
     init {
         loadBooks()

@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="10dp"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <com.google.android.material.checkbox.MaterialCheckBox
+        android:id="@+id/CD_Selected_CheckBox"
+        android:visibility="visible"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toStartOf="@id/CD_CardView_Container"
+        app:layout_constraintTop_toTopOf="@id/CD_CardView_Container"
+        android:layout_margin="2dp"
+        android:elevation="5dp"
+        />
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/CD_CardView_Container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_marginHorizontal="8dp"
+        android:layout_marginVertical="5dp"
+        android:elevation="1dp"
+        >
+<!--       选择移动到文件夹 -->
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/Default_SelectFolder_CardView"
+            android:visibility="gone"
+            android:layout_width="match_parent"
+            android:layout_height="180dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            >
+            <ImageView
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                android:id="@+id/CD_FolderCover_IV"
+                android:layout_width="120dp"
+                android:layout_height="0dp"
+                android:src="@drawable/ic_launcher_foreground"
+                android:scaleType="centerCrop"
+                />
+            <TextView
+                app:layout_constraintTop_toTopOf="@+id/CD_FolderCover_IV"
+                app:layout_constraintStart_toEndOf="@+id/CD_FolderCover_IV"
+                android:maxWidth="240dp"
+                android:id="@+id/CD_FolderName_TV"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="30dp"
+                android:maxLines="5"
+                android:ellipsize="end"
+                android:layout_marginHorizontal="10dp"
+                android:text="文件夹名称:\naaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                android:textSize="12sp"
+                android:textColor="@color/black"
+
+                />
+            <TextView
+                app:layout_constraintBottom_toBottomOf="@id/CD_FolderCover_IV"
+                app:layout_constraintStart_toEndOf="@+id/CD_FolderCover_IV"
+                app:layout_constraintBaseline_toBottomOf="parent"
+                android:id="@+id/CD_FolderContainBooks_TV"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:text="共几本书"
+                android:textSize="12sp"
+                android:layout_marginHorizontal="10dp"
+                android:textColor="@color/black"
+                android:gravity="center"
+                />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+<!--       选择移动出这个文件夹-->
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/MoveOutFromFolder_CardView"
+            android:visibility="visible"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            >
+            <TextView
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                android:height="50dp"
+                android:layout_marginStart="50dp"
+                android:maxWidth="240dp"
+                android:id="@+id/CD_MoveOutFromFolder_TV"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:maxLines="5"
+                android:ellipsize="end"
+                android:layout_marginHorizontal="10dp"
+                android:gravity="center"
+                android:text="将书本移出这个文件夹"
+                android:textSize="12sp"
+                android:textColor="@color/black"
+
+
+                />
+
+
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+
+
+
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>

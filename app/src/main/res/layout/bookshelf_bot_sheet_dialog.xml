@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="20dp"
+        android:padding="20dp"
+        android:id="@+id/SheetDialogTitle"
+        android:text="移动到文件夹"
+        app:layout_constraintTop_toTopOf="parent"
+        android:textSize="20sp"
+        android:gravity="center"
+        android:textColor="@color/black"
+        android:background="@color/white"
+        />
+    <com.google.android.material.button.MaterialButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="完成"
+        android:id="@+id/SheetDialogFinish_BTN"
+        android:textSize="15sp"
+        style="@style/ActionButton"
+        app:strokeWidth="1dp"
+        app:strokeColor="@color/black"
+        app:layout_constraintEnd_toEndOf="@+id/SheetDialogTitle"
+        app:layout_constraintTop_toTopOf="@+id/SheetDialogTitle"
+        app:layout_constraintBottom_toBottomOf="@+id/SheetDialogTitle"
+        />
+    <View
+        android:id="@+id/SheetDialogDivider"
+        app:layout_constraintTop_toBottomOf="@+id/SheetDialogTitle"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/divider"
+        android:layout_margin="5dp"
+        />
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/SheetDialog_RecyclerView"
+        android:layout_margin="8dp"
+        android:layout_width="match_parent"
+        android:layout_height="400dp"
+        android:clipToPadding="false"
+        android:overScrollMode="never"
+        app:layout_constraintTop_toBottomOf="@+id/SheetDialogDivider"
+        app:layout_constraintBottom_toBottomOf="parent"
+
+        />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

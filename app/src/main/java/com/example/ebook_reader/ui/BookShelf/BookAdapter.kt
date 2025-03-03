@@ -20,6 +20,9 @@ class BookAdapter :ListAdapter<BookAndFolderItem, BookAdapter.ViewHolder>(
     //绑定数据
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val item = getItem(position)
+        //关闭CheckBox
+        holder.binding.CDSelectedCheckBox.visibility = View.GONE
+        //处理Book和Folder视图的绑定
         when(item){
             is BookView -> bindBook(holder, item)
             is FolderView -> bindFolder(holder, item)

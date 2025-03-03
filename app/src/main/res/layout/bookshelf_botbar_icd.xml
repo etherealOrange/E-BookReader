@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <com.google.android.material.card.MaterialCardView
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:id="@+id/BookShelf_BottomBar_Total"
+        android:visibility="visible"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:cardElevation="2dp"
+        app:cardBackgroundColor="@android:color/white">
+        <LinearLayout
+            android:id="@+id/Edit_BottomBar"
+            android:visibility="visible"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/BookShelf_Move_BTN"
+                style="@style/ActionButton"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:text="移动"
+                app:icon="@drawable/baseline_drive_file_move_rtl_24"
+                app:iconSize="18dp" />
+            <View
+                android:layout_width="1dp"
+                android:layout_height="24dp"
+                android:background="@color/divider" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/BookShelf_Delete_BTN"
+                style="@style/ActionButton"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:text="删除"
+                app:icon="@drawable/baseline_delete_24"
+                app:iconSize="18dp" />
+            <View
+                android:layout_width="1dp"
+                android:layout_height="24dp"
+                android:background="@color/divider" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/BookShelf_RenameFolder_BTN"
+                style="@style/ActionButton"
+                android:layout_width="wrap_content"
+                android:visibility="visible"
+                android:layout_height="match_parent"
+                android:text="重命名文件夹"
+                app:icon="@drawable/baseline_create_new_folder_24"
+                app:iconSize="18dp" />
+
+        </LinearLayout>
+
+
+
+    </com.google.android.material.card.MaterialCardView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
