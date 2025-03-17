@@ -12,10 +12,13 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
-class BookShelf_BotSheetDialog: BottomSheetDialogFragment() {
-    private  var _binding: BookshelfBotSheetDialogBinding? = null
-    private  val binding get() = _binding!!
+class BookShelf_BotSheetDialog(private var bookShelf : BookShelf): BottomSheetDialogFragment() {
+    private var _binding: BookshelfBotSheetDialogBinding? = null
+    private val binding get() = _binding!!
+    //获取Activity共享的ViewModel
     private val viewModel: BookShelfViewModel by activityViewModels()
+
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -31,10 +34,20 @@ class BookShelf_BotSheetDialog: BottomSheetDialogFragment() {
         binding.SheetDialogRecyclerView.layoutManager = LinearLayoutManager(context)
         binding.SheetDialogRecyclerView.adapter = adapter
         lifecycleScope.launch {
-            viewModel.folderItem.collectLatest {
+            viewModel.Folders.collectLatest {
                 adapter.submitList(it)
             }
         }
+        lifecycleScope.launch {
+            bookShelf.isInFolder.collectLatest {
+                if (it){
+                    binding.SheetDialogMoveOutFromFolder.visibility = View.VISIBLE
+                }else{
+                    binding.SheetDialogMoveOutFromFolder.visibility = View.GONE
+                }
+            }
+        }
+
         binding.SheetDialogFinishBTN.setOnClickListener {
             dismiss()
         }

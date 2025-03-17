@@ -1,157 +1,146 @@
 package com.example.ebook_reader.ui.BookShelf
 
+import android.app.Application
+import androidx.annotation.Nullable
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.room.ColumnInfo
+import androidx.room.Entity
+import androidx.room.ForeignKey
+import androidx.room.PrimaryKey
+import com.example.ebook_reader.DAO.AppDatabase
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+
 sealed class BookAndFolderItem {}
+//书本表
+@Entity(tableName = "BooksInfo",
+    foreignKeys = [
+        ForeignKey(
+            entity = FolderView::class,
+            parentColumns = ["uid"],
+            childColumns = ["inWhichFolder"],
+            onDelete = ForeignKey.CASCADE
+        )
+    ])
 data class BookView(
-    val uid: Long,
+    @PrimaryKey(autoGenerate = true) val uid: Long,
     val name: String,
     val currentChapter: Int,
     val currentPage: Int,
     val totalChapter: Int,
     val cover: String,
+    val isInFolder: Boolean = false,
+    val inWhichFolder: Long? = null,
 ):BookAndFolderItem()
+//文件夹表
+@Entity(tableName = "FoldersInfo")
 data class FolderView(
-    val uid: Long,
+    @PrimaryKey(autoGenerate = true) val uid: Long,
     val name: String,
     val booksNum: Long,
     val cover: String,
 ):BookAndFolderItem()
 
-//负责数据的 获取 处理 打包 更新 添加 删除
-class BookShelfViewModel : ViewModel() {
-    private val _items = MutableStateFlow<List<BookAndFolderItem>>(emptyList())
-    val items: StateFlow<List<BookAndFolderItem>> = _items
 
-    val folderItem: StateFlow<List<FolderView>> = _items.map { i ->
-        i.filterIsInstance<FolderView>()
+//负责数据的 获取 处理 打包 更新 添加 删除
+class BookShelfViewModel(application: Application): AndroidViewModel(application) {
+    //数据库连接
+    private val db = AppDatabase.getDatabase(application)
+    //Dao连接
+    private val booksAndFoldersInfoDao = db.booksAndFoldersInfoDao()
+    //私有书本
+    private var _Books = MutableStateFlow<List<BookView>>(emptyList())
+    //私有文件夹
+    private var _Folders = MutableStateFlow<List<FolderView>>(emptyList())
+    val Folders: StateFlow<List<FolderView>> get() = _Folders
+    //融合为一个流
+    val items: StateFlow<List<BookAndFolderItem>> = combine(_Books,_Folders) {
+        books, folders -> folders + books
     }.stateIn(
-        viewModelScope,
-        started = SharingStarted.WhileSubscribed(),
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
         initialValue = emptyList()
     )
 
     init {
-        loadBooks()
-    }
-    private fun loadBooks() {
-        viewModelScope.launch {
-            // 示例数据，实际应从数据库或网络获取
-            var mockBooks = listOf(
-                FolderView(
-                    uid = 1,
-                    name = "Android开发",
-                    booksNum = 5,
-                    cover = "https://img"
-                ),
-                BookView(
-                    uid = 2,
-                    name = "Android开发艺术探索2",
-                    currentChapter = 1,
-                    currentPage = 14,
-                    totalChapter = 20,
-                    cover = "https://img"
-                ),
-                BookView(
-                    uid = 3,
-                    name = "Android开发艺术探索2",
-                    currentChapter = 1,
-                    currentPage = 14,
-                    totalChapter = 20,
-                    cover = "https://img"
-                ),
-                BookView(
-                    uid = 4,
-                    name = "Android开发艺术探索2",
-                    currentChapter = 1,
-                    currentPage = 14,
-                    totalChapter = 20,
-                    cover = "https://img"
-                ),
-                BookView(
-                    uid = 5,
-                    name = "Android开发艺术探索2",
-                    currentChapter = 1,
-                    currentPage = 14,
-                    totalChapter = 20,
-                    cover = "https://img"
-                ),
-                BookView(
-                    uid = 6,
-                    name = "Android开发艺术探索2",
-                    currentChapter = 1,
-                    currentPage = 14,
-                    totalChapter = 20,
-                    cover = "https://img"
-                ),
-                BookView(
-                    uid = 11,
-                    name = "Android开发艺术探索2",
-                    currentChapter = 1,
-                    currentPage = 14,
-                    totalChapter = 20,
-                    cover = "https://img"
-                ),BookView(
-                    uid = 12,
-                    name = "Android开发艺术探索2",
-                    currentChapter = 1,
-                    currentPage = 14,
-                    totalChapter = 20,
-                    cover = "https://img"
-                ),
-                BookView(
-                    uid = 13,
-                    name = "Android开发艺术探索2",
-                    currentChapter = 1,
-                    currentPage = 14,
-                    totalChapter = 20,
-                    cover = "https://img"
-                ),
-                BookView(
-                    uid = 14,
-                    name = "Android开发艺术探索2",
-                    currentChapter = 1,
-                    currentPage = 14,
-                    totalChapter = 20,
-                    cover = "https://img"
-                ),
-            )
-            _items.value = mockBooks
-            delay(5000)
-            mockBooks = listOf(
-                FolderView(
-                    uid = 2,
-                    name = "Android开发",
-                    booksNum = 5,
-                    cover = "https://img"
-                ),
-                BookView(
-                    uid = 7,
-                    name = "Android开发艺术探索2",
-                    currentChapter = 1,
-                    currentPage = 14,
-                    totalChapter = 20,
-                    cover = "https://img"
-                ),
-            )
-            _items.value = mockBooks
 
+        loadBooks()
+        loadFolders()
+        viewModelScope.launch {
+            doSimulation()
         }
 
     }
-    fun addBook(book: BookView) {
+    suspend fun doSimulation(){
+        if (booksAndFoldersInfoDao.getBooksNum()<=0){
+            simulateInsertBooks()
+            simulateInsertFolders()
+        }
+    }
+
+    @OptIn(FlowPreview::class)
+    private fun loadFolders() {
+        viewModelScope.launch {
+            booksAndFoldersInfoDao.getAllFolders()
+                .debounce (200) //防抖200
+                .distinctUntilChanged() //去除查询带来的数据库变化
+                .collectLatest {
+                    _Folders.value = it
+                }
+        }
+    }
+
+    @OptIn(FlowPreview::class)
+    private fun loadBooks() {
+        viewModelScope.launch {
+            booksAndFoldersInfoDao.getAllBooks()
+                .debounce (200) //防抖200
+                .distinctUntilChanged() //去除查询带来的数据库变化
+                .collectLatest {
+                    _Books.value = it
+                }
+        }
 
     }
-    fun handleBookClick(book: BookView) {
-        // 处理点击事件
-
+    //插入书本
+    fun insertBook(book: BookView) {
+        viewModelScope.launch {
+            booksAndFoldersInfoDao.insertBook(book)
+        }
+    }
+    //插入文件夹
+    fun insertFolder(folder: FolderView) {
+        viewModelScope.launch {
+            booksAndFoldersInfoDao.insertFolder(folder)
+        }
+    }
+    //模拟插入书本
+    private fun simulateInsertBooks(){
+        viewModelScope.launch {
+            for (i in 0..15){
+                insertBook(BookView(0,"book$i",1,10,10,"",false,null))
+            }
+        }
+    }
+    //模拟插入文件夹
+    private fun simulateInsertFolders(){
+        viewModelScope.launch {
+            for (i in 0..2){
+                insertFolder(FolderView(0,"folder$i",0,""))
+            }
+        }
     }
 
 }

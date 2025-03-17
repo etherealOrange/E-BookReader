@@ -8,7 +8,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.ebook_reader.databinding.CardviewBinding
 
 class BookAdapter :ListAdapter<BookAndFolderItem, BookAdapter.ViewHolder>(
-    BookDiffCallBack()
+    BookAndFolderDiffCallBack()
     )
 {
     //ViewHolder内部类, 创建ViewHolder实例

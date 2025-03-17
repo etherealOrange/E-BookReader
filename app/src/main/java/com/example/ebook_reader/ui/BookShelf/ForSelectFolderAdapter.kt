@@ -6,12 +6,10 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.ebook_reader.databinding.CardviewForselectfolderBinding
-import kotlin.math.log
 
-class ForSelectFolderAdapter(private var isInFolder: Boolean = false): ListAdapter<BookAndFolderItem, ForSelectFolderAdapter.ViewHolder>(
-    BookDiffCallBack()
+class ForSelectFolderAdapter(): ListAdapter<FolderView, ForSelectFolderAdapter.ViewHolder>(
+    FolderDiffCallBack()
 ) {
-
     //ViewHolder内部类, 创建ViewHolder实例
     inner class ViewHolder(val binding: CardviewForselectfolderBinding): RecyclerView.ViewHolder(binding.root)
 
@@ -19,17 +17,11 @@ class ForSelectFolderAdapter(private var isInFolder: Boolean = false): ListAdapt
         val binding = CardviewForselectfolderBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         return ViewHolder(binding)
     }
-
-
     //绑定数据
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val item = getItem(position)
-        //只处理Folder视图的绑定
-        when(item){
-            is FolderView -> bindFolder(holder, item)
-            else -> holder.binding.root.visibility = View.GONE
-        }
-
+        //处理Folder视图的绑定
+        bindFolder(holder, item)
     }
     //绑定 FolderView  没有添加 头选项
     private fun bindFolder(
@@ -40,14 +32,12 @@ class ForSelectFolderAdapter(private var isInFolder: Boolean = false): ListAdapt
         //选择要显示 文件夹 视图
         binding.CDSelectedCheckBox.visibility = View.VISIBLE
         binding.DefaultSelectFolderCardView.visibility = View.VISIBLE
-        binding.MoveOutFromFolderCardView.visibility = View.GONE
 
         //图片加载逻辑
 //        binding.CDFolderCoverIV
         binding.CDFolderNameTV.text = view.name
         val containBooksText = "共${view.booksNum}本书"
         binding.CDFolderContainBooksTV.text = containBooksText
-
 }
 
 }

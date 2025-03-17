@@ -4,10 +4,14 @@ import android.os.Bundle
 import android.view.View
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.doOnAttach
+import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.navigateUp
@@ -17,11 +21,22 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.ebook_reader.databinding.ActivityMainBinding
 import com.example.ebook_reader.databinding.NavViewHeadMainBinding
+import com.example.ebook_reader.ui.BookShelf.BookShelfViewModel
+import kotlin.getValue
 
 class Main_Activity : AppCompatActivity() {
     //设置Activity的布局文件
     private lateinit var binding: ActivityMainBinding
     private  lateinit var appBarConfiguration: AppBarConfiguration
+    //设置Viewmodel
+    private val viewModel: BookShelfViewModel by viewModels{
+        object : ViewModelProvider.Factory{
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                @Suppress("UNCHECKED_CAST")
+                return BookShelfViewModel(application) as T
+            }
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

@@ -1,6 +1,5 @@
 package com.example.ebook_reader.ui.BookShelf
 
-import androidx.fragment.app.viewModels
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
@@ -10,20 +9,26 @@ import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import com.example.ebook_reader.databinding.FragmentBookShelfBinding
-import com.example.ebook_reader.ui.BookShelf.BookShelf_BotSheetDialog
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 class BookShelf : Fragment() {
+    //ViewBinding
     private var _binding: FragmentBookShelfBinding? = null
     private val binding get() = _binding!!
+    //TopBar和BottomBar include布局 和底部抽屉的布局
     private val topICD get() = binding.BookShelfTopBarICD
     private val bottomICD get() = binding.BookshelfBottomBarICD
+    private val bottomSheetDialog = BookShelf_BotSheetDialog(this)
+
+    //获取Activity共享的ViewModel
     private val viewModel: BookShelfViewModel by activityViewModels()
-    private val bottomSheetDialog = BookShelf_BotSheetDialog()
 
     private var isEditModule = false
-    private var isInFolder = false
+    private var  _isInFolder = MutableStateFlow(false)
+    val isInFolder : StateFlow<Boolean> get() = _isInFolder
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -80,7 +85,7 @@ class BookShelf : Fragment() {
         //设置layoutManager和adapter
         binding.BookRecyclerView.layoutManager = GridLayoutManager(context, 3)
         binding.BookRecyclerView.adapter = bookAdapter
-        //动态更新数据逻辑
+        //动态更新RecyclerView数据逻辑
         lifecycleScope.launch {
             viewModel.items.collectLatest { newList ->
                 bookAdapter.submitList(newList)
@@ -113,7 +118,7 @@ class BookShelf : Fragment() {
         topICD.BookshelfAllDownBTN.setOnClickListener {
             if (isEditModule)
             {
-                when(isInFolder)
+                when(isInFolder.value)
                 {
                     true -> {
                         setTopBarToInFolderTopBar()
@@ -127,26 +132,21 @@ class BookShelf : Fragment() {
             }
         }
         //设置在编辑模式下 两种页面 移动按钮 呼叫底部抽屉
+        //通过parentFragmentManager管理父 Fragment 或 Activity 中的 Fragment 事务
+        //启动另一个 Fragment（如 DialogFragment）
         bottomICD.BookShelfMoveBTN.setOnClickListener {
             bottomSheetDialog.show(parentFragmentManager,bottomSheetDialog.tag )
 
         }
 
 
-
-
-        //上拉 的下抽屉 触发按钮 设置
-//        bottomICD.BookShelfMoveBTN.setOnClickListener {
-//            when(bottomSheetDialog.isVisible){
-//                true ->
-//                    bottomSheetDialog.dismiss()
-//                false ->
-//                    bottomSheetDialog.show(parentFragmentManager,bottomSheetDialog.tag )
-//            }
-//        }
-
     }
 
+    override fun onStart() {
+        super.onStart()
+        isEditModule =false
+        _isInFolder.value =false
+    }
 
 
     override fun onDestroy() {

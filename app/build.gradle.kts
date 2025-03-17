@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    id("com.google.devtools.ksp")
 }
 
 android {
@@ -42,6 +43,14 @@ android {
 }
 
 dependencies {
+    implementation(libs.androidx.room.compiler){
+//排除和其他模组的冲突
+        exclude(group = "com.intellij", module = "annotations")
+    }
+    implementation(libs.androidx.room.ktx)
+    implementation(libs.androidx.room.runtime)
+//下面是ksp, 也要安装的
+    ksp(libs.androidx.room.compiler)
     implementation(libs.fragment.ktx)
     implementation(libs.navigation.ui)
     implementation(libs.navigation.fragment)
