@@ -26,7 +26,10 @@ class BookShelf : Fragment() {
     //获取Activity共享的ViewModel
     private val viewModel: BookShelfViewModel by activityViewModels()
 
-    private var isEditModule = false
+
+    //编辑状态 和 在文件夹内 Boolean 状态
+    private var _isEditModule = MutableStateFlow(false)
+    val isEditModel : StateFlow<Boolean> get() = _isEditModule
     private var  _isInFolder = MutableStateFlow(false)
     val isInFolder : StateFlow<Boolean> get() = _isInFolder
 
@@ -80,8 +83,8 @@ class BookShelf : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        //实例化ListAdapter
-        val bookAdapter = BookAdapter()
+        //设置书本的ListAdapter
+        val bookAdapter = BookAdapter(this)
         //设置layoutManager和adapter
         binding.BookRecyclerView.layoutManager = GridLayoutManager(context, 3)
         binding.BookRecyclerView.adapter = bookAdapter
@@ -98,25 +101,25 @@ class BookShelf : Fragment() {
         setBottomBarToNoneBottomBar()
         //设置在默认页面 Edit模式 进入按钮
         topICD.BookShelfEditBTN.setOnClickListener {
-            if (!isEditModule)
+            if (!_isEditModule.value)
             {
-                isEditModule = true
+                _isEditModule.value = true
                 setTopBarToEditModuleTopBar()
                 setBottomBarToEditModuleBottomBar()
             }
         }
         //设置在文件夹内 Edit模式 进入按钮
         topICD.BookShelfEditInFolderBTN.setOnClickListener {
-            if (!isEditModule)
+            if (!_isEditModule.value)
             {
-                isEditModule = true
+                _isEditModule.value = true
                 setTopBarToEditModuleTopBar()
                 setBottomBarToInFolderBottomBar()
             }
         }
         //设置两种页面下 Edit模式 退出按钮
         topICD.BookshelfAllDownBTN.setOnClickListener {
-            if (isEditModule)
+            if (_isEditModule.value)
             {
                 when(isInFolder.value)
                 {
@@ -127,7 +130,7 @@ class BookShelf : Fragment() {
                         setTopBarToDefaultTopBar()
                     }
                 }
-                isEditModule = false
+                _isEditModule.value = false
                 setBottomBarToNoneBottomBar()
             }
         }
@@ -144,7 +147,7 @@ class BookShelf : Fragment() {
 
     override fun onStart() {
         super.onStart()
-        isEditModule =false
+        _isEditModule.value =false
         _isInFolder.value =false
     }
 
@@ -152,5 +155,7 @@ class BookShelf : Fragment() {
     override fun onDestroy() {
         super.onDestroy()
         _binding = null
+
+
     }
 }
