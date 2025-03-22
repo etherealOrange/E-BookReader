@@ -17,8 +17,8 @@ class BookAdapter (private val bookShelf: BookShelf):ListAdapter<BookAndFolderIt
     //是否处于编辑模式 的Boolean
     private var isInEditModel = false
     //选中的书本id 和 文件夹id
-    private val _selectedBooks_id = mutableListOf<Long>()
-    private val _selectedFolder_id = mutableListOf<Long>()
+    private val _selectedBooks_id = mutableSetOf<Long>()
+    private val _selectedFolder_id = mutableSetOf<Long>()
     //ViewHolder内部类, 创建ViewHolder实例
     inner class ViewHolder(val binding: CardviewBinding): RecyclerView.ViewHolder(binding.root){
         //获取当前ViewHolder的位置的ItemId 和 是否是书本
@@ -175,6 +175,20 @@ class BookAdapter (private val bookShelf: BookShelf):ListAdapter<BookAndFolderIt
             (view.currentChapter.toFloat() / view.totalChapter.toFloat() * 100).toInt()
         binding.CDReadProgressPB.progress = readProgress
     }
-
-
+    //取消全选
+    fun cancelAllSelected(){
+        _selectedBooks_id.clear()
+        _selectedFolder_id.clear()
+        notifyItemRangeChanged(0,itemCount)
+    }
+    //全部选择
+    fun selectedAllSelected(){
+        for (item in currentList){
+            when (item){
+                is BookView->_selectedBooks_id.add(item.uid)
+                is FolderView->_selectedFolder_id.add(item.uid)
+            }
+        }
+        notifyItemRangeChanged(0,itemCount)
+    }
 }

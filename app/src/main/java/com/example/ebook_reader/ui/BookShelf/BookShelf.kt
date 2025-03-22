@@ -5,6 +5,7 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.isVisible
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
@@ -140,6 +141,16 @@ class BookShelf : Fragment() {
         bottomICD.BookShelfMoveBTN.setOnClickListener {
             bottomSheetDialog.show(parentFragmentManager,bottomSheetDialog.tag )
 
+        }
+        //设置Topbar的全选按钮
+        topICD.BookShelfAllSelectBTN.setOnClickListener {
+            if (topICD.BookShelfAllSelectBTN.isVisible)
+                bookAdapter.selectedAllSelected()
+        }
+        //设置TopBar的取消全选按钮
+        topICD.BookshelfCancelSelectBTN.setOnClickListener {
+            if(topICD.BookshelfCancelSelectBTN.isVisible)
+                bookAdapter.cancelAllSelected()
         }
 
 
