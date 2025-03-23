@@ -12,6 +12,7 @@ import androidx.core.view.doOnAttach
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.navigateUp
@@ -22,6 +23,8 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.ebook_reader.databinding.ActivityMainBinding
 import com.example.ebook_reader.databinding.NavViewHeadMainBinding
 import com.example.ebook_reader.ui.BookShelf.BookShelfViewModel
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 import kotlin.getValue
 
 class Main_Activity : AppCompatActivity() {
@@ -80,30 +83,20 @@ class Main_Activity : AppCompatActivity() {
         )
         //设置ActionBar和NavController的关联
         setupActionBarWithNavController(navControl, appBarConfiguration)
-
         //启动底部导航栏
         navView.setupWithNavController(navControl)
+        //获取view Model的数据 设置顶部状态栏的 显示与隐藏
+        lifecycleScope.launch {
+            viewModel.isHideActionBar.collectLatest {
+                if (it){
+                    supportActionBar?.hide()
+                }else{
+                    supportActionBar?.show()
+                }
+            }
+        }
 
 
-
-        //设置状态栏和导航栏间隙
-//        enableEdgeToEdge()
-//        ViewCompat.setOnApplyWindowInsetsListener(binding.root) {
-//            v, insets -> val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-//            v.setPadding(
-//                systemBars.left,
-//                systemBars.top,
-//                systemBars.right,
-//                systemBars.bottom)
-//            insets
-//        }
-
-//        val recyclerView: RecyclerView = findViewById(R.id.BookRecyclerView)
-//        //设置RecyclerView的布局管理器为网格布局
-//        recyclerView.layoutManager = GridLayoutManager(this, 3)
-//        val items = listOf("Book 1", "Book 2", "Book 3", "Book 4", "Book 5", "Book 6","Book 3", "Book 4", "Book 5", "Book 6","Book 3", "Book 4", "Book 5", "Book 6","Book 3", "Book 4", "Book 5", "Book 6") // Example data
-//        //设置RecyclerView的适配器
-//        recyclerView.adapter = CardAdapter(items)
     }
 
     override fun onSupportNavigateUp(): Boolean {

@@ -11,7 +11,7 @@
         app:layout_constraintTop_toTopOf="parent"
         app:cardElevation="2dp"
         app:cardBackgroundColor="@android:color/white">
-
+        <!-- Default_TopBar -->
         <LinearLayout
             android:id="@+id/Default_TopBar"
             android:visibility="gone"
@@ -54,6 +54,7 @@
         app:iconSize="18dp" />
 
 </LinearLayout>
+        <!-- EditModule_TopBar -->
         <LinearLayout
             android:id="@+id/EditModule_TopBar"
             android:visibility="gone"
@@ -95,6 +96,7 @@
                 app:iconSize="18dp" />
 
         </LinearLayout>
+        <!-- InFolder_TopBar -->
         <LinearLayout
             android:id="@+id/InFolder_TopBar"
             android:visibility="visible"
@@ -102,6 +104,19 @@
             android:layout_height="match_parent"
             android:orientation="horizontal"
             android:gravity="center_vertical">
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/Bookshelf_BackToDefault_BTN"
+                style="@style/ActionButton"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="match_parent"
+                android:text="返回"
+                app:icon="@drawable/baseline_arrow_back_24"
+                app:iconSize="18dp" />
+            <View
+                android:layout_width="1dp"
+                android:layout_height="24dp"
+                android:background="@color/divider" />
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/BookShelf_EditInFolder_BTN"
                 style="@style/ActionButton"
@@ -118,7 +133,7 @@
                 android:background="@color/divider" />
             <TextView
                 android:layout_width="0dp"
-                android:layout_weight="2"
+                android:layout_weight="2.5"
                 android:layout_height="wrap_content"
                 android:text="文件夹名称aaaaaaaaaaaaaaaaaaaaaaaaaa"
                 android:ellipsize="end"

@@ -1,6 +1,7 @@
 package com.example.ebook_reader.ui.BookShelf
 
 import android.os.Bundle
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -124,6 +125,27 @@ class BookShelf : Fragment() {
         topICD.BookshelfAllDownBTN.setOnClickListener {
             switchEditModule()
         }
+        //暂时使用导入按钮代替文件夹按钮 ！！！
+        topICD.BookshelfBookImportBTN.setOnClickListener {
+            when(isInFolder.value) {
+                true -> {
+                    _isInFolder.value = false
+                    viewModel.showActionBar()
+                }
+                false -> {
+                    _isInFolder.value = true
+                    viewModel.hideActionBar()
+                }
+            }
+            setTopBarVisibility()
+            setBottomBarVisibility()
+        }
+        topICD.BookshelfBackToDefaultBTN.setOnClickListener {
+            _isInFolder.value = false
+            viewModel.showActionBar()
+            setTopBarVisibility()
+            setBottomBarVisibility()
+        }
 
         //设置在编辑模式下 两种页面 移动按钮 呼叫底部抽屉
         //通过parentFragmentManager管理父 Fragment 或 Activity 中的 Fragment 事务
@@ -148,15 +170,18 @@ class BookShelf : Fragment() {
 
     override fun onStart() {
         super.onStart()
+
         _isEditModule.value =false
         _isInFolder.value =false
+        Log.d("BookShelf onStart","success")
     }
-
-
+    override fun onStop() {
+        super.onStop()
+        Log.d("BookShelf onStop","success")
+    }
     override fun onDestroy() {
         super.onDestroy()
         _binding = null
-
-
+        Log.d("BookShelf onDestroy","success")
     }
 }

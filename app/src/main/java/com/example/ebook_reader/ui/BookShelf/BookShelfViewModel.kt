@@ -73,6 +73,15 @@ class BookShelfViewModel(application: Application): AndroidViewModel(application
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = emptyList()
     )
+    //是否隐藏ActionBar的辅助存储 和方法
+    private var _isHideActionBar = MutableStateFlow(false)
+    val isHideActionBar: StateFlow<Boolean> get() = _isHideActionBar
+    fun hideActionBar(){
+        _isHideActionBar.value = true
+    }
+    fun showActionBar(){
+        _isHideActionBar.value = false
+    }
 
     init {
 
