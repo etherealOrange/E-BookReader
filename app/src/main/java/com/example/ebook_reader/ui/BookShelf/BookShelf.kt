@@ -46,40 +46,52 @@ class BookShelf : Fragment() {
         _binding = FragmentBookShelfBinding.inflate(inflater, container, false)
         return binding.root
     }
-    //设置TopBar的可见性 -》 默认TopBar
-    private fun setTopBarToDefaultTopBar(){
+    //设置Topbar的可见性模式 根据isInfolder 和 isEditModel
+    private fun setTopBarVisibility(){
         topICD.BookShelfTopBarTotal.visibility = View.VISIBLE
-        topICD.DefaultTopBar.visibility = View.VISIBLE
-        topICD.InFolderTopBar.visibility = View.GONE
-        topICD.EditModuleTopBar.visibility = View.GONE
+        when (isInFolder.value){
+            true ->{
+                topICD.DefaultTopBar.visibility = View.GONE
+                topICD.InFolderTopBar.visibility = View.VISIBLE
+                topICD.EditModuleTopBar.visibility = View.GONE
+            }
+            false ->{
+                when(isEditModel.value){
+                    true->{
+                        topICD.DefaultTopBar.visibility = View.GONE
+                        topICD.InFolderTopBar.visibility = View.GONE
+                        topICD.EditModuleTopBar.visibility = View.VISIBLE
+                    }
+                    false->{
+                        topICD.DefaultTopBar.visibility = View.VISIBLE
+                        topICD.InFolderTopBar.visibility = View.GONE
+                        topICD.EditModuleTopBar.visibility = View.GONE
+                    }
+                }
+            }
+        }
     }
-    //设置TopBar的可见性 -》 编辑模式TopBar
-    private fun setTopBarToEditModuleTopBar(){
-        topICD.BookShelfTopBarTotal.visibility = View.VISIBLE
-        topICD.DefaultTopBar.visibility = View.GONE
-        topICD.InFolderTopBar.visibility = View.GONE
-        topICD.EditModuleTopBar.visibility = View.VISIBLE
+    //设置BotBar的可见性模式 根据isInfolder 和 isEditModel
+    private fun setBottomBarVisibility(){
+        when(isInFolder.value or isEditModel.value){
+            true->{
+                bottomICD.BookShelfBottomBarTotal.visibility = View.VISIBLE
+                when(isInFolder.value){
+                    true->bottomICD.BookShelfRenameFolderBTN.visibility = View.GONE
+                    false->bottomICD.BookShelfRenameFolderBTN.visibility = View.VISIBLE
+                }
+            }
+            false->bottomICD.BookShelfBottomBarTotal.visibility = View.GONE
+        }
     }
-    //设置TopBar的可见性 -》 在文件夹内TopBar
-    private fun setTopBarToInFolderTopBar(){
-        topICD.BookShelfTopBarTotal.visibility = View.VISIBLE
-        topICD.DefaultTopBar.visibility = View.GONE
-        topICD.InFolderTopBar.visibility = View.VISIBLE
-        topICD.EditModuleTopBar.visibility = View.GONE
-    }
-    //设置BottomBar的可见性 -》 无BottomBar
-    private fun setBottomBarToNoneBottomBar() {
-        bottomICD.BookShelfBottomBarTotal.visibility = View.GONE
-    }
-    //设置BottomBar的可见性 -》 编辑模式BottomBar
-    private fun setBottomBarToEditModuleBottomBar() {
-        bottomICD.BookShelfBottomBarTotal.visibility = View.VISIBLE
-        bottomICD.BookShelfRenameFolderBTN.visibility = View.VISIBLE
-    }
-    //设置TopBar的可见性 -》 在文件夹内TopBar
-    private fun setBottomBarToInFolderBottomBar() {
-        bottomICD.BookShelfBottomBarTotal.visibility = View.VISIBLE
-        bottomICD.BookShelfRenameFolderBTN.visibility = View.GONE
+    //切换编辑模式 并显示对应的TopBar和BottomBar
+    private fun switchEditModule(){
+        when(isEditModel.value){
+            true -> _isEditModule.value=false
+            false -> _isEditModule.value=true
+        }
+        setTopBarVisibility()
+        setBottomBarVisibility()
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -97,44 +109,22 @@ class BookShelf : Fragment() {
         }
 
 
+        setTopBarVisibility()
+        setBottomBarVisibility()
 
-        setTopBarToDefaultTopBar()
-        setBottomBarToNoneBottomBar()
         //设置在默认页面 Edit模式 进入按钮
         topICD.BookShelfEditBTN.setOnClickListener {
-            if (!_isEditModule.value)
-            {
-                _isEditModule.value = true
-                setTopBarToEditModuleTopBar()
-                setBottomBarToEditModuleBottomBar()
-            }
+            switchEditModule()
         }
         //设置在文件夹内 Edit模式 进入按钮
         topICD.BookShelfEditInFolderBTN.setOnClickListener {
-            if (!_isEditModule.value)
-            {
-                _isEditModule.value = true
-                setTopBarToEditModuleTopBar()
-                setBottomBarToInFolderBottomBar()
-            }
+            switchEditModule()
         }
         //设置两种页面下 Edit模式 退出按钮
         topICD.BookshelfAllDownBTN.setOnClickListener {
-            if (_isEditModule.value)
-            {
-                when(isInFolder.value)
-                {
-                    true -> {
-                        setTopBarToInFolderTopBar()
-                    }
-                    false -> {
-                        setTopBarToDefaultTopBar()
-                    }
-                }
-                _isEditModule.value = false
-                setBottomBarToNoneBottomBar()
-            }
+            switchEditModule()
         }
+
         //设置在编辑模式下 两种页面 移动按钮 呼叫底部抽屉
         //通过parentFragmentManager管理父 Fragment 或 Activity 中的 Fragment 事务
         //启动另一个 Fragment（如 DialogFragment）
