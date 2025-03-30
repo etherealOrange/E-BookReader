@@ -24,6 +24,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 sealed class BookAndFolderItem {}
+//TODO:使用重新设计后的数据类 记得更改Dao和数据库
 //书本表
 @Entity(tableName = "BooksInfo",
     foreignKeys = [
@@ -76,9 +77,17 @@ class BookShelfViewModel(application: Application): AndroidViewModel(application
     //是否隐藏ActionBar的辅助存储 和方法
     private var _isHideActionBar = MutableStateFlow(false)
     val isHideActionBar: StateFlow<Boolean> get() = _isHideActionBar
+
+
+    /**
+     * 通过更改VM中的值 隐藏ActionBar
+     */
     fun hideActionBar(){
         _isHideActionBar.value = true
     }
+    /**
+     * 通过更改VM中的值 显示ActionBar
+     */
     fun showActionBar(){
         _isHideActionBar.value = false
     }

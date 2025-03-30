@@ -175,6 +175,8 @@ class BookAdapter (private val bookShelf: BookShelf):ListAdapter<BookAndFolderIt
             (view.currentChapter.toFloat() / view.totalChapter.toFloat() * 100).toInt()
         binding.CDReadProgressPB.progress = readProgress
     }
+    //TODO:添加删除数据的逻辑
+
     //取消全选
     fun cancelAllSelected(){
         _selectedBooks_id.clear()

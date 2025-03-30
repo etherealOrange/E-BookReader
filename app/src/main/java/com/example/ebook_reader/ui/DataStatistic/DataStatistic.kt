@@ -19,7 +19,7 @@ class DataStatistic : Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // TODO: Use the ViewModel
+        // TODO: 数据收集的onCreate代码
     }
 
     override fun onCreateView(
