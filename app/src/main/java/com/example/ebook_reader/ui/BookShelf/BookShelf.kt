@@ -25,7 +25,7 @@ class BookShelf : Fragment() {
     //TopBar和BottomBar include布局 和底部抽屉的布局
     private val topICD get() = binding.BookShelfTopBarICD
     private val bottomICD get() = binding.BookshelfBottomBarICD
-    private val bottomSheetDialog = BookShelf_BotSheetDialog(this)
+    private val bottomSheetDialog = BookShelf_BotSheetDialog()
 
     //获取Activity共享的ViewModel
     private val viewModel: BookShelfViewModel by activityViewModels()
@@ -91,7 +91,7 @@ class BookShelf : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         //设置书本的ListAdapter
-        val bookAdapter = BookAdapter(this)
+        val bookAdapter = BookAdapter(viewModel)
         //设置layoutManager和adapter
         binding.BookRecyclerView.layoutManager = GridLayoutManager(context, 3)
         binding.BookRecyclerView.adapter = bookAdapter

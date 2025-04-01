@@ -6,8 +6,9 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.ebook_reader.databinding.CardviewForselectfolderBinding
+import com.example.ebook_reader.entities.FolderView
 
-class ForSelectFolderAdapter(): ListAdapter<FolderView, ForSelectFolderAdapter.ViewHolder>(
+class ForSelectFolderAdapter(private val viewModel: BookShelfViewModel): ListAdapter<FolderView, ForSelectFolderAdapter.ViewHolder>(
     FolderDiffCallBack()
 ) {
     //ViewHolder内部类, 创建ViewHolder实例
@@ -35,8 +36,8 @@ class ForSelectFolderAdapter(): ListAdapter<FolderView, ForSelectFolderAdapter.V
 
         //图片加载逻辑
 //        binding.CDFolderCoverIV
-        binding.CDFolderNameTV.text = view.name
-        val containBooksText = "共${view.booksNum}本书"
+        binding.CDFolderNameTV.text = view.title
+        val containBooksText = "共${viewModel.getBooksNumInFolder(view.folderId)}本书"
         binding.CDFolderContainBooksTV.text = containBooksText
 }
 

@@ -3,19 +3,20 @@ package com.example.ebook_reader.ui.BookShelf
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.ebook_reader.databinding.CardviewBinding
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.launch
+import com.example.ebook_reader.entities.BookAndFolderItem
+import com.example.ebook_reader.entities.BookView
+import com.example.ebook_reader.entities.FolderView
 
-class BookAdapter (private val bookShelf: BookShelf):ListAdapter<BookAndFolderItem, BookAdapter.ViewHolder>(
+
+class BookAdapter (private val viewModel: BookShelfViewModel):ListAdapter<BookAndFolderItem, BookAdapter.ViewHolder>(
     BookAndFolderDiffCallBack()
     )
 {
     //是否处于编辑模式 的Boolean
-    private var isInEditModel = false
+
     //选中的书本id 和 文件夹id
     private val _selectedBooks_id = mutableSetOf<Long>()
     private val _selectedFolder_id = mutableSetOf<Long>()
@@ -28,7 +29,7 @@ class BookAdapter (private val bookShelf: BookShelf):ListAdapter<BookAndFolderIt
             //让CheckBox不可点击
             binding.CDSelectedCheckBox.isClickable=false
             binding.root.setOnClickListener {
-                when (isInEditModel){
+                when (viewModel.isEditModel.value){
                     true->{
                         //编辑模式下的点击事件
                         inEditModelClickChange()
@@ -87,17 +88,6 @@ class BookAdapter (private val bookShelf: BookShelf):ListAdapter<BookAndFolderIt
         return ViewHolder(binding)
     }
 
-    init {
-        //延迟初始化监听是否处于编辑模式, 实时更改isInEditModel 清空已选择的内容 并通知修改视图
-        bookShelf.lifecycleScope.launch {
-            bookShelf.isEditModel.collectLatest {
-                isInEditModel = it
-                _selectedBooks_id.clear()
-                _selectedFolder_id.clear()
-                notifyItemRangeChanged(0, itemCount)
-            }
-        }
-    }
 
     //绑定数据
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
@@ -109,11 +99,11 @@ class BookAdapter (private val bookShelf: BookShelf):ListAdapter<BookAndFolderIt
         when(item){
             is BookView ->{
                 bindBook(holder, item)
-                itemId = item.uid
+                itemId = item.bookId
             }
             is FolderView -> {
                 bindFolder(holder, item)
-                itemId = item.uid
+                itemId = item.folderId
             }
         }
         //给当前ViewHolder提供当前位置的ItemId 和 是否是书本 为了在点击事件中使用
@@ -123,7 +113,7 @@ class BookAdapter (private val bookShelf: BookShelf):ListAdapter<BookAndFolderIt
     //判断是否在编辑模式下 显示或隐藏CheckBox 以及显示情况下是否选中
     private fun showCheckBox(binding: CardviewBinding,itemId: Long,isRefBook: Boolean){
         //根据是否处于编辑模式显示CheckBox
-        when (isInEditModel){
+        when (viewModel.isEditModel.value){
             false ->binding.CDSelectedCheckBox.visibility = View.GONE
             true ->{
                 binding.CDSelectedCheckBox.visibility = View.VISIBLE
@@ -144,14 +134,14 @@ class BookAdapter (private val bookShelf: BookShelf):ListAdapter<BookAndFolderIt
     ) {
         val binding = holder.binding
         //显示编辑模式下的CheckBox
-        showCheckBox(binding,view.uid,false)
+        showCheckBox(binding,view.folderId,false)
         //显示书本 而非文件夹
         binding.CardViewBook.visibility = View.GONE
         binding.CardViewFolder.visibility = View.VISIBLE
         //图片加载逻辑
 //        binding.CDFolderCoverIV
-        binding.CDFolderNameTV.text = view.name
-        val containBooksText = "共${view.booksNum}本书"
+        binding.CDFolderNameTV.text = view.title
+        val containBooksText = "共${viewModel.getBooksNumInFolder(view.folderId)}本书"
         binding.CDFolderContainBooksTV.text = containBooksText
     }
 
@@ -162,17 +152,17 @@ class BookAdapter (private val bookShelf: BookShelf):ListAdapter<BookAndFolderIt
     ) {
         val binding = holder.binding
         //显示编辑模式下的CheckBox
-        showCheckBox(binding,view.uid,true)
+        showCheckBox(binding,view.bookId,true)
         //显示文件夹 而不是书本
         binding.CardViewFolder.visibility = View.GONE
         binding.CardViewBook.visibility = View.VISIBLE
         //图片加载逻辑
 //        binding.CDBookCoverIV
-        binding.CDBookTitleTV.text = view.name
-        val chapterProgressText = "读到第${view.currentChapter}章/总共${view.totalChapter}章"
+        binding.CDBookTitleTV.text = view.title
+        val chapterProgressText = "读到第${view.currentPage}页/总共${view.totalPages}页"
         binding.CDChapterProgressTV.text = chapterProgressText
         val readProgress =
-            (view.currentChapter.toFloat() / view.totalChapter.toFloat() * 100).toInt()
+            (view.currentPage.toFloat() / view.totalPages.toFloat() * 100).toInt()
         binding.CDReadProgressPB.progress = readProgress
     }
     //TODO:添加删除数据的逻辑
@@ -187,8 +177,8 @@ class BookAdapter (private val bookShelf: BookShelf):ListAdapter<BookAndFolderIt
     fun selectedAllSelected(){
         for (item in currentList){
             when (item){
-                is BookView->_selectedBooks_id.add(item.uid)
-                is FolderView->_selectedFolder_id.add(item.uid)
+                is BookView->_selectedBooks_id.add(item.bookId)
+                is FolderView->_selectedFolder_id.add(item.folderId)
             }
         }
         notifyItemRangeChanged(0,itemCount)

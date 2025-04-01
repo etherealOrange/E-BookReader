@@ -17,10 +17,10 @@ import androidx.room.PrimaryKey
 data class BookView(
     @PrimaryKey(autoGenerate = true) val bookId: Long,
     val title: String,
-    val bookType: String,
+    val bookType: BookType,
     val currentPage:Long,
     val totalPages:Long,
     val coverUrl: String,
     val bookUrl: String,
     val folderId: Long?
-)
+):BookAndFolderItem()

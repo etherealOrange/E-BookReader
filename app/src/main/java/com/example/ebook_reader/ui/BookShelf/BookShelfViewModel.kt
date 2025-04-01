@@ -5,11 +5,11 @@ import androidx.annotation.Nullable
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.room.ColumnInfo
-import androidx.room.Entity
-import androidx.room.ForeignKey
-import androidx.room.PrimaryKey
 import com.example.ebook_reader.DAO.AppDatabase
+import com.example.ebook_reader.entities.BookAndFolderItem
+import com.example.ebook_reader.entities.BookType
+import com.example.ebook_reader.entities.BookView
+import com.example.ebook_reader.entities.FolderView
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -23,7 +23,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-sealed class BookAndFolderItem {}
+/*sealed class BookAndFolderItem {}
 //TODO:使用重新设计后的数据类 记得更改Dao和数据库
 //书本表
 @Entity(tableName = "BooksInfo",
@@ -52,7 +52,7 @@ data class FolderView(
     val name: String,
     val booksNum: Long,
     val cover: String,
-):BookAndFolderItem()
+):BookAndFolderItem()*/
 
 
 //负责数据的 获取 处理 打包 更新 添加 删除
@@ -155,11 +155,16 @@ class BookShelfViewModel(application: Application): AndroidViewModel(application
             booksAndFoldersInfoDao.insertFolder(folder)
         }
     }
+    //获取文件夹内书本的数量
+    fun getBooksNumInFolder(folderId: Long): Long {
+        val num: Long = _Books.value.count{it.folderId==folderId}.toLong()
+        return num
+    }
     //模拟插入书本
     private fun simulateInsertBooks(){
         viewModelScope.launch {
             for (i in 0..15){
-                insertBook(BookView(0,"book$i",1,10,10,"",false,null))
+                insertBook(BookView(0,"book$i",BookType.TXT,1,10,"","",null))
             }
         }
     }
@@ -167,7 +172,7 @@ class BookShelfViewModel(application: Application): AndroidViewModel(application
     private fun simulateInsertFolders(){
         viewModelScope.launch {
             for (i in 0..2){
-                insertFolder(FolderView(0,"folder$i",0,""))
+                insertFolder(FolderView(0,"folder$i",""))
             }
         }
     }

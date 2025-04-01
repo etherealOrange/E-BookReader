@@ -4,11 +4,16 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import com.example.ebook_reader.ui.BookShelf.BookAndFolderItem
-import com.example.ebook_reader.ui.BookShelf.BookView
-import com.example.ebook_reader.ui.BookShelf.FolderView
+import com.example.ebook_reader.entities.BookMarkView
+import com.example.ebook_reader.entities.BookView
+import com.example.ebook_reader.entities.ChapterView
+import com.example.ebook_reader.entities.CreateRecord
+import com.example.ebook_reader.entities.FolderView
+import com.example.ebook_reader.entities.ReadingRecord
 
-@Database(entities = [BookView::class, FolderView::class], version = 1)
+
+@Database(entities = [BookView::class, FolderView::class, BookMarkView::class, ChapterView::class, CreateRecord::class,
+    ReadingRecord::class], version = 1)
 abstract class AppDatabase: RoomDatabase() {
     //封装的 一体式 Dao接口
     abstract fun booksAndFoldersInfoDao(): BooksAndFoldersInfoDao
@@ -21,7 +26,7 @@ abstract class AppDatabase: RoomDatabase() {
                 val instance = Room.databaseBuilder(
                     context.applicationContext,
                     AppDatabase::class.java,
-                    "books_and_folders_info_database"
+                    "total_database"
                 ).build()
                 INSTANCE = instance
                 instance

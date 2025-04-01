@@ -12,7 +12,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
-class BookShelf_BotSheetDialog(private var bookShelf : BookShelf): BottomSheetDialogFragment() {
+class BookShelf_BotSheetDialog(): BottomSheetDialogFragment() {
     private var _binding: BookshelfBotSheetDialogBinding? = null
     private val binding get() = _binding!!
     //获取Activity共享的ViewModel
@@ -30,7 +30,7 @@ class BookShelf_BotSheetDialog(private var bookShelf : BookShelf): BottomSheetDi
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        val adapter = ForSelectFolderAdapter()
+        val adapter = ForSelectFolderAdapter(viewModel)
         binding.SheetDialogRecyclerView.layoutManager = LinearLayoutManager(context)
         binding.SheetDialogRecyclerView.adapter = adapter
         lifecycleScope.launch {
@@ -39,7 +39,7 @@ class BookShelf_BotSheetDialog(private var bookShelf : BookShelf): BottomSheetDi
             }
         }
         lifecycleScope.launch {
-            bookShelf.isInFolder.collectLatest {
+            viewModel.isInFolder.collectLatest {
                 if (it){
                     binding.SheetDialogMoveOutFromFolder.visibility = View.VISIBLE
                 }else{
