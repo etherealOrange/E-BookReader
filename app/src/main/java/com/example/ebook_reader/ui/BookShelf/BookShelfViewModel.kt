@@ -78,6 +78,17 @@ class BookShelfViewModel(application: Application): AndroidViewModel(application
     private var _isHideActionBar = MutableStateFlow(false)
     val isHideActionBar: StateFlow<Boolean> get() = _isHideActionBar
 
+    //编辑状态 和 在文件夹内 Boolean 状态
+    private var _isEditModule = MutableStateFlow(false)
+    val isEditModel : StateFlow<Boolean> get() = _isEditModule
+    private var  _isInFolder = MutableStateFlow(false)
+    val isInFolder : StateFlow<Boolean> get() = _isInFolder
+    fun setEditModel(boolean: Boolean){
+        _isEditModule.value = boolean
+    }
+    fun setInFolder(boolean: Boolean){
+        _isInFolder.value = boolean
+    }
 
     /**
      * 通过更改VM中的值 隐藏ActionBar

@@ -28,14 +28,6 @@ class BookShelf : Fragment() {
     //获取Activity共享的ViewModel
     private val viewModel: BookShelfViewModel by activityViewModels()
 
-
-    //编辑状态 和 在文件夹内 Boolean 状态
-    //TODO:把所有的状态都放到ViewModel中
-    private var _isEditModule = MutableStateFlow(false)
-    val isEditModel : StateFlow<Boolean> get() = _isEditModule
-    private var  _isInFolder = MutableStateFlow(false)
-    val isInFolder : StateFlow<Boolean> get() = _isInFolder
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
     }
@@ -49,14 +41,14 @@ class BookShelf : Fragment() {
     //设置Topbar的可见性模式 根据isInfolder 和 isEditModel
     private fun setTopBarVisibility(){
         topICD.BookShelfTopBarTotal.visibility = View.VISIBLE
-        when (isInFolder.value){
+        when (viewModel.isInFolder.value){
             true ->{
                 topICD.DefaultTopBar.visibility = View.GONE
                 topICD.InFolderTopBar.visibility = View.VISIBLE
                 topICD.EditModuleTopBar.visibility = View.GONE
             }
             false ->{
-                when(isEditModel.value){
+                when(viewModel.isEditModel.value){
                     true->{
                         topICD.DefaultTopBar.visibility = View.GONE
                         topICD.InFolderTopBar.visibility = View.GONE
@@ -73,10 +65,10 @@ class BookShelf : Fragment() {
     }
     //设置BotBar的可见性模式 根据isInfolder 和 isEditModel
     private fun setBottomBarVisibility(){
-        when(isInFolder.value or isEditModel.value){
+        when(viewModel.isInFolder.value or viewModel.isEditModel.value){
             true->{
                 bottomICD.BookShelfBottomBarTotal.visibility = View.VISIBLE
-                when(isInFolder.value){
+                when(viewModel.isInFolder.value){
                     true->bottomICD.BookShelfRenameFolderBTN.visibility = View.GONE
                     false->bottomICD.BookShelfRenameFolderBTN.visibility = View.VISIBLE
                 }
@@ -86,9 +78,9 @@ class BookShelf : Fragment() {
     }
     //切换编辑模式 并显示对应的TopBar和BottomBar
     private fun switchEditModule(){
-        when(isEditModel.value){
-            true -> _isEditModule.value=false
-            false -> _isEditModule.value=true
+        when(viewModel.isEditModel.value){
+            true -> viewModel.setEditModel(false)
+            false ->viewModel.setEditModel(true)
         }
         setTopBarVisibility()
         setBottomBarVisibility()
@@ -132,13 +124,13 @@ class BookShelf : Fragment() {
         //暂时使用导入按钮代替文件夹按钮 ！！！
         //TODO:记得修改按钮为真正的导入按钮
         topICD.BookshelfBookImportBTN.setOnClickListener {
-            when(isInFolder.value) {
+            when(viewModel.isInFolder.value) {
                 true -> {
-                    _isInFolder.value = false
+                    viewModel.setInFolder(false)
                     viewModel.showActionBar()
                 }
                 false -> {
-                    _isInFolder.value = true
+                    viewModel.setInFolder(true)
                     viewModel.hideActionBar()
                 }
             }
@@ -147,7 +139,7 @@ class BookShelf : Fragment() {
         }
         //设置在文件夹内 返回默认页面按钮
         topICD.BookshelfBackToDefaultBTN.setOnClickListener {
-            _isInFolder.value = false
+            viewModel.setInFolder(false)
             viewModel.showActionBar()
             setTopBarVisibility()
             setBottomBarVisibility()
@@ -176,14 +168,14 @@ class BookShelf : Fragment() {
         }
         //TODO:设置在编辑模式下 两种页面 删除按钮  添加删除确认弹窗
         bottomICD.BookShelfDeleteBTN.setOnClickListener {
-            when(isInFolder.value){
+            when(viewModel.isInFolder.value){
                 true -> {}
                 false -> {}
             }
         }
         //TODO:设置在编辑模式下 在主页编辑模式 重命名文件夹按钮 在文件夹内取消其使用
         bottomICD.BookShelfRenameFolderBTN.setOnClickListener {
-            if(isInFolder.value)return@setOnClickListener
+            if(viewModel.isInFolder.value)return@setOnClickListener
 
         }
 
@@ -191,9 +183,8 @@ class BookShelf : Fragment() {
 
     override fun onStart() {
         super.onStart()
-
-        _isEditModule.value =false
-        _isInFolder.value =false
+        viewModel.setEditModel(false)
+        viewModel.setInFolder(false)
         Log.d("BookShelf onStart","success")
     }
     override fun onStop() {
