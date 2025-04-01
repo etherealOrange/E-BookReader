@@ -6,6 +6,8 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.core.view.isVisible
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
@@ -168,6 +170,20 @@ class BookShelf : Fragment() {
         }
         //TODO:设置在编辑模式下 两种页面 删除按钮  添加删除确认弹窗
         bottomICD.BookShelfDeleteBTN.setOnClickListener {
+            var yourChoice: Boolean? = null
+            val dialog = AlertDialog.Builder(requireContext())
+                .setTitle("删除")
+                .setMessage("确定删除选中的书本和文件夹吗？(此过程不可逆!)")
+                .setPositiveButton("确定") { _, _ ->
+                    yourChoice=true
+                }
+                .setNegativeButton("取消") { _, _ ->
+                    yourChoice=false
+                }
+                .create()
+            dialog.show()
+            Log.d("DeleteDialog","$yourChoice")
+
             when(viewModel.isInFolder.value){
                 true -> {}
                 false -> {}
