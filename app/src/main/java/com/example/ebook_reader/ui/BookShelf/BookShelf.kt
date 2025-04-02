@@ -95,12 +95,28 @@ class BookShelf : Fragment() {
         //设置layoutManager和adapter
         binding.BookRecyclerView.layoutManager = GridLayoutManager(context, 3)
         binding.BookRecyclerView.adapter = bookAdapter
-        //动态更新RecyclerView数据逻辑
         lifecycleScope.launch {
-            viewModel.items.collectLatest { newList ->
-                bookAdapter.submitList(newList)
+            //动态更新RecyclerView数据逻辑
+            launch {
+                viewModel.items.collectLatest { newList ->
+                    bookAdapter.submitList(newList)
+                }
             }
+            //只有在选中一个文件夹时才可以重命名文件夹
+            launch {
+                viewModel.isSingleSelectedFolder.collectLatest {
+                    bottomICD.BookShelfRenameFolderBTN.isEnabled = it
+                }
+            }
+            //动态更新是否可以移动书本的状态
+            launch {
+                viewModel.canMoveBooks.collectLatest {
+                    bottomICD.BookShelfMoveBTN.isEnabled = it
+                }
+            }
+
         }
+
         setTopBarVisibility()
         setBottomBarVisibility()
         initAllTopICD(bookAdapter)
@@ -156,6 +172,9 @@ class BookShelf : Fragment() {
             if(topICD.BookshelfCancelSelectBTN.isVisible)
                 bookAdapter.cancelAllSelected()
         }
+        topICD.BookShelfRenameFolderInFolderBTN.setOnClickListener {
+
+        }
     }
     /**
      * 初始化所有BottomBar的点击事件
@@ -175,7 +194,8 @@ class BookShelf : Fragment() {
                 .setTitle("删除")
                 .setMessage("确定删除选中的书本和文件夹吗？(此过程不可逆!)")
                 .setPositiveButton("确定") { _, _ ->
-                    yourChoice=true
+
+                    deleteSelectedItems()
                 }
                 .setNegativeButton("取消") { _, _ ->
                     yourChoice=false
@@ -184,17 +204,29 @@ class BookShelf : Fragment() {
             dialog.show()
             Log.d("DeleteDialog","$yourChoice")
 
-            when(viewModel.isInFolder.value){
-                true -> {}
-                false -> {}
-            }
         }
         //TODO:设置在编辑模式下 在主页编辑模式 重命名文件夹按钮 在文件夹内取消其使用
         bottomICD.BookShelfRenameFolderBTN.setOnClickListener {
             if(viewModel.isInFolder.value)return@setOnClickListener
-
+            if(viewModel.isSingleSelectedFolder.value){
+                //viewModel.renameFolder()
+                //TODO:重命名文件夹 需要设置输入框
+            }
+            else {
+                Log.d("isSingleSelectedFolder","false")
+            }
         }
 
+    }
+
+    /**
+     * 在文件夹内只删除书本, 在主页删除书本和文件夹
+     */
+    private fun deleteSelectedItems(){
+        when(viewModel.isInFolder.value){
+            true -> viewModel.deleteSelectedBooks()
+            false -> viewModel.deleteSelectedAll()
+        }
     }
 
     override fun onStart() {
@@ -213,3 +245,4 @@ class BookShelf : Fragment() {
         Log.d("BookShelf onDestroy","success")
     }
 }
+

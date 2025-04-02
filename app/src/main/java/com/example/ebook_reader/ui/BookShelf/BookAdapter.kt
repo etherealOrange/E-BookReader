@@ -15,11 +15,6 @@ class BookAdapter (private val viewModel: BookShelfViewModel):ListAdapter<BookAn
     BookAndFolderDiffCallBack()
     )
 {
-    //是否处于编辑模式 的Boolean
-
-    //选中的书本id 和 文件夹id
-    private val _selectedBooks_id = mutableSetOf<Long>()
-    private val _selectedFolder_id = mutableSetOf<Long>()
     //ViewHolder内部类, 创建ViewHolder实例
     inner class ViewHolder(val binding: CardviewBinding): RecyclerView.ViewHolder(binding.root){
         //获取当前ViewHolder的位置的ItemId 和 是否是书本
@@ -46,31 +41,31 @@ class BookAdapter (private val viewModel: BookShelfViewModel):ListAdapter<BookAn
             when (isCurrentRefBook){
                 true->{
                     //查看书本是否已经被选中
-                    when(_selectedBooks_id.contains(thisItemId)){
+                    when(viewModel.selectedBooksId.value.contains(thisItemId)){
                         //已经被选中 去除选中状态 移出选中的书本id
                         true->{
                             binding.CDSelectedCheckBox.isChecked=false
-                            _selectedBooks_id.remove(thisItemId)
+                            viewModel.removeSelectedBooksId(thisItemId)
                         }
                         //未被选中 添加选中状态 添加选中的书本id
                         false->{
                             binding.CDSelectedCheckBox.isChecked=true
-                            _selectedBooks_id.add(thisItemId)
+                            viewModel.addSelectedBooksId(thisItemId)
                         }
                     }
                 }
                 false->{
                     //查看文件夹是否已经被选中
-                    when(_selectedFolder_id.contains(thisItemId)){
+                    when(viewModel.selectedFolderId.value.contains(thisItemId)){
                         //已经被选中 去除选中状态 移出选中的文件夹id
                         true->{
                             binding.CDSelectedCheckBox.isChecked=false
-                            _selectedFolder_id.remove(thisItemId)
+                            viewModel.removeSelectedFolderId(thisItemId)
                         }
                         //未被选中 添加选中状态 添加选中的文件夹id
                         false->{
                             binding.CDSelectedCheckBox.isChecked=true
-                            _selectedFolder_id.add(thisItemId)
+                            viewModel.addSelectedFolderId(thisItemId)
                         }
                     }
                 }
@@ -93,8 +88,7 @@ class BookAdapter (private val viewModel: BookShelfViewModel):ListAdapter<BookAn
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val item = getItem(position)
         var itemId: Long = 0
-        //关闭CheckBox
-//        holder.binding.CDSelectedCheckBox.visibility = View.GONE
+
         //处理Book和Folder视图的绑定 并设置itemId
         when(item){
             is BookView ->{
@@ -119,8 +113,8 @@ class BookAdapter (private val viewModel: BookShelfViewModel):ListAdapter<BookAn
                 binding.CDSelectedCheckBox.visibility = View.VISIBLE
                 //判断当前书本或文件夹是否已经被选中
                 //是书本且书本id被选中 或 是文件夹且文件夹id被选中
-                when( (isRefBook and  _selectedBooks_id.contains(itemId))
-                        or (!isRefBook and _selectedFolder_id.contains(itemId))){
+                when( (isRefBook and  viewModel.selectedBooksId.value.contains(itemId))
+                        or (!isRefBook and viewModel.selectedFolderId.value.contains(itemId))){
                     true->binding.CDSelectedCheckBox.isChecked=true
                     false->binding.CDSelectedCheckBox.isChecked=false
                 }
@@ -165,20 +159,19 @@ class BookAdapter (private val viewModel: BookShelfViewModel):ListAdapter<BookAn
             (view.currentPage.toFloat() / view.totalPages.toFloat() * 100).toInt()
         binding.CDReadProgressPB.progress = readProgress
     }
-    //TODO:添加删除数据的逻辑
 
     //取消全选
     fun cancelAllSelected(){
-        _selectedBooks_id.clear()
-        _selectedFolder_id.clear()
+        viewModel.clearSelectedBooksId()
+        viewModel.clearSelectedFolderId()
         notifyItemRangeChanged(0,itemCount)
     }
     //全部选择
     fun selectedAllSelected(){
         for (item in currentList){
             when (item){
-                is BookView->_selectedBooks_id.add(item.bookId)
-                is FolderView->_selectedFolder_id.add(item.folderId)
+                is BookView->viewModel.addSelectedBooksId(item.bookId)
+                is FolderView->viewModel.addSelectedFolderId(item.folderId)
             }
         }
         notifyItemRangeChanged(0,itemCount)

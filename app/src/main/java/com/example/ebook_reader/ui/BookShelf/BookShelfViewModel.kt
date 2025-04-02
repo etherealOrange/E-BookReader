@@ -1,9 +1,7 @@
 package com.example.ebook_reader.ui.BookShelf
 
 import android.app.Application
-import androidx.annotation.Nullable
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.ebook_reader.DAO.AppDatabase
 import com.example.ebook_reader.entities.BookAndFolderItem
@@ -11,7 +9,6 @@ import com.example.ebook_reader.entities.BookType
 import com.example.ebook_reader.entities.BookView
 import com.example.ebook_reader.entities.FolderView
 import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -19,7 +16,6 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -91,6 +87,61 @@ class BookShelfViewModel(application: Application): AndroidViewModel(application
     }
 
     /**
+     * 选中书本时可以移动到文件夹, 选中文件夹时不能移动
+     */
+    private var _canMoveBooks= MutableStateFlow(false)
+    val canMoveBooks: StateFlow<Boolean> get() = _canMoveBooks
+    //更新是否可以移动书本的状态
+    private fun updateCanMoveBooks(){
+        viewModelScope.launch {
+            combine(selectedBooksId,selectedFolderId){
+                books,folder->
+                books.isNotEmpty() && folder.isEmpty()
+            }.collectLatest {
+                _canMoveBooks.value = it
+            }
+        }
+    }
+
+    /**
+     * 查看是否选中了一个文件夹
+     */
+    private var _isSingleSelectedFolder = MutableStateFlow(false)
+    val isSingleSelectedFolder: StateFlow<Boolean> get() = _isSingleSelectedFolder
+    private fun updateIsSingleSelectedFolder(){
+        viewModelScope.launch {
+            selectedFolderId.collectLatest {
+                _isSingleSelectedFolder.value = it.size == 1
+            }
+        }
+    }
+
+    //选中的书本id 和 文件夹id 和 添加 移除 方法
+    private var _selectedBooksId = MutableStateFlow<MutableSet<Long>>(mutableSetOf())
+    val selectedBooksId: StateFlow<MutableSet<Long>> get() = _selectedBooksId
+    private var _selectedFolderId = MutableStateFlow<MutableSet<Long>>(mutableSetOf())
+    val selectedFolderId: StateFlow<MutableSet<Long>> get() = _selectedFolderId
+    fun addSelectedBooksId(id: Long){
+        _selectedBooksId.value.add(id)
+    }
+    fun removeSelectedBooksId(id: Long){
+        _selectedBooksId.value.remove(id)
+    }
+    fun addSelectedFolderId(id: Long){
+        _selectedFolderId.value.add(id)
+    }
+    fun removeSelectedFolderId(id: Long){
+        _selectedFolderId.value.remove(id)
+    }
+    fun clearSelectedBooksId(){
+        _selectedBooksId.value.clear()
+    }
+    fun clearSelectedFolderId(){
+        _selectedFolderId.value.clear()
+    }
+
+
+    /**
      * 通过更改VM中的值 隐藏ActionBar
      */
     fun hideActionBar(){
@@ -104,7 +155,8 @@ class BookShelfViewModel(application: Application): AndroidViewModel(application
     }
 
     init {
-
+        updateIsSingleSelectedFolder()
+        updateCanMoveBooks()
         loadBooks()
         loadFolders()
         viewModelScope.launch {
@@ -177,4 +229,33 @@ class BookShelfViewModel(application: Application): AndroidViewModel(application
         }
     }
 
+    //删除选中的书本
+    fun deleteSelectedBooks(){
+        viewModelScope.launch {
+            selectedBooksId.value.forEach {
+                booksAndFoldersInfoDao.deleteBookById(it)
+            }
+        }
+    }
+    //删除选中的文件夹
+    fun deleteSelectedFolders(){
+        viewModelScope.launch {
+            selectedFolderId.value.forEach {
+                booksAndFoldersInfoDao.deleteFolderById(it)
+            }
+        }
+    }
+    //删除选中的全部
+    fun deleteSelectedAll(){
+        viewModelScope.launch {
+            deleteSelectedBooks()
+            deleteSelectedFolders()
+        }
+    }
+    //重命名文件夹
+    fun renameFolder(folderId: Long, title: String){
+        viewModelScope.launch {
+            booksAndFoldersInfoDao.renameFolder(folderId, title)
+        }
+    }
 }

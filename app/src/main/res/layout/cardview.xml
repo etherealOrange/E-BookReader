@@ -92,6 +92,7 @@
             android:scaleType="centerCrop"
             />
         <TextView
+            android:visibility="visible"
             app:layout_constraintTop_toTopOf="@+id/CD_FolderCover_IV"
             app:layout_constraintStart_toStartOf="@+id/CD_FolderCover_IV"
             app:layout_constraintEnd_toEndOf="@+id/CD_FolderCover_IV"
