@@ -18,7 +18,9 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 /*sealed class BookAndFolderItem {}
@@ -65,6 +67,22 @@ class BookShelfViewModel(application: Application): AndroidViewModel(application
     private var _Folders = MutableStateFlow<List<FolderView>>(emptyList())
     val Folders: StateFlow<List<FolderView>> get() = _Folders
 
+    private var _inWhichFolder = MutableStateFlow<Long?>(null)
+
+    /**
+     * 当前在文件夹内的id 进行过检查 一定在存在的文件夹内
+     */
+    val inWhichFolder: StateFlow<Long?> get() = _inWhichFolder
+    val inFolderName: StateFlow<String> = combine(inWhichFolder,Folders) {
+        inWhichFolder , folders ->
+        val folder = folders.find { it.folderId == inWhichFolder }
+        Log.d("VM inFolderName","inFolderName is $folder")
+        folder?.title ?: "主页"
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(500),
+        initialValue = "主页"
+    )
     /**
      * 将书本和文件夹合并成一个列表
      *
@@ -74,87 +92,21 @@ class BookShelfViewModel(application: Application): AndroidViewModel(application
      *
      * 在文件夹内时 显示该文件夹内的书本
      */
-    val items: StateFlow<List<BookAndFolderItem>> = combine(_Books,_Folders) {
-        books, folders ->
-        when(inWhichFolder.value){
+    val items: StateFlow<List<BookAndFolderItem>> = combine(_Books,_Folders,_inWhichFolder) {
+        books, folders,inWhichFolder ->
+        when(inWhichFolder){
             null->{
                 folders + books.filter { it.folderId==null }
             }
             else->{
-                books.filter { it.folderId == inWhichFolder.value }
+                books.filter { it.folderId == inWhichFolder }
             }
         }
-    }
-     .stateIn(
+    }.stateIn(
         scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
+        started = SharingStarted.WhileSubscribed(500),
         initialValue = emptyList()
     )
-    //是否隐藏ActionBar的辅助存储 和方法
-    private var _isHideActionBar = MutableStateFlow(false)
-    val isHideActionBar: StateFlow<Boolean> get() = _isHideActionBar
-
-    //编辑状态 和 在文件夹内 Boolean 状态
-    private var _isEditModule = MutableStateFlow(false)
-    val isEditModel : StateFlow<Boolean> get() = _isEditModule
-    private var  _isInFolder = MutableStateFlow(false)
-    val isInFolder : StateFlow<Boolean> get() = _isInFolder
-    private var _inWhichFolder = MutableStateFlow<Long?>(null)
-    val inWhichFolder: StateFlow<Long?> get() = _inWhichFolder
-    //修改 现在 进入的文件夹id
-    fun updateInWhichFolder(long: Long?){
-        //查找要更新的文件夹id是否存在
-        if(Folders.value.any{it.folderId==long}){
-            _inWhichFolder.value = long
-            return
-        }
-        _inWhichFolder.value = null
-        Log.d("updateInWhichFolder","你的文件夹id不存在")
-
-    }
-    fun switchEditModel(){
-        _isEditModule.value = !_isEditModule.value
-    }
-    @Deprecated("不再使用")
-    fun setEditModel(boolean: Boolean){
-        _isEditModule.value = boolean
-    }
-    fun resetEditAndInFolderModels(){
-        _isInFolder.value=false
-        _isEditModule.value=false
-    }
-    /**
-     * 选中书本时可以移动到文件夹, 选中文件夹时不能移动
-     */
-    private var _canMoveBooks= MutableStateFlow(false)
-    val canMoveBooks: StateFlow<Boolean> get() = _canMoveBooks
-
-    /**
-     * 检查是否选中了
-     */
-    private fun updateCanMoveBooks(){
-        viewModelScope.launch {
-            combine(selectedBooksId,selectedFolderId){
-                books,folder->
-                books.isNotEmpty() && folder.isEmpty()
-            }.collectLatest {
-                _canMoveBooks.value = it
-            }
-        }
-    }
-
-    /**
-     * 查看是否选中了一个文件夹
-     */
-    private var _isSingleSelectedFolder = MutableStateFlow(false)
-    val isSingleSelectedFolder: StateFlow<Boolean> get() = _isSingleSelectedFolder
-    private fun updateIsSingleSelectedFolder(){
-        viewModelScope.launch {
-            selectedFolderId.collectLatest {
-                _isSingleSelectedFolder.value = it.size == 1
-            }
-        }
-    }
 
     //选中的书本id 和 文件夹id 和 添加 移除 方法
     private var _selectedBooksId = MutableStateFlow<MutableSet<Long>>(mutableSetOf())
@@ -162,54 +114,150 @@ class BookShelfViewModel(application: Application): AndroidViewModel(application
     private var _selectedFolderId = MutableStateFlow<MutableSet<Long>>(mutableSetOf())
     val selectedFolderId: StateFlow<MutableSet<Long>> get() = _selectedFolderId
     fun addSelectedBooksId(id: Long){
-        _selectedBooksId.value.add(id)
+        viewModelScope.launch {
+            _selectedBooksId.update {
+                it.toMutableSet().apply { add(id) }
+            }
+        }
     }
     fun removeSelectedBooksId(id: Long){
-        _selectedBooksId.value.remove(id)
+        viewModelScope.launch {
+            _selectedBooksId.update {
+                it.toMutableSet().apply { remove(id) }
+            }
+        }
     }
     fun addSelectedFolderId(id: Long){
-        _selectedFolderId.value.add(id)
+        viewModelScope.launch {
+            _selectedFolderId.update {
+                it.toMutableSet().apply { add(id) }
+            }
+        }
     }
     fun removeSelectedFolderId(id: Long){
-        _selectedFolderId.value.remove(id)
+        viewModelScope.launch {
+            _selectedFolderId.update {
+                it.toMutableSet().apply { remove(id) }
+            }
+        }
     }
     fun clearSelectedBooksId(){
-        _selectedBooksId.value.clear()
+        _selectedBooksId.value= mutableSetOf<Long>()
     }
     fun clearSelectedFolderId(){
-        _selectedFolderId.value.clear()
+        _selectedFolderId.value=mutableSetOf<Long>()
     }
 
+    //是否隐藏ActionBar的辅助存储 和方法
+    private var _isHideActionBar = MutableStateFlow(false)
+    val isHideActionBar: StateFlow<Boolean> get() = _isHideActionBar
+
+    //编辑状态 和 在文件夹内 Boolean 状态
+    private var _isEditModule = MutableStateFlow(false)
+    val isEditModel : StateFlow<Boolean> get() = _isEditModule
+    private var _isInFolder = MutableStateFlow(false)
+    val isInFolder : StateFlow<Boolean> get() = _isInFolder
+    //切换编辑模式
+    fun switchEditModel(){
+        Log.d("VM _isEditModule","_isEditModule is ${_isEditModule.value}")
+        _isEditModule.value = !_isEditModule.value
+    }
+    //重新设定编辑模式和在文件夹内的状态
+    fun resetEditAndInFolderModels(){
+        _isInFolder.value=false
+        _isEditModule.value=false
+    }
+
+    /**
+     * 选中书本时可以移动到文件夹, 选中文件夹时不能移动
+     */
+    val canMoveBooks: StateFlow<Boolean> = combine(_selectedBooksId,_selectedFolderId){books,folder->
+        Log.d("VM canMoveBooks","books $books folder $folder")
+        books.isNotEmpty() && folder.isEmpty()
+    }.stateIn(
+        viewModelScope,
+        started = SharingStarted.WhileSubscribed(500),
+        initialValue = false
+    )
+
+    /**
+     * 查看是否选中了一个文件夹
+     */
+    val isSingleSelectedFolder: StateFlow<Boolean> = _selectedFolderId
+        .map {
+            Log.d("VM isSingleSelectedFolder","isSingleSelectedFolder  $it")
+            it.size==1}
+        .stateIn(
+            viewModelScope,
+            started = SharingStarted.WhileSubscribed(500),
+            initialValue = false
+        )
+
+    /**
+     * 注意 `combine`中的`selectedBooksId`和`selectedFolderId`需要在前面初始化, 不然会报空指针异常
+     *
+     * 编译器比较笨没发现这一点
+     */
+    val isSelectThings = combine(_selectedBooksId,_selectedFolderId) {
+        books,folders->
+        Log.d("VM isSelectThings","books ${books} folders ${folders}")
+        books.isNotEmpty() || folders.isNotEmpty()
+    }.stateIn(
+        viewModelScope,
+        started = SharingStarted.WhileSubscribed(500),
+        initialValue = false
+    )
 
     /**
      * 通过更改VM中的值 隐藏ActionBar
      *
-     * 设置在文件夹内
+     * 选择文件夹id 进入文件夹内
+     *
+     * 如果id不存在则退出到主页
      */
-    fun goIntoFolder(){
-        _isInFolder.value = true
-        _isHideActionBar.value = true
+    fun goIntoFolder(long: Long){
+        //查找要更新的文件夹id是否存在
+        if(Folders.value.any{it.folderId==long}){
+            _inWhichFolder.value = long
+            _isInFolder.value = true
+            _isHideActionBar.value = true
+            Log.d("VM updateInWhichFolder","updateInWhichFolder is $long")
+            return
+        }
+        getOutOfFolder()
+        Log.d("VM updateInWhichFolder","你的文件夹id不存在")
+    }
+
+    /**
+     * 原地刷新InWhichFolder
+     */
+    fun flashInWhichFolder(){
+        val tmp = _inWhichFolder.value
+        _inWhichFolder.value = null
+        _inWhichFolder.value=tmp
     }
     /**
-     * 通过更改VM中的值 显示ActionBar
+     * 通过更改VM中的值 显示ActionBar 退出到主页
      *
      * 设置不在文件夹内
      */
     fun getOutOfFolder(){
+        _inWhichFolder.value = null
         _isInFolder.value = false
         _isHideActionBar.value = false
     }
 
     init {
-        updateIsSingleSelectedFolder()
-        updateCanMoveBooks()
         loadBooks()
         loadFolders()
         viewModelScope.launch {
-            doSimulation()
+            launch {
+                doSimulation()
+            }
         }
 
     }
+
     suspend fun doSimulation(){
         if (booksAndFoldersInfoDao.getBooksNum()<=0){
             simulateInsertBooks()
@@ -259,6 +307,16 @@ class BookShelfViewModel(application: Application): AndroidViewModel(application
         val num: Long = _Books.value.count{it.folderId==folderId}.toLong()
         return num
     }
+
+    /**
+     * 根据inWhichFolder获取文件夹名称
+     *
+     * 得知当前在文件夹的名称
+     */
+    fun getCurrentFolderName(): String {
+        val folder = Folders.value.find { it.folderId == inWhichFolder.value }
+        return folder?.title ?: "主页"
+    }
     //模拟在主页 插入书本
     private fun simulateInsertBooks(){
         viewModelScope.launch {
@@ -284,20 +342,31 @@ class BookShelfViewModel(application: Application): AndroidViewModel(application
         }
     }
 
-    //删除选中的书本
+    /**
+     * 删除选中的书本 清空SelectedBooksId
+     */
     fun deleteSelectedBooks(){
         viewModelScope.launch {
+            if(selectedBooksId.value.isEmpty())return@launch
             selectedBooksId.value.forEach {
+                Log.d("VM deleteSelectedBooks","删除了书本id $it")
                 booksAndFoldersInfoDao.deleteBookById(it)
             }
+            clearSelectedBooksId()
         }
     }
-    //删除选中的文件夹
+
+    /**
+     * 删除选中的文件夹 清空SelectedFolderId
+     */
     fun deleteSelectedFolders(){
         viewModelScope.launch {
+            if (selectedFolderId.value.isEmpty())return@launch
             selectedFolderId.value.forEach {
+                Log.d("VM deleteSelectedFolders","删除了文件夹id $it")
                 booksAndFoldersInfoDao.deleteFolderById(it)
             }
+            clearSelectedFolderId()
         }
     }
     //删除选中的全部
@@ -307,24 +376,37 @@ class BookShelfViewModel(application: Application): AndroidViewModel(application
             deleteSelectedFolders()
         }
     }
-    //重命名文件夹
-    fun renameFolder(folderId: Long, title: String){
-        viewModelScope.launch {
-            booksAndFoldersInfoDao.renameFolder(folderId, title)
-        }
-    }
-    //使用选中文件夹 重命名文件夹
+
+    /**
+     * 在主页 重命名单个文件夹
+     */
     fun renameFolder(title: String){
         viewModelScope.launch {
             if(selectedFolderId.value.isEmpty()) {
-                Log.d("RenameFolder", "No folder selected")
+                Log.d("VM RenameFolder", "No folder selected")
                 return@launch
             }
             else if (selectedFolderId.value.count()>1){
-                Log.d("RenameFolder", "More than one folder selected")
+                Log.d("VM RenameFolder", "More than one folder selected")
                 return@launch
             }
+            Log.d("VM RenameFolder","inWhichFolder is ${inWhichFolder.value}")
             booksAndFoldersInfoDao.renameFolder(selectedFolderId.value.first(), title)
+            flashInWhichFolder()
+        }
+    }
+    /**
+     * 在文件夹内 重命名文件夹
+     */
+    fun renameFolderInFolder(title: String){
+        viewModelScope.launch {
+            if(inWhichFolder.value==null){
+                Log.d("VM RenameFolderInFolder", "Not in Folder")
+                return@launch
+            }
+            Log.d("VM renameFolderInFolder","inWhichFolder is ${inWhichFolder.value}")
+            booksAndFoldersInfoDao.renameFolder(inWhichFolder.value!!, title)
+            flashInWhichFolder()
         }
     }
 }

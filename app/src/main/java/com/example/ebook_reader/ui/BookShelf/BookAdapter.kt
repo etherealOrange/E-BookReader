@@ -40,6 +40,7 @@ class BookAdapter (private val viewModel: BookShelfViewModel):ListAdapter<BookAn
 
         /**
          * 在非编辑模式下的点击事件
+         *
          * 跳转到阅读界面 或 文件夹界面
          */
         private fun notInEditModelClickChange(){
@@ -51,14 +52,19 @@ class BookAdapter (private val viewModel: BookShelfViewModel):ListAdapter<BookAn
                 }
                 false->{
                     //跳转到文件夹界面
-                    viewModel.updateInWhichFolder(thisItemId)
-                    viewModel.goIntoFolder()
+                    viewModel.goIntoFolder(thisItemId)
                 }
             }
         }
         //编辑模式下的点击事件
         private fun inEditModelClickChange(){
             //现在的Holder是书本还是文件夹
+            Log.d("VM Messages","before selectedBooksId${viewModel.selectedBooksId.value}" +
+                    "selectedFolderId ${viewModel.selectedFolderId.value}\n" +
+                    " isSingleSelectedFolder ${viewModel.isSingleSelectedFolder.value}" +
+                    " isSelectThings ${viewModel.isSelectThings.value}" +
+                    " inWhichFolder ${viewModel.inWhichFolder.value}" +
+                    " isInFolder ${viewModel.isInFolder.value}")
             when (isCurrentRefBook){
                 true->{
                     //查看书本是否已经被选中
@@ -81,6 +87,7 @@ class BookAdapter (private val viewModel: BookShelfViewModel):ListAdapter<BookAn
                         //已经被选中 去除选中状态 移出选中的文件夹id
                         true->{
                             binding.CDSelectedCheckBox.isChecked=false
+
                             viewModel.removeSelectedFolderId(thisItemId)
                         }
                         //未被选中 添加选中状态 添加选中的文件夹id
@@ -91,6 +98,12 @@ class BookAdapter (private val viewModel: BookShelfViewModel):ListAdapter<BookAn
                     }
                 }
             }
+            Log.d("VM Messages","after selectedBooksId${viewModel.selectedBooksId.value}" +
+                    "selectedFolderId ${viewModel.selectedFolderId.value}\n" +
+                    " isSingleSelectedFolder ${viewModel.isSingleSelectedFolder.value}" +
+                    " isSelectThings ${viewModel.isSelectThings.value}" +
+                    " inWhichFolder ${viewModel.inWhichFolder.value}" +
+                    " isInFolder ${viewModel.isInFolder.value}")
         }
         //给当前ViewHolder提供当前位置的ItemId 和 是否是书本
         fun getHolderCurrentPositionAndIsRefBook(itemId: Long, isRefBook: Boolean){
@@ -103,8 +116,6 @@ class BookAdapter (private val viewModel: BookShelfViewModel):ListAdapter<BookAn
         val binding = CardviewBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         return ViewHolder(binding)
     }
-
-
     //绑定数据
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val item = getItem(position)
@@ -195,6 +206,10 @@ class BookAdapter (private val viewModel: BookShelfViewModel):ListAdapter<BookAn
                 is FolderView->viewModel.addSelectedFolderId(item.folderId)
             }
         }
+        notifyItemRangeChanged(0,itemCount)
+    }
+    //更新页面
+    fun flashAllViews(){
         notifyItemRangeChanged(0,itemCount)
     }
 }
