@@ -1,6 +1,7 @@
 package com.example.ebook_reader.ui.BookShelf
 
 import android.app.Application
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.ebook_reader.DAO.AppDatabase
@@ -16,6 +17,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -62,10 +64,28 @@ class BookShelfViewModel(application: Application): AndroidViewModel(application
     //私有文件夹
     private var _Folders = MutableStateFlow<List<FolderView>>(emptyList())
     val Folders: StateFlow<List<FolderView>> get() = _Folders
-    //融合为一个流
+
+    /**
+     * 将书本和文件夹合并成一个列表
+     *
+     * 根据是否进入文件夹 和进入文件夹的id来过滤 书本和文件夹
+     *
+     * 不在文件夹内时 显示所有不在文件夹内的书本 和 所有的文件夹
+     *
+     * 在文件夹内时 显示该文件夹内的书本
+     */
     val items: StateFlow<List<BookAndFolderItem>> = combine(_Books,_Folders) {
-        books, folders -> folders + books
-    }.stateIn(
+        books, folders ->
+        when(inWhichFolder.value){
+            null->{
+                folders + books.filter { it.folderId==null }
+            }
+            else->{
+                books.filter { it.folderId == inWhichFolder.value }
+            }
+        }
+    }
+     .stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = emptyList()
@@ -79,19 +99,39 @@ class BookShelfViewModel(application: Application): AndroidViewModel(application
     val isEditModel : StateFlow<Boolean> get() = _isEditModule
     private var  _isInFolder = MutableStateFlow(false)
     val isInFolder : StateFlow<Boolean> get() = _isInFolder
+    private var _inWhichFolder = MutableStateFlow<Long?>(null)
+    val inWhichFolder: StateFlow<Long?> get() = _inWhichFolder
+    //修改 现在 进入的文件夹id
+    fun updateInWhichFolder(long: Long?){
+        //查找要更新的文件夹id是否存在
+        if(Folders.value.any{it.folderId==long}){
+            _inWhichFolder.value = long
+            return
+        }
+        _inWhichFolder.value = null
+        Log.d("updateInWhichFolder","你的文件夹id不存在")
+
+    }
+    fun switchEditModel(){
+        _isEditModule.value = !_isEditModule.value
+    }
+    @Deprecated("不再使用")
     fun setEditModel(boolean: Boolean){
         _isEditModule.value = boolean
     }
-    fun setInFolder(boolean: Boolean){
-        _isInFolder.value = boolean
+    fun resetEditAndInFolderModels(){
+        _isInFolder.value=false
+        _isEditModule.value=false
     }
-
     /**
      * 选中书本时可以移动到文件夹, 选中文件夹时不能移动
      */
     private var _canMoveBooks= MutableStateFlow(false)
     val canMoveBooks: StateFlow<Boolean> get() = _canMoveBooks
-    //更新是否可以移动书本的状态
+
+    /**
+     * 检查是否选中了
+     */
     private fun updateCanMoveBooks(){
         viewModelScope.launch {
             combine(selectedBooksId,selectedFolderId){
@@ -143,14 +183,20 @@ class BookShelfViewModel(application: Application): AndroidViewModel(application
 
     /**
      * 通过更改VM中的值 隐藏ActionBar
+     *
+     * 设置在文件夹内
      */
-    fun hideActionBar(){
+    fun goIntoFolder(){
+        _isInFolder.value = true
         _isHideActionBar.value = true
     }
     /**
      * 通过更改VM中的值 显示ActionBar
+     *
+     * 设置不在文件夹内
      */
-    fun showActionBar(){
+    fun getOutOfFolder(){
+        _isInFolder.value = false
         _isHideActionBar.value = false
     }
 
@@ -168,6 +214,7 @@ class BookShelfViewModel(application: Application): AndroidViewModel(application
         if (booksAndFoldersInfoDao.getBooksNum()<=0){
             simulateInsertBooks()
             simulateInsertFolders()
+            simulateInsertBooksInFolder(1)
         }
     }
 
@@ -212,11 +259,19 @@ class BookShelfViewModel(application: Application): AndroidViewModel(application
         val num: Long = _Books.value.count{it.folderId==folderId}.toLong()
         return num
     }
-    //模拟插入书本
+    //模拟在主页 插入书本
     private fun simulateInsertBooks(){
         viewModelScope.launch {
             for (i in 0..15){
                 insertBook(BookView(0,"book$i",BookType.TXT,1,10,"","",null))
+            }
+        }
+    }
+    //模拟在文件夹内 插入书本
+    private fun simulateInsertBooksInFolder(folderId: Long){
+        viewModelScope.launch {
+            for (i in 0..15){
+                insertBook(BookView(0,"bookInFolder$i",BookType.TXT,1,10,"","",folderId))
             }
         }
     }
@@ -256,6 +311,20 @@ class BookShelfViewModel(application: Application): AndroidViewModel(application
     fun renameFolder(folderId: Long, title: String){
         viewModelScope.launch {
             booksAndFoldersInfoDao.renameFolder(folderId, title)
+        }
+    }
+    //使用选中文件夹 重命名文件夹
+    fun renameFolder(title: String){
+        viewModelScope.launch {
+            if(selectedFolderId.value.isEmpty()) {
+                Log.d("RenameFolder", "No folder selected")
+                return@launch
+            }
+            else if (selectedFolderId.value.count()>1){
+                Log.d("RenameFolder", "More than one folder selected")
+                return@launch
+            }
+            booksAndFoldersInfoDao.renameFolder(selectedFolderId.value.first(), title)
         }
     }
 }

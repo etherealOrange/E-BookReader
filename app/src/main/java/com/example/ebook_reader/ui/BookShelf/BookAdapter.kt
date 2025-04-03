@@ -1,5 +1,6 @@
 package com.example.ebook_reader.ui.BookShelf
 
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -30,8 +31,28 @@ class BookAdapter (private val viewModel: BookShelfViewModel):ListAdapter<BookAn
                         inEditModelClickChange()
                     }
                     false->{
-                        //跳转到阅读界面 或 文件夹界面
+                        //非编辑模式下的点击事件
+                        notInEditModelClickChange()
                     }
+                }
+            }
+        }
+
+        /**
+         * 在非编辑模式下的点击事件
+         * 跳转到阅读界面 或 文件夹界面
+         */
+        private fun notInEditModelClickChange(){
+            //跳转到阅读界面 或 文件夹界面
+            when (isCurrentRefBook){
+                true->{
+                    //跳转到阅读界面
+                    Log.d("BookAdapter-notInEditModelClickChange", "notInEditModelClickChange: $thisItemId")
+                }
+                false->{
+                    //跳转到文件夹界面
+                    viewModel.updateInWhichFolder(thisItemId)
+                    viewModel.goIntoFolder()
                 }
             }
         }
