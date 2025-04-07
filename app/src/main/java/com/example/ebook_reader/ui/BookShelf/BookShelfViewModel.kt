@@ -9,6 +9,7 @@ import com.example.ebook_reader.entities.BookAndFolderItem
 import com.example.ebook_reader.entities.BookType
 import com.example.ebook_reader.entities.BookView
 import com.example.ebook_reader.entities.FolderView
+import com.example.ebook_reader.entities.InsideFolderName
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -17,11 +18,11 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.io.File
 
 /*sealed class BookAndFolderItem {}
 //TODO:使用重新设计后的数据类 记得更改Dao和数据库
@@ -68,7 +69,16 @@ class BookShelfViewModel(application: Application): AndroidViewModel(application
     val Folders: StateFlow<List<FolderView>> get() = _Folders
 
     private var _inWhichFolder = MutableStateFlow<Long?>(null)
-
+    val FolderCoverDir = "${application.getExternalFilesDir(null)}/${InsideFolderName.FOLDERSCOVERFOLDER.displayName}"
+    val BookCoverDir = "${application.getExternalFilesDir(null)}/${InsideFolderName.BOOKSCOVERFOLDER.displayName}"
+    private var _CoverDir = MutableStateFlow<String>("")
+    val CoverDir: StateFlow<String> get() = _CoverDir
+    fun updateCoverDir(dir: String){
+        _CoverDir.value = dir
+    }
+    fun clearCoverDir(){
+        _CoverDir.value=""
+    }
     /**
      * 当前在文件夹内的id 进行过检查 一定在存在的文件夹内
      */
@@ -161,11 +171,6 @@ class BookShelfViewModel(application: Application): AndroidViewModel(application
     fun switchEditModel(){
         Log.d("VM _isEditModule","_isEditModule is ${_isEditModule.value}")
         _isEditModule.value = !_isEditModule.value
-    }
-    //重新设定编辑模式和在文件夹内的状态
-    fun resetEditAndInFolderModels(){
-        _isInFolder.value=false
-        _isEditModule.value=false
     }
 
     /**
@@ -274,6 +279,7 @@ class BookShelfViewModel(application: Application): AndroidViewModel(application
                 .distinctUntilChanged() //去除查询带来的数据库变化
                 .collectLatest {
                     _Folders.value = it
+                    Log.d("VM loadFolders","loadFolders is $it")
                 }
         }
     }
@@ -286,6 +292,7 @@ class BookShelfViewModel(application: Application): AndroidViewModel(application
                 .distinctUntilChanged() //去除查询带来的数据库变化
                 .collectLatest {
                     _Books.value = it
+                    Log.d("VM loadBooks","loadBooks is $it")
                 }
         }
 
@@ -344,12 +351,14 @@ class BookShelfViewModel(application: Application): AndroidViewModel(application
 
     /**
      * 删除选中的书本 清空SelectedBooksId
+     * - 删除书本的封面
      */
     fun deleteSelectedBooks(){
         viewModelScope.launch {
             if(selectedBooksId.value.isEmpty())return@launch
             selectedBooksId.value.forEach {
                 Log.d("VM deleteSelectedBooks","删除了书本id $it")
+                rmCover(booksAndFoldersInfoDao.getBookCoverUrl(it))
                 booksAndFoldersInfoDao.deleteBookById(it)
             }
             clearSelectedBooksId()
@@ -358,15 +367,28 @@ class BookShelfViewModel(application: Application): AndroidViewModel(application
 
     /**
      * 删除选中的文件夹 清空SelectedFolderId
+     * - 删除文件夹的封面
+     * - 删除文件夹内的书本
      */
     fun deleteSelectedFolders(){
         viewModelScope.launch {
             if (selectedFolderId.value.isEmpty())return@launch
             selectedFolderId.value.forEach {
                 Log.d("VM deleteSelectedFolders","删除了文件夹id $it")
+                rmCover(booksAndFoldersInfoDao.getFolderCoverUrl(it))
                 booksAndFoldersInfoDao.deleteFolderById(it)
             }
             clearSelectedFolderId()
+        }
+    }
+
+    /**
+     * 删除封面
+     */
+    private fun rmCover(uri: String){
+        val file = File(uri)
+        if(file.exists()){
+            file.delete()
         }
     }
     //删除选中的全部
@@ -374,6 +396,12 @@ class BookShelfViewModel(application: Application): AndroidViewModel(application
         viewModelScope.launch {
             deleteSelectedBooks()
             deleteSelectedFolders()
+        }
+    }
+    //插入新的文件夹
+    fun insertNewFolder(title: String, cover: String){
+        viewModelScope.launch {
+            booksAndFoldersInfoDao.insertFolder(FolderView(0,title,cover))
         }
     }
 

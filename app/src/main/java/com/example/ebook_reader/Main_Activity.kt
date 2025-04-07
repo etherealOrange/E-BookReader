@@ -22,9 +22,11 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.ebook_reader.databinding.ActivityMainBinding
 import com.example.ebook_reader.databinding.NavViewHeadMainBinding
+import com.example.ebook_reader.entities.InsideFolderName
 import com.example.ebook_reader.ui.BookShelf.BookShelfViewModel
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import java.io.File
 import kotlin.getValue
 
 class Main_Activity : AppCompatActivity() {
@@ -95,8 +97,25 @@ class Main_Activity : AppCompatActivity() {
                 }
             }
         }
+        mkFolderCoverDir()
+        mkBookCoverDir()
 
 
+    }
+    //创建存储文件夹封面的图片的文件夹
+    fun mkFolderCoverDir(){
+        mkDir(InsideFolderName.FOLDERSCOVERFOLDER.displayName)
+    }
+    //创建存储书籍封面的图片的文件夹
+    fun mkBookCoverDir(){
+        mkDir(InsideFolderName.BOOKSCOVERFOLDER.displayName)
+    }
+    //创建内部存储的文件夹
+    private fun mkDir(string: String){
+        val folder = File(filesDir, string)
+        if (!folder.exists()){
+            folder.mkdirs()
+        }
     }
 
     override fun onSupportNavigateUp(): Boolean {

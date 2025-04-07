@@ -106,6 +106,7 @@
             android:text="文件夹名称"
             android:textSize="12sp"
             android:textColor="@color/black"
+            android:background="#A0FFFFFF"
             android:gravity="center"
             />
         <TextView

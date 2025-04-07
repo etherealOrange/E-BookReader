@@ -4,8 +4,10 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.net.toUri
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.example.ebook_reader.R
 import com.example.ebook_reader.databinding.CardviewBinding
 import com.example.ebook_reader.entities.BookAndFolderItem
 import com.example.ebook_reader.entities.BookView
@@ -158,6 +160,7 @@ class BookAdapter (private val viewModel: BookShelfViewModel):ListAdapter<BookAn
         holder: ViewHolder,
         view: FolderView
     ) {
+        Log.d("BA bindFolder", "bindFolder: $view")
         val binding = holder.binding
         //显示编辑模式下的CheckBox
         showCheckBox(binding,view.folderId,false)
@@ -165,7 +168,13 @@ class BookAdapter (private val viewModel: BookShelfViewModel):ListAdapter<BookAn
         binding.CardViewBook.visibility = View.GONE
         binding.CardViewFolder.visibility = View.VISIBLE
         //图片加载逻辑
-//        binding.CDFolderCoverIV
+        val coverUrl = view.coverUrl
+        if(coverUrl.isNotEmpty()){
+            binding.CDFolderCoverIV.setImageURI(coverUrl.toUri())
+        }
+        else{
+            binding.CDFolderCoverIV.setImageResource(R.drawable.ic_launcher_foreground)
+        }
         binding.CDFolderNameTV.text = view.title
         val containBooksText = "共${viewModel.getBooksNumInFolder(view.folderId)}本书"
         binding.CDFolderContainBooksTV.text = containBooksText
@@ -176,6 +185,7 @@ class BookAdapter (private val viewModel: BookShelfViewModel):ListAdapter<BookAn
         holder: ViewHolder,
         view: BookView
     ) {
+        Log.d("BA bindBook", "bindBook: $view")
         val binding = holder.binding
         //显示编辑模式下的CheckBox
         showCheckBox(binding,view.bookId,true)
@@ -183,7 +193,13 @@ class BookAdapter (private val viewModel: BookShelfViewModel):ListAdapter<BookAn
         binding.CardViewFolder.visibility = View.GONE
         binding.CardViewBook.visibility = View.VISIBLE
         //图片加载逻辑
-//        binding.CDBookCoverIV
+        val coverUrl = view.coverUrl
+        if(coverUrl.isNotEmpty()){
+            binding.CDBookCoverIV.setImageURI(coverUrl.toUri())
+        }
+        else{
+            binding.CDFolderCoverIV.setImageResource(R.drawable.ic_launcher_foreground)
+        }
         binding.CDBookTitleTV.text = view.title
         val chapterProgressText = "读到第${view.currentPage}页/总共${view.totalPages}页"
         binding.CDChapterProgressTV.text = chapterProgressText
