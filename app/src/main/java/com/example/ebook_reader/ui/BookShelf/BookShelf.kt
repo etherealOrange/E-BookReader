@@ -1,7 +1,9 @@
 package com.example.ebook_reader.ui.BookShelf
 
+import android.content.DialogInterface
 import android.net.Uri
 import android.os.Bundle
+import android.os.Message
 import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
@@ -267,6 +269,7 @@ class BookShelf : Fragment() {
      * - 全选按钮
      * - 取消全选按钮
      * - 重命名文件夹按钮
+     * - 新建文件夹按钮
      *
      */
     private fun initAllTopICD(bookAdapter: BookAdapter){
@@ -297,7 +300,6 @@ class BookShelf : Fragment() {
         //设置在文件夹内 返回默认页面按钮
         topICD.BookshelfBackToDefaultBTN.setOnClickListener {
             viewModel.getOutOfFolder()
-
         }
         //设置TopBar的全选按钮
         topICD.BookShelfAllSelectBTN.setOnClickListener {
@@ -333,11 +335,9 @@ class BookShelf : Fragment() {
 
             }
             //弹窗
-            MaterialAlertDialogBuilder(requireContext())
-                .setTitle("新建文件夹")
-                .setView(inputNewFolderBoxBinding.root)
-                .setPositiveButton("确定") {dialog,_->
-                    Log.d("BS ","点击确认")
+            dialogBuilderFactory("新建文件夹",inputNewFolderBoxBinding.root,
+                {_,_->
+                    Log.d("BS 新建文件夹","点击确认")
                     if(inputNewFolderBoxBinding.editTextInput.text?.isEmpty() == true){
                         viewModel.insertNewFolder("新文件夹",viewModel.CoverDir.value)
                     }
@@ -346,14 +346,13 @@ class BookShelf : Fragment() {
                         viewModel.insertNewFolder(inputNewFolderBoxBinding.editTextInput.text.toString(),viewModel.CoverDir.value)
                     }
                     viewModel.clearCoverDir()
+                },
+                { _, _ ->
+                    Log.d("BS 新建文件夹","点击取消")
                 }
-                .setNegativeButton("取消") { _, _ ->
-                    Log.d("BS ","点击取消")
-                }
+            )
                 .create()
                 .show()
-
-
         }
     }
     /**
@@ -370,27 +369,28 @@ class BookShelf : Fragment() {
         //TODO:设置在编辑模式下 两种页面 删除按钮  添加删除确认弹窗
         bottomICD.BookShelfDeleteBTN.setOnClickListener {
             var yourChoice: Boolean? = null
-            AlertDialog.Builder(requireContext())
-                .setTitle("删除")
-                .setMessage("确定删除选中的书本和文件夹吗？(此过程不可逆!)")
-                .setPositiveButton("确定") { _, _ ->
+            dialogBuilderFactory("删除书本或文件夹",
+                "确定删除选中的书本和文件夹吗？(此过程不可逆!)",
+                { _, _ ->
                     deleteSelectedItems()
-                    Log.d("DeleteBooksAndFolder","成功")
+                    yourChoice = true
+                    Log.d("BS DeleteBooksAndFolder","成功")
+                },
+                { _, _ ->
+                    yourChoice = false
+                    Log.d("BS DeleteBooksAndFolder","取消删除")
                 }
-                .setNegativeButton("取消") { _, _ ->
-                    yourChoice=false
-                    Log.d("DeleteBooksAndFolder","取消删除")
-                }
-                .create()
-                .show()
-            Log.d("DeleteBooksAndFolder","$yourChoice")
+            )
+            .create()
+            .show()
+            Log.d("BS DeleteBooksAndFolder","$yourChoice")
 
         }
         //TODO:设置在编辑模式下 在主页编辑模式 重命名文件夹按钮 在文件夹内取消其使用
         bottomICD.BookShelfRenameFolderBTN.setOnClickListener {
-            Log.d("BS BookShelfRenameFolderBTN","before renameFolder out of Folder ${viewModel.isInFolder.value}")
+//            Log.d("BS BookShelfRenameFolderBTN","before renameFolder out of Folder ${viewModel.isInFolder.value}")
             if(viewModel.isInFolder.value)return@setOnClickListener
-            Log.d("BS BookShelfRenameFolderBTN","start renameFolder out of Folder")
+//            Log.d("BS BookShelfRenameFolderBTN","start renameFolder out of Folder")
             showRenameFolderDialog(BookShelfViewModel::renameFolder)
 
         }
@@ -407,23 +407,58 @@ class BookShelf : Fragment() {
     private fun showRenameFolderDialog(_renameFolder: BookShelfViewModel.(String)->Unit ){
         val inputBoxBinding: InputTextboxBinding =
             InputTextboxBinding.inflate(LayoutInflater.from(requireContext()))
-        MaterialAlertDialogBuilder(requireContext())
-            .setTitle("文件夹新名称")
-            .setView(inputBoxBinding.root)
-            .setPositiveButton("确认") {_,_->
+
+        dialogBuilderFactory("文件夹新名称",inputBoxBinding.root,
+            {_,_->
                 val newName = inputBoxBinding.editTextInput.text.toString()
                 if (newName.isNotEmpty()){
                     viewModel._renameFolder(newName)
-                    Log.d("RenameFolder","重命名成功")
+                    Log.d("BS RenameFolder","重命名成功")
                 }else{
-                    Log.d("RenameFolder","文件夹名称不能为空")
+                    Log.d("BS RenameFolder","文件夹名称不能为空")
                 }
+            },
+            { _, _ ->
+                Log.d("BS RenameFolder","取消重命名")
             }
-            .setNegativeButton("取消") { _, _ ->
-                Log.d("RenameFolder","取消重命名")
-            }
-            .create()
-            .show()
+        )
+        .create()
+        .show()
+    }
+
+    /**
+     * MaterialAlertDialogBuilder 对话框创建工厂
+     */
+    private fun dialogBuilderFactory(
+        title: String,
+        view: View,
+        positiveButtonClickListener: (DialogInterface, Int) -> Unit,
+        negativeButtonClickListener: (DialogInterface, Int) -> Unit,
+        positiveButtonText: String = "确定",
+        negativeButtonText: String = "取消",
+    ): MaterialAlertDialogBuilder {
+        return MaterialAlertDialogBuilder(requireContext())
+            .setTitle(title)
+            .setView(view)
+            .setPositiveButton(positiveButtonText, positiveButtonClickListener)
+            .setNegativeButton(negativeButtonText, negativeButtonClickListener)
+    }
+    /**
+     * MaterialAlertDialogBuilder 对话框创建工厂
+     */
+    private fun dialogBuilderFactory(
+        title: String,
+        message: String,
+        positiveButtonClickListener: (DialogInterface, Int) -> Unit,
+        negativeButtonClickListener: (DialogInterface, Int) -> Unit,
+        positiveButtonText: String = "确定",
+        negativeButtonText: String = "取消",
+    ): MaterialAlertDialogBuilder {
+        return MaterialAlertDialogBuilder(requireContext())
+            .setTitle(title)
+            .setMessage(message)
+            .setPositiveButton(positiveButtonText, positiveButtonClickListener)
+            .setNegativeButton(negativeButtonText, negativeButtonClickListener)
     }
 
     /**
