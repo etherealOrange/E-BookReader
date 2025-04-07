@@ -22,14 +22,16 @@
             android:id="@+id/editText_input"/>
     </com.google.android.material.textfield.TextInputLayout>
     <com.google.android.material.button.MaterialButton
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="10dp"
         android:id="@+id/add_folderCover_BTN"
         app:layout_constraintTop_toBottomOf="@id/text_input_layout"
         app:layout_constraintStart_toEndOf="@id/image_show"
         app:layout_constraintBottom_toBottomOf="@id/image_show"
+        app:layout_constraintEnd_toEndOf="parent"
         android:text="🔗选择文件夹封面"
+        android:maxLines="2"
         android:textSize="20sp"
         />
     <com.google.android.material.imageview.ShapeableImageView
