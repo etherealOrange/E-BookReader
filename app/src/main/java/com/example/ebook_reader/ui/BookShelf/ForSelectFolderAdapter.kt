@@ -7,7 +7,6 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.ebook_reader.databinding.CardviewForselectfolderBinding
 import com.example.ebook_reader.entities.FolderView
-import javax.inject.Inject
 
 class ForSelectFolderAdapter (
     private val viewModel: BookShelfDataViewModel): ListAdapter<FolderView, ForSelectFolderAdapter.ViewHolder>(

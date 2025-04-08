@@ -368,7 +368,7 @@ class BookShelf : Fragment() {
             bottomSheetDialog.show(parentFragmentManager,bottomSheetDialog.tag )
 
         }
-        //TODO:设置在编辑模式下 两种页面 删除按钮  添加删除确认弹窗
+        //设置在编辑模式下 两种页面 删除按钮  添加删除确认弹窗
         bottomICD.BookShelfDeleteBTN.setOnClickListener {
             var yourChoice: Boolean? = null
             dialogBuilderFactory("删除书本或文件夹",
@@ -388,7 +388,7 @@ class BookShelf : Fragment() {
             Log.d("BS DeleteBooksAndFolder","$yourChoice")
 
         }
-        //TODO:设置在编辑模式下 在主页编辑模式 重命名文件夹按钮 在文件夹内取消其使用
+        //设置在编辑模式下 在主页编辑模式 重命名文件夹按钮 在文件夹内取消其使用
         bottomICD.BookShelfRenameFolderBTN.setOnClickListener {
 //            Log.d("BS BookShelfRenameFolderBTN","before renameFolder out of Folder ${viewModel.isInFolder.value}")
             if(UIVM.isInFolder.value)return@setOnClickListener

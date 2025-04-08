@@ -1,22 +1,17 @@
 package com.example.ebook_reader.Repository.BookShelf
 
 import android.util.Log
-import androidx.lifecycle.viewModelScope
 import com.example.ebook_reader.DAO.BooksAndFoldersInfoDao
 import com.example.ebook_reader.entities.BookView
 import com.example.ebook_reader.entities.FolderView
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject

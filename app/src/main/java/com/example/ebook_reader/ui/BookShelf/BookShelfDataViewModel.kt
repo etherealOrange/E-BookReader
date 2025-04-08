@@ -50,7 +50,7 @@ class BookShelfDataViewModel @Inject constructor (private val Repo: BookShelfRep
         }
     }.stateIn(
         scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(500),
+        started = WhileSubscribed(500),
         initialValue = emptyList()
     )
 
