@@ -12,12 +12,11 @@ import com.example.ebook_reader.databinding.CardviewBinding
 import com.example.ebook_reader.entities.BookAndFolderItem
 import com.example.ebook_reader.entities.BookView
 import com.example.ebook_reader.entities.FolderView
-import javax.inject.Inject
 
 
 class BookAdapter (
     private val viewModel: BookShelfDataViewModel,
-    private val UIVM: BookShelfUIViewModule):ListAdapter<BookAndFolderItem, BookAdapter.ViewHolder>(
+    private val UIVM: BookShelfUIViewModel):ListAdapter<BookAndFolderItem, BookAdapter.ViewHolder>(
     BookAndFolderDiffCallBack()
     )
 {

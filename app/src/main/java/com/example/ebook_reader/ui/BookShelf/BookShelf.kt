@@ -26,7 +26,6 @@ import java.io.File
 import java.io.FileOutputStream
 import androidx.core.net.toUri
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.ViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -42,7 +41,7 @@ class BookShelf : Fragment() {
     //获取Activity共享的ViewModel
     //TODO:通过依赖注入获取ViewModel
     private val viewModel: BookShelfDataViewModel by activityViewModels()
-    private val UIVM : BookShelfUIViewModule by viewModels()
+    private val UIVM : BookShelfUIViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

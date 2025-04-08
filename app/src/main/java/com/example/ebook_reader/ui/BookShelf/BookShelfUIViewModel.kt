@@ -14,7 +14,7 @@ import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 
 @HiltViewModel
-class BookShelfUIViewModule @Inject constructor(private val Repo: BookShelfRepository): ViewModel() {
+class BookShelfUIViewModel @Inject constructor(private val Repo: BookShelfRepository): ViewModel() {
     private var _CoverDir = MutableStateFlow<String>("")
     val CoverDir: StateFlow<String> get() = _CoverDir
     val isInFolder: StateFlow<Boolean> = Repo.isInFolder
