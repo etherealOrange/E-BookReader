@@ -18,7 +18,7 @@ abstract class AppDatabase: RoomDatabase() {
     //封装的 一体式 Dao接口
     abstract fun booksAndFoldersInfoDao(): BooksAndFoldersInfoDao
     //连接数据库
-    companion object {
+/*    companion object {
         @Volatile
         private var INSTANCE: AppDatabase? = null
         fun getDatabase(context: Context): AppDatabase {
@@ -32,5 +32,5 @@ abstract class AppDatabase: RoomDatabase() {
                 instance
             }
         }
-    }
+    }*/
 }

@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     id("com.google.devtools.ksp")
+    id("com.google.dagger.hilt.android")
 }
 
 android {
@@ -38,7 +39,7 @@ android {
     buildFeatures {
         compose = true
         viewBinding = true
-        dataBinding = true
+
     }
 }
 
@@ -47,6 +48,8 @@ dependencies {
 //排除和其他模组的冲突
         exclude(group = "com.intellij", module = "annotations")
     }
+    implementation(libs.hilt.android)
+    ksp(libs.hilt.compiler)
     implementation(libs.androidx.room.ktx)
     implementation(libs.androidx.room.runtime)
 //下面是ksp, 也要安装的

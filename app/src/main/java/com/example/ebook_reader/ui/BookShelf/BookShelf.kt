@@ -3,16 +3,13 @@ package com.example.ebook_reader.ui.BookShelf
 import android.content.DialogInterface
 import android.net.Uri
 import android.os.Bundle
-import android.os.Message
 import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.PickVisualMediaRequest
-import androidx.activity.result.contract.ActivityResultContract
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AlertDialog
 import androidx.core.view.isVisible
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
@@ -27,9 +24,12 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileOutputStream
-import java.net.URI
 import androidx.core.net.toUri
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.ViewModel
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class BookShelf : Fragment() {
     //ViewBinding
     private var _binding: FragmentBookShelfBinding? = null
@@ -40,7 +40,9 @@ class BookShelf : Fragment() {
     private val bottomSheetDialog = BookShelf_BotSheetDialog()
 
     //获取Activity共享的ViewModel
-    private val viewModel: BookShelfViewModel by activityViewModels()
+    //TODO:通过依赖注入获取ViewModel
+    private val viewModel: BookShelfDataViewModel by activityViewModels()
+    private val UIVM : BookShelfUIViewModule by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -63,7 +65,7 @@ class BookShelf : Fragment() {
         //更新TopBar的可见性模式
         lifecycleScope.launch {
             launch {
-                combine(viewModel.isInFolder,viewModel.isEditModel) {
+                combine(UIVM.isInFolder,UIVM.isEditModel) {
                         isInFolder, isEditModel ->
                     when (isInFolder){
                         true ->{
@@ -95,13 +97,12 @@ class BookShelf : Fragment() {
                             }
                         }
                     }
-                }.collectLatest {  }
+                }.collectLatest { Log.d("BS 更新顶部TopBar","更新TopBar...")  }
             }
             //更新TopBar的 现在文件夹名称
             launch {
-                viewModel.inFolderName.collectLatest {
+                UIVM.inFolderName.collectLatest {
                     topICD.BookShelfFolderNameTV.text = it
-
                 }
             }
         }
@@ -114,7 +115,7 @@ class BookShelf : Fragment() {
         lifecycleScope.launch {
             //更新BottomBar的总体可见性模式
             launch {
-                combine(viewModel.isInFolder,viewModel.isEditModel) {
+                combine(UIVM.isInFolder,UIVM.isEditModel) {
                         isInFolder, isEditModel ->
                     when(isInFolder or isEditModel){
                         true->{
@@ -130,7 +131,7 @@ class BookShelf : Fragment() {
             }
             //更新BottomBar的移动按钮可用性模式
             launch {
-                viewModel.canMoveBooks.collectLatest {
+                UIVM.canMoveBooks.collectLatest {
                     when(it){
                         true->{
                             bottomICD.BookShelfMoveBTN.isEnabled = true
@@ -143,7 +144,7 @@ class BookShelf : Fragment() {
             }
             //更新BottomBar的删除按钮可用性模式
             launch {
-                viewModel.isSelectThings.collectLatest {
+                UIVM.isSelectThings.collectLatest {
                     when(it){
                         true->{
                             bottomICD.BookShelfDeleteBTN.isEnabled = true
@@ -156,7 +157,7 @@ class BookShelf : Fragment() {
             }
             //更新BottomBar的重命名按钮可用性模式
             launch {
-                viewModel.isSingleSelectedFolder.collectLatest {
+                UIVM.isSingleSelectedFolder.collectLatest {
                     when(it){
                         true->{
                             bottomICD.BookShelfRenameFolderBTN.isEnabled = true
@@ -177,13 +178,14 @@ class BookShelf : Fragment() {
         lifecycleScope.launch {
             //只有在选中一个文件夹时才可以重命名文件夹
             launch {
-                viewModel.isSingleSelectedFolder.collectLatest {
+                UIVM.isSingleSelectedFolder.collectLatest {
                     bottomICD.BookShelfRenameFolderBTN.isEnabled = it
                 }
             }
             //动态更新是否可以移动书本的状态
             launch {
-                viewModel.canMoveBooks.collectLatest {
+                UIVM.canMoveBooks.collectLatest {
+                    Log.d("BS onViewCreated","更新BottomBar的移动按钮可用性模式 $it")
                     bottomICD.BookShelfMoveBTN.isEnabled = it
                 }
             }
@@ -195,7 +197,8 @@ class BookShelf : Fragment() {
     }
     private fun initAdapter(): BookAdapter{
         //设置书本的ListAdapter
-        val bookAdapter = BookAdapter(viewModel)
+        //TODO:这里的 bookAdapter应该通过依赖注入来实现
+        val bookAdapter = BookAdapter(viewModel,UIVM)
         //设置layoutManager和adapter
         binding.BookRecyclerView.layoutManager = GridLayoutManager(context, 3)
         binding.BookRecyclerView.adapter = bookAdapter
@@ -203,14 +206,14 @@ class BookShelf : Fragment() {
             //动态更新RecyclerView数据逻辑
             launch {
                 viewModel.items.collectLatest { newList ->
-                    Log.d("BS initAdapter","更新RecyclerView数据")
+                    Log.d("BS 初始化Adapter","initAdapter 更新RecyclerView的显示数据")
                     bookAdapter.submitList(newList)
                 }
             }
             //每次修改EditModule都要更新RecyclerView
             launch {
-                viewModel.isEditModel.collectLatest {
-                    Log.d("BS initAdapter","更新RecyclerView数据")
+                UIVM.isEditModel.collectLatest {
+                    Log.d("BS 初始化Adapter","initAdapter 刷新RecyclerView显示数据")
                     bookAdapter.flashAllViews()
                 }
             }
@@ -226,11 +229,11 @@ class BookShelf : Fragment() {
     private val pickImageLauncher = registerForActivityResult(ActivityResultContracts.PickVisualMedia()) {
             uri->
         if (uri != null) {
-            Log.d("BS pickImageLauncher","选择的图片URI: $uri")
+            Log.d("BS 进行文件夹封面保存","pickImageLauncher 选择的图片URI: $uri")
             saveImageToFolder(uri,InsideFolderName.FOLDERSCOVERFOLDER.displayName)
         } else {
-            viewModel.clearCoverDir()
-            Log.d("BS pickImageLauncher","没有选择图片")
+            UIVM.clearCoverDir()
+            Log.d("BS 没有图片","pickImageLauncher 没有选择图片")
         }
     }
     //保存图片到指定文件夹
@@ -249,12 +252,12 @@ class BookShelf : Fragment() {
                 //将inputStream中的数据复制到outputStream中
                 inputStream.copyTo(FileOutputStream(outputFile))
             }
-            Log.d("BS saveImageToFolder","保存图片成功")
-            viewModel.updateCoverDir(outputFile.path)
-            Log.d("BS saveImageToFolder","保存图片路径: ${outputFile.path}")
+            Log.d("BS saveImageToFolder","saveImageToFolder 保存图片成功")
+            UIVM.updateCoverDir(outputFile.path)
+            Log.d("BS saveImageToFolder","saveImageToFolder 保存图片路径: ${outputFile.path}")
         }catch (e: RuntimeException){
-            viewModel.clearCoverDir()
-            Log.d("BS saveImageToFolder","保存图片失败 原因:$e")
+            UIVM.clearCoverDir()
+            Log.d("BS saveImageToFolder","saveImageToFolder 保存图片失败 原因:$e")
         }
     }
     /**
@@ -275,22 +278,22 @@ class BookShelf : Fragment() {
     private fun initAllTopICD(bookAdapter: BookAdapter){
         //设置在默认页面 Edit模式 进入按钮
         topICD.BookShelfEditBTN.setOnClickListener {
-            viewModel.switchEditModel()
+            UIVM.switchEditModel()
         }
         //设置在文件夹内 Edit模式 进入按钮
         topICD.BookShelfEditInFolderBTN.setOnClickListener {
-            viewModel.switchEditModel()
+            UIVM.switchEditModel()
         }
         //设置两种页面下 Edit模式 退出按钮   完成按钮
         topICD.BookshelfAllDownBTN.setOnClickListener {
-            viewModel.switchEditModel()
-            viewModel.clearSelectedFolderId()
-            viewModel.clearSelectedBooksId()
+            UIVM.switchEditModel()
+            UIVM.clearSelectedFolderId()
+            UIVM.clearSelectedBooksId()
         }
         topICD.BookShelfFinishInFolderBTN.setOnClickListener {
-            viewModel.switchEditModel()
-            viewModel.clearSelectedFolderId()
-            viewModel.clearSelectedBooksId()
+            UIVM.switchEditModel()
+            UIVM.clearSelectedFolderId()
+            UIVM.clearSelectedBooksId()
         }
         //书本导入按钮
         topICD.BookshelfBookImportBTN.setOnClickListener {
@@ -313,10 +316,10 @@ class BookShelf : Fragment() {
         }
         //设置在文件夹内 重命名文件夹按钮
         topICD.BookShelfRenameFolderInFolderBTN.setOnClickListener {
-            Log.d("BS BookShelfRenameFolderInFolderBTN","before BookShelfRenameFolderInFolderBTN in Folder ${viewModel.isInFolder.value}")
-            if(!viewModel.isInFolder.value)return@setOnClickListener
+            Log.d("BS BookShelfRenameFolderInFolderBTN","before BookShelfRenameFolderInFolderBTN in Folder ${UIVM.isInFolder.value}")
+            if(!UIVM.isInFolder.value)return@setOnClickListener
             Log.d("BS BookShelfRenameFolderInFolderBTN","start BookShelfRenameFolderInFolderBTN in Folder")
-            showRenameFolderDialog(BookShelfViewModel::renameFolderInFolder)
+            showRenameFolderDialog(BookShelfDataViewModel::renameFolderInFolder)
         }
         //设置在主页 新建文件夹
         topICD.BookshelfNewFolderBTN.setOnClickListener {
@@ -325,7 +328,7 @@ class BookShelf : Fragment() {
             inputNewFolderBoxBinding.addFolderCoverBTN.setOnClickListener {
                 pickImageLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
                 lifecycleScope.launch {
-                    viewModel.CoverDir.collectLatest {
+                    UIVM.CoverDir.collectLatest {
                         Log.d("BS pickImageLauncher", "切换为: ${it.toUri()}")
                         if (it != "") {
                             inputNewFolderBoxBinding.imageShow.setImageURI(it.toUri())
@@ -339,13 +342,13 @@ class BookShelf : Fragment() {
                 {_,_->
                     Log.d("BS 新建文件夹","点击确认")
                     if(inputNewFolderBoxBinding.editTextInput.text?.isEmpty() == true){
-                        viewModel.insertNewFolder("新文件夹",viewModel.CoverDir.value)
+                        viewModel.insertNewFolder("新文件夹",UIVM.CoverDir.value)
                     }
                     else
                     {
-                        viewModel.insertNewFolder(inputNewFolderBoxBinding.editTextInput.text.toString(),viewModel.CoverDir.value)
+                        viewModel.insertNewFolder(inputNewFolderBoxBinding.editTextInput.text.toString(),UIVM.CoverDir.value)
                     }
-                    viewModel.clearCoverDir()
+                    UIVM.clearCoverDir()
                 },
                 { _, _ ->
                     Log.d("BS 新建文件夹","点击取消")
@@ -389,9 +392,9 @@ class BookShelf : Fragment() {
         //TODO:设置在编辑模式下 在主页编辑模式 重命名文件夹按钮 在文件夹内取消其使用
         bottomICD.BookShelfRenameFolderBTN.setOnClickListener {
 //            Log.d("BS BookShelfRenameFolderBTN","before renameFolder out of Folder ${viewModel.isInFolder.value}")
-            if(viewModel.isInFolder.value)return@setOnClickListener
+            if(UIVM.isInFolder.value)return@setOnClickListener
 //            Log.d("BS BookShelfRenameFolderBTN","start renameFolder out of Folder")
-            showRenameFolderDialog(BookShelfViewModel::renameFolder)
+            showRenameFolderDialog(BookShelfDataViewModel::renameFolder)
 
         }
     }
@@ -404,7 +407,7 @@ class BookShelf : Fragment() {
      *
      * 在主页面调用`BookShelfViewModel::renameFolder`
      */
-    private fun showRenameFolderDialog(_renameFolder: BookShelfViewModel.(String)->Unit ){
+    private fun showRenameFolderDialog(_renameFolder: BookShelfDataViewModel.(String)->Unit ){
         val inputBoxBinding: InputTextboxBinding =
             InputTextboxBinding.inflate(LayoutInflater.from(requireContext()))
 
@@ -465,7 +468,7 @@ class BookShelf : Fragment() {
      * 在文件夹内只删除书本, 在主页删除书本和文件夹
      */
     private fun deleteSelectedItems(){
-        when(viewModel.isInFolder.value){
+        when(UIVM.isInFolder.value){
             true -> viewModel.deleteSelectedBooks()
             false -> viewModel.deleteSelectedAll()
         }
@@ -473,16 +476,16 @@ class BookShelf : Fragment() {
 
     override fun onStart() {
         super.onStart()
-        Log.d("BookShelf onStart","success")
+        Log.d("BS onStart","success")
     }
     override fun onStop() {
         super.onStop()
-        Log.d("BookShelf onStop","success")
+        Log.d("BS onStop","success")
     }
     override fun onDestroy() {
         super.onDestroy()
         _binding = null
-        Log.d("BookShelf onDestroy","success")
+        Log.d("BS onDestroy","success")
     }
 }
 

@@ -2,14 +2,8 @@ package com.example.ebook_reader
 
 import android.os.Bundle
 import android.view.View
-import android.widget.Toast
-import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.doOnAttach
-import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
@@ -18,30 +12,24 @@ import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
-import androidx.recyclerview.widget.GridLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import com.example.ebook_reader.databinding.ActivityMainBinding
 import com.example.ebook_reader.databinding.NavViewHeadMainBinding
 import com.example.ebook_reader.entities.InsideFolderName
-import com.example.ebook_reader.ui.BookShelf.BookShelfViewModel
+import com.example.ebook_reader.ui.BookShelf.BookShelfDataViewModel
+import dagger.hilt.android.AndroidEntryPoint
+import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import java.io.File
 import kotlin.getValue
 
+@AndroidEntryPoint
 class Main_Activity : AppCompatActivity() {
     //设置Activity的布局文件
     private lateinit var binding: ActivityMainBinding
     private  lateinit var appBarConfiguration: AppBarConfiguration
     //设置Viewmodel
-    private val viewModel: BookShelfViewModel by viewModels{
-        object : ViewModelProvider.Factory{
-            override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                @Suppress("UNCHECKED_CAST")
-                return BookShelfViewModel(application) as T
-            }
-        }
-    }
+    private val viewModel: BookShelfDataViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

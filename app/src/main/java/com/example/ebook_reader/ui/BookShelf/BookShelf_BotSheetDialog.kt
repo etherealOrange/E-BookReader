@@ -9,14 +9,16 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.ebook_reader.databinding.BookshelfBotSheetDialogBinding
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
+@AndroidEntryPoint
 class BookShelf_BotSheetDialog(): BottomSheetDialogFragment() {
     private var _binding: BookshelfBotSheetDialogBinding? = null
     private val binding get() = _binding!!
     //获取Activity共享的ViewModel
-    private val viewModel: BookShelfViewModel by activityViewModels()
+    private val viewModel: BookShelfDataViewModel by activityViewModels()
 
 
     override fun onCreateView(
