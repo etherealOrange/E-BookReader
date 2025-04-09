@@ -9,7 +9,7 @@ import com.example.ebook_reader.entities.BookType
 import com.example.ebook_reader.entities.BookView
 import com.example.ebook_reader.entities.FolderView
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
@@ -25,8 +25,23 @@ import javax.inject.Inject
 class BookShelfDataViewModel @Inject constructor (private val Repo: BookShelfRepository): ViewModel() {
     val isHideActionBar: StateFlow<Boolean> get() = Repo.isHideActionBar
     val isInFolder: StateFlow<Boolean> get() = Repo.isInFolder
+    val inWhichFolder: StateFlow<Long?> get() = Repo.inWhichFolder
     val Folders: StateFlow<List<FolderView>> get() = Repo.allFolders
     val Books: StateFlow<List<BookView>> get() = Repo.allBooks
+    private val _moveToFolderId: MutableStateFlow<Long?> = MutableStateFlow(-1L)
+    val moveToFolderId: StateFlow<Long?> get() = _moveToFolderId
+    fun updateMoveToFolderId(id: Long){
+        _moveToFolderId.value = id
+    }
+    fun clearMoveToFolderId(){
+        _moveToFolderId.value = -1L
+    }
+    fun getOutOfFolderMoveToFolderId(){
+        _moveToFolderId.value = null
+    }
+
+
+
     /**
      * 将书本和文件夹合并成一个列表
      *
@@ -61,16 +76,16 @@ class BookShelfDataViewModel @Inject constructor (private val Repo: BookShelfRep
      *
      * 如果id不存在则退出到主页
      */
-    fun goIntoFolder(long: Long){
+    fun goIntoFolder(folderId: Long){
         //查找要更新的文件夹id是否存在
-        if(Folders.value.any{it.folderId==long}){
-            Repo.goIntoFolder(long)
-            Log.d("VM goIntoFolder","goIntoFolder id is $long")
+        if(Folders.value.any{it.folderId==folderId}){
+            Repo.goIntoFolder(folderId)
+            Log.d("VM goIntoFolder","goIntoFolder id is $folderId")
             return
         }
         getOutOfFolder()
         Log.d("VM goIntoFolder","你的文件夹id ${Folders.value}")
-        Log.d("VM goIntoFolder","你的文件夹id $long 不存在")
+        Log.d("VM goIntoFolder","你的文件夹id $folderId 不存在")
     }
 
     /**
@@ -106,6 +121,35 @@ class BookShelfDataViewModel @Inject constructor (private val Repo: BookShelfRep
             simulateInsertBooks()
             simulateInsertFolders()
             simulateInsertBooksInFolder(1)
+        }
+    }
+
+    fun moveBooksToFolder(){
+        viewModelScope.launch {
+            if(Repo.selectedBooksId.value.isEmpty()) {
+                Log.d("VM moveBooksToFolder", "No book selected")
+                return@launch
+            }
+            if(Folders.value.none{it.folderId==moveToFolderId.value}) {
+                Log.d("VM moveBooksToFolder", "your selected folder not exist")
+                return@launch
+            }
+            Repo.selectedBooksId.value.forEach {
+                Repo.moveBookToFolder(it,moveToFolderId.value)
+                Log.d("VM moveBooksToFolder","移动了书本id $it 的folderId 到 ${moveToFolderId.value}")
+            }
+            Repo.clearSelectedBooksId()
+        }
+    }
+    fun moveBooksToFolder(isGetOutOfFolder: Boolean){
+        viewModelScope.launch {
+            if(isGetOutOfFolder){
+                Repo.selectedBooksId.value.forEach {
+                    Repo.moveBookToFolder(it,null)
+                    Log.d("VM moveBooksToFolder","移动了书本id $it 的folderId 到 主页面")
+                }
+                Repo.clearSelectedBooksId()
+            }
         }
     }
 

@@ -34,6 +34,9 @@ interface BooksAndFoldersInfoDao {
     @Insert
     suspend fun insertFolders(folder: List<FolderView>)
 
+    @Query("UPDATE BooksInfo SET folderId = :folderId Where bookId = :bookId")
+    suspend fun moveBookToFolder(bookId: Long, folderId: Long?)
+
     @Query("SELECT * FROM FoldersInfo")
     fun getAllFolders(): Flow<List<FolderView>>
 

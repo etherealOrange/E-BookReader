@@ -48,6 +48,9 @@ dependencies {
 //排除和其他模组的冲突
         exclude(group = "com.intellij", module = "annotations")
     }
+    implementation(libs.leakcanary.android)
+//    implementation(libs.leakcanary.support.fragment)
+
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
     implementation(libs.androidx.room.ktx)

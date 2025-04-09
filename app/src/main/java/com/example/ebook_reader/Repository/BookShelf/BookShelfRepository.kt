@@ -121,7 +121,9 @@ class BookShelfRepository @Inject constructor (private val dao: BooksAndFoldersI
     }
 
 
-
+    suspend fun moveBookToFolder(bookId: Long, folderId: Long?) {
+        dao.moveBookToFolder(bookId, folderId)
+    }
     /**
      * 获取全部书籍数量
      */
