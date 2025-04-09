@@ -7,29 +7,32 @@ import android.view.ViewGroup
 import androidx.core.net.toUri
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.example.ebook_reader.InterfacePackage.BookShelf.BooksAdapterChangePosition
+import com.example.ebook_reader.InterfacePackage.BookShelf.BooksAdapterSelectedControl
 import com.example.ebook_reader.R
+import com.example.ebook_reader.Repository.BookShelf.BookAdapterUIState
 import com.example.ebook_reader.databinding.CardviewBinding
 import com.example.ebook_reader.entities.BookAndFolderItem
 import com.example.ebook_reader.entities.BookView
 import com.example.ebook_reader.entities.FolderView
-
+import com.example.ebook_reader.entities.UIFolderView
 
 class BookAdapter (
-    private val viewModel: BookShelfDataViewModel,
-    private val UIVM: BookShelfUIViewModel):ListAdapter<BookAndFolderItem, BookAdapter.ViewHolder>(
+    private val changePosition: BooksAdapterChangePosition,
+    private val selectedControl: BooksAdapterSelectedControl
+):ListAdapter<BookAdapterUIState, BookAdapter.ViewHolder>(
     BookAndFolderDiffCallBack()
     )
 {
+    private var _isEditModel = false
     //ViewHolder内部类, 创建ViewHolder实例
     inner class ViewHolder(val binding: CardviewBinding): RecyclerView.ViewHolder(binding.root){
         //获取当前ViewHolder的位置的ItemId 和 是否是书本
         private var thisItemId: Long = 0
         private var isCurrentRefBook = false
         init {
-            //让CheckBox不可点击
-            binding.CDSelectedCheckBox.isClickable=false
             binding.root.setOnClickListener {
-                when (UIVM.isEditModel.value){
+                when (_isEditModel){
                     true->{
                         //编辑模式下的点击事件
                         inEditModelClickChange()
@@ -56,57 +59,16 @@ class BookAdapter (
                 }
                 false->{
                     //跳转到文件夹界面
-                    viewModel.goIntoFolder(thisItemId)
+                    changePosition.goIntoFolder(thisItemId)
                 }
             }
         }
         //编辑模式下的点击事件
         private fun inEditModelClickChange(){
-            //现在的Holder是书本还是文件夹
-            Log.d("VM Messages","before selectedBooksId${UIVM.selectedBooksId.value}\n" +
-                    "selectedFolderId ${UIVM.selectedFolderId.value}\n" +
-                    " isSingleSelectedFolder ${UIVM.isSingleSelectedFolder.value}\n" +
-                    " isSelectThings ${UIVM.isSelectThings.value}\n" +
-                    " inWhichFolder ${UIVM.inWhichFolder.value}\n" +
-                    " isInFolder ${UIVM.isInFolder.value}")
             when (isCurrentRefBook){
-                true->{
-                    //查看书本是否已经被选中
-                    when(UIVM.selectedBooksId.value.contains(thisItemId)){
-                        //已经被选中 去除选中状态 移出选中的书本id
-                        true->{
-                            binding.CDSelectedCheckBox.isChecked=false
-                            UIVM.removeSelectedBooksId(thisItemId)
-                        }
-                        //未被选中 添加选中状态 添加选中的书本id
-                        false->{
-                            binding.CDSelectedCheckBox.isChecked=true
-                            UIVM.addSelectedBooksId(thisItemId)
-                        }
-                    }
-                }
-                false->{
-                    //查看文件夹是否已经被选中
-                    when(UIVM.selectedFolderId.value.contains(thisItemId)){
-                        //已经被选中 去除选中状态 移出选中的文件夹id
-                        true->{
-                            binding.CDSelectedCheckBox.isChecked=false
-                            UIVM.removeSelectedFolderId(thisItemId)
-                        }
-                        //未被选中 添加选中状态 添加选中的文件夹id
-                        false->{
-                            binding.CDSelectedCheckBox.isChecked=true
-                            UIVM.addSelectedFolderId(thisItemId)
-                        }
-                    }
-                }
+                true->selectedControl.switchSelectedBooksId(thisItemId)
+                false->selectedControl.switchSelectedFolderId(thisItemId)
             }
-            Log.d("VM Messages","after selectedBooksId${UIVM.selectedBooksId.value}\n" +
-                    "selectedFolderId ${UIVM.selectedFolderId.value}\n" +
-                    " isSingleSelectedFolder ${UIVM.isSingleSelectedFolder.value}\n" +
-                    " isSelectThings ${UIVM.isSelectThings.value}\n" +
-                    " inWhichFolder ${UIVM.inWhichFolder.value}\n" +
-                    " isInFolder ${UIVM.isInFolder.value}")
         }
         //给当前ViewHolder提供当前位置的ItemId 和 是否是书本
         fun getHolderCurrentPositionAndIsRefBook(itemId: Long, isRefBook: Boolean){
@@ -123,61 +85,66 @@ class BookAdapter (
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val item = getItem(position)
         var itemId: Long = 0
+        Log.d("BA onBindViewHolder", "onBindViewHolder:在进行ViewBind\n $item")
 
         //处理Book和Folder视图的绑定 并设置itemId
-        when(item){
+        when(item.item){
             is BookView ->{
-                bindBook(holder, item)
-                itemId = item.bookId
+                bindBook(holder, item.item )
+                itemId = item.item.bookId
             }
-            is FolderView -> {
-                bindFolder(holder, item)
-                itemId = item.folderId
+            is UIFolderView -> {
+                bindFolder(holder, item.item)
+                itemId = item.item.folder.folderId
             }
         }
+        //设置CheckBox可见性
+        when(_isEditModel){
+            true->{
+                holder.binding.CDSelectedCheckBox.visibility= View.VISIBLE
+            }
+            false->{
+                holder.binding.CDSelectedCheckBox.visibility= View.GONE
+            }
+        }
+        //让CheckBox不可点击
+        holder.binding.CDSelectedCheckBox.isClickable=false
+        //设置CheckBox是否点击
+        holder.binding.CDSelectedCheckBox.isChecked = item.isSelected
         //给当前ViewHolder提供当前位置的ItemId 和 是否是书本 为了在点击事件中使用
-        holder.getHolderCurrentPositionAndIsRefBook(itemId, item is BookView)
+        holder.getHolderCurrentPositionAndIsRefBook(itemId, item.item is BookView)
+    }
+    //开始编辑模式
+    fun openEditModel(){
+        _isEditModel=true
+        notifyItemRangeChanged(0,itemCount)
+    }
+    fun closeEditModel(){
+        _isEditModel=false
+        notifyItemRangeChanged(0,itemCount)
     }
 
-    //判断是否在编辑模式下 显示或隐藏CheckBox 以及显示情况下是否选中
-    private fun showCheckBox(binding: CardviewBinding,itemId: Long,isRefBook: Boolean){
-        //根据是否处于编辑模式显示CheckBox
-        when (UIVM.isEditModel.value){
-            false ->binding.CDSelectedCheckBox.visibility = View.GONE
-            true ->{
-                binding.CDSelectedCheckBox.visibility = View.VISIBLE
-                //判断当前书本或文件夹是否已经被选中
-                //是书本且书本id被选中 或 是文件夹且文件夹id被选中
-                when( (isRefBook and  UIVM.selectedBooksId.value.contains(itemId))
-                        or (!isRefBook and UIVM.selectedFolderId.value.contains(itemId))){
-                    true->binding.CDSelectedCheckBox.isChecked=true
-                    false->binding.CDSelectedCheckBox.isChecked=false
-                }
-            }
-        }
-    }
     //绑定 FolderView
     private fun bindFolder(
         holder: ViewHolder,
-        view: FolderView
+        view: UIFolderView
     ) {
         Log.d("BA bindFolder", "bindFolder: $view")
         val binding = holder.binding
-        //显示编辑模式下的CheckBox
-        showCheckBox(binding,view.folderId,false)
+
         //显示书本 而非文件夹
         binding.CardViewBook.visibility = View.GONE
         binding.CardViewFolder.visibility = View.VISIBLE
         //图片加载逻辑
-        val coverUrl = view.coverUrl
+        val coverUrl = view.folder.coverUrl
         if(coverUrl.isNotEmpty()){
             binding.CDFolderCoverIV.setImageURI(coverUrl.toUri())
         }
         else{
             binding.CDFolderCoverIV.setImageResource(R.drawable.ic_launcher_foreground)
         }
-        binding.CDFolderNameTV.text = view.title
-        val containBooksText = "共${viewModel.getBooksNumInFolder(view.folderId)}本书"
+        binding.CDFolderNameTV.text = view.folder.title
+        val containBooksText = "共${view.booksNum}本书"
         binding.CDFolderContainBooksTV.text = containBooksText
     }
 
@@ -188,8 +155,7 @@ class BookAdapter (
     ) {
         Log.d("BA bindBook", "bindBook: $view")
         val binding = holder.binding
-        //显示编辑模式下的CheckBox
-        showCheckBox(binding,view.bookId,true)
+
         //显示文件夹 而不是书本
         binding.CardViewFolder.visibility = View.GONE
         binding.CardViewBook.visibility = View.VISIBLE
@@ -209,22 +175,7 @@ class BookAdapter (
         binding.CDReadProgressPB.progress = readProgress
     }
 
-    //取消全选
-    fun cancelAllSelected(){
-        UIVM.clearSelectedBooksId()
-        UIVM.clearSelectedFolderId()
-        notifyItemRangeChanged(0,itemCount)
-    }
-    //全部选择
-    fun selectedAllSelected(){
-        for (item in currentList){
-            when (item){
-                is BookView->UIVM.addSelectedBooksId(item.bookId)
-                is FolderView->UIVM.addSelectedFolderId(item.folderId)
-            }
-        }
-        notifyItemRangeChanged(0,itemCount)
-    }
+
     //更新页面
     fun flashAllViews(){
         notifyItemRangeChanged(0,itemCount)

@@ -2,17 +2,22 @@ package com.example.ebook_reader.Repository.BookShelf
 
 import android.util.Log
 import com.example.ebook_reader.DAO.BooksAndFoldersInfoDao
+import com.example.ebook_reader.entities.BookAndFolderItem
 import com.example.ebook_reader.entities.BookView
 import com.example.ebook_reader.entities.FolderView
+import com.example.ebook_reader.entities.UIFolderView
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -25,6 +30,36 @@ class BookShelfRepository @Inject constructor (private val dao: BooksAndFoldersI
     val allBooks: StateFlow<List<BookView>> get() = _allBooks
     private val _allFolders = MutableStateFlow<List<FolderView>>(emptyList())
     val allFolders : StateFlow<List<FolderView>> get() = _allFolders
+    private val _notifyBooksNumChange = MutableStateFlow<Boolean>(false)
+    /**
+     * 书籍数量变化通知
+     */
+    fun notifyBooksNumChange(){
+        _notifyBooksNumChange.value = !_notifyBooksNumChange.value
+    }
+    val allUIFolders: StateFlow<List<UIFolderView>> get()= combine(_allFolders,_notifyBooksNumChange) {
+        folder,notify->
+        folder.map {
+            UIFolderView(it, dao.getBooksNumInFolder(it.folderId))
+        }
+    } .stateIn(
+        scope = CoroutineScope(Dispatchers.IO),
+        started = WhileSubscribed(500),
+        initialValue = emptyList()
+    )
+    /**
+     * 书籍和文件夹的联合
+     */
+
+
+    val allBooksAndFolders: StateFlow<List<BookAndFolderItem>> = combine(allBooks,allUIFolders) {
+        books,folders->
+        folders+books
+    }.stateIn(
+        scope = CoroutineScope(Dispatchers.IO),
+        started = WhileSubscribed(500),
+        initialValue = emptyList()
+    )
 
     init {
         CoroutineScope(Dispatchers.IO).launch {
@@ -60,6 +95,8 @@ class BookShelfRepository @Inject constructor (private val dao: BooksAndFoldersI
     //编辑状态 和 在文件夹内 Boolean 状态
     private val _isEditModule = MutableStateFlow(false)
     val isEditModel : StateFlow<Boolean> get() = _isEditModule
+
+
     private val _isInFolder = MutableStateFlow(false)
     val isInFolder : StateFlow<Boolean> get() = _isInFolder
     fun switchEditModule() {
@@ -87,37 +124,6 @@ class BookShelfRepository @Inject constructor (private val dao: BooksAndFoldersI
         _inWhichFolder.value = null
         _isInFolder.value = false
         _isHideActionBar.value = false
-    }
-    //选中的书本id 和 文件夹id 和 添加 移除 方法
-    private var _selectedBooksId = MutableStateFlow<MutableSet<Long>>(mutableSetOf())
-    val selectedBooksId: StateFlow<MutableSet<Long>> get() = _selectedBooksId
-    private var _selectedFolderId = MutableStateFlow<MutableSet<Long>>(mutableSetOf())
-    val selectedFolderId: StateFlow<MutableSet<Long>> get() = _selectedFolderId
-    fun addSelectedBooksId(id: Long){
-        _selectedBooksId.update {
-            it.toMutableSet().apply { add(id) }
-        }
-    }
-    fun removeSelectedBooksId(id: Long) {
-        _selectedBooksId.update {
-            it.toMutableSet().apply { remove(id) }
-        }
-    }
-    fun addSelectedFolderId(id: Long){
-        _selectedFolderId.update {
-            it.toMutableSet().apply { add(id) }
-        }
-    }
-    fun removeSelectedFolderId(id: Long){
-        _selectedFolderId.update {
-            it.toMutableSet().apply { remove(id) }
-        }
-    }
-    fun clearSelectedBooksId(){
-        _selectedBooksId.value= mutableSetOf<Long>()
-    }
-    fun clearSelectedFolderId(){
-        _selectedFolderId.value=mutableSetOf<Long>()
     }
 
 

@@ -9,7 +9,7 @@ data class FolderView(
     @PrimaryKey(autoGenerate = true) val folderId: Long,
     val title: String,
     val coverUrl: String
-):BookAndFolderItem()
+)
 
 //data class FolderView(
 //    @PrimaryKey(autoGenerate = true) val uid: Long,

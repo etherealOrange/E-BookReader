@@ -19,9 +19,6 @@ class BookShelfUIViewModel @Inject constructor(private val Repo: BookShelfReposi
     val CoverDir: StateFlow<String> get() = _CoverDir
     val isInFolder: StateFlow<Boolean> = Repo.isInFolder
     val isEditModel: StateFlow<Boolean> = Repo.isEditModel
-    val selectedBooksId: StateFlow<Set<Long>> = Repo.selectedBooksId
-    val selectedFolderId: StateFlow<Set<Long>> = Repo.selectedFolderId
-    val inWhichFolder: StateFlow<Long?> = Repo.inWhichFolder
 
     fun updateCoverDir(dir: String){
         _CoverDir.value = dir
@@ -29,25 +26,6 @@ class BookShelfUIViewModel @Inject constructor(private val Repo: BookShelfReposi
     fun clearCoverDir(){
         _CoverDir.value=""
     }
-    fun addSelectedBooksId(id: Long){
-        Repo.addSelectedBooksId(id)
-    }
-    fun addSelectedFolderId(id: Long){
-        Repo.addSelectedFolderId(id)
-    }
-    fun removeSelectedBooksId(id: Long){
-        Repo.removeSelectedBooksId(id)
-    }
-    fun removeSelectedFolderId(id: Long){
-        Repo.removeSelectedFolderId(id)
-    }
-    fun clearSelectedBooksId(){
-        Repo.clearSelectedBooksId()
-    }
-    fun clearSelectedFolderId(){
-        Repo.clearSelectedFolderId()
-    }
-
 
     /**
      * 当前在文件夹内的id 进行过检查 一定在存在的文件夹内
@@ -62,53 +40,5 @@ class BookShelfUIViewModel @Inject constructor(private val Repo: BookShelfReposi
         started = SharingStarted.WhileSubscribed(500),
         initialValue = "主页"
     )
-
-    /**
-     * 查看是否选中了一个文件夹
-     */
-    val isSingleSelectedFolder: StateFlow<Boolean> = Repo.selectedFolderId
-        .map {
-            Log.d("UIVM isSingleSelectedFolder","isSingleSelectedFolder  $it")
-            it.size==1}
-        .stateIn(
-            viewModelScope,
-            started = SharingStarted.WhileSubscribed(500),
-            initialValue = false
-        )
-
-    /**
-     * 注意 `combine`中的`selectedBooksId`和`selectedFolderId`需要在前面初始化, 不然会报空指针异常
-     *
-     * 编译器比较笨没发现这一点
-     */
-    val isSelectThings = combine(Repo.selectedBooksId,Repo.selectedFolderId) {
-            books,folders->
-        Log.d("UIVM isSelectThings","books ${books} folders ${folders}")
-        books.isNotEmpty() || folders.isNotEmpty()
-    }.stateIn(
-        viewModelScope,
-        started = SharingStarted.WhileSubscribed(500),
-        initialValue = false
-    )
-
-    //切换编辑模式
-    fun switchEditModel(){
-        Log.d("UIVM _isEditModule","_isEditModule is ${Repo.isEditModel.value}")
-        Repo.switchEditModule()
-    }
-
-    /**
-     * 选中书本时可以移动到文件夹, 选中文件夹时不能移动
-     */
-    val canMoveBooks: StateFlow<Boolean> = combine(Repo.selectedBooksId,Repo.selectedFolderId){books,folder->
-        Log.d("UIVM canMoveBooks","books $books folder $folder")
-        books.isNotEmpty() && folder.isEmpty()
-    }.stateIn(
-        viewModelScope,
-        started = SharingStarted.WhileSubscribed(500),
-        initialValue = false
-    )
-
-
 
 }

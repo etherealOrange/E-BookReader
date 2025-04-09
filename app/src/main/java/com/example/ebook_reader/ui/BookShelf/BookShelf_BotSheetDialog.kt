@@ -12,8 +12,6 @@ import com.example.ebook_reader.databinding.BookshelfBotSheetDialogBinding
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
@@ -42,16 +40,10 @@ class BookShelf_BotSheetDialog(): BottomSheetDialogFragment() {
         binding.SheetDialogRecyclerView.layoutManager = LinearLayoutManager(context)
         binding.SheetDialogRecyclerView.adapter = adapter
         lifecycleScope.launch {
+            //更新文件夹信息
             launch {
-                viewModel.Folders.collectLatest {
-                    adapter?.submitList(it.filter {
-                        (viewModel.isInFolder.value==true && it.folderId !=viewModel.inWhichFolder.value)
-                                || viewModel.isInFolder.value==false
-                    }).also {
-                        if (it==null){
-                            Log.d("BSBSD", "onViewCreated: adapter 为NULL")
-                        }
-                    }
+                viewModel.foldersAdapterUIItem.collectLatest {
+                    adapter?.submitList(it)
                 }
             }
             launch {
@@ -75,12 +67,12 @@ class BookShelf_BotSheetDialog(): BottomSheetDialogFragment() {
         binding.SheetDialogMoveOutFromFolder.setOnClickListener {
             when(binding.SheetDialogMoveOutFromFolderCheckBox.isChecked){
                 true->{
-                    Log.d("BSBSD", "setOnClickListener true ")
+                    Log.d("BSBSD", "SheetDialog MoveOutFromFolderCheckBox true 清楚其他选项, 因为要移动到主页")
                     viewModel.clearMoveToFolderId()
                 }
                 false->{
-                    Log.d("BSBSD", "setOnClickListener false ")
-                    viewModel.getOutOfFolderMoveToFolderId()
+                    Log.d("BSBSD", "SheetDialog MoveOutFromFolderCheckBox false 可以选中其他选项, ")
+                    viewModel.prepareMoveToFolder(null)
                 }
             }
         }
@@ -89,14 +81,7 @@ class BookShelf_BotSheetDialog(): BottomSheetDialogFragment() {
     }
     private fun finishBTNonClick() {
         binding.SheetDialogFinishBTN.setOnClickListener {
-            when(binding.SheetDialogMoveOutFromFolderCheckBox.isChecked){
-                true->{
-                    viewModel.moveBooksToFolder(true)
-                }
-                false->{
-                    viewModel.moveBooksToFolder()
-                }
-            }
+            viewModel.gotoMoveBooks()
             dismiss()
         }
     }
