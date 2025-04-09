@@ -255,6 +255,11 @@ class BookShelfDataViewModel @Inject constructor (private val Repo: BookShelfRep
             Repo.insertFolder(FolderView(0,title,cover))
         }
     }
+    fun insertNewBook(title: String, type: BookType, bookUri: String, cover: String){
+        viewModelScope.launch {
+            Repo.insertBook(BookView(0,title,type,1,10,"",bookUri,null))
+        }
+    }
     /**
      * 在主页 重命名单个文件夹
      */

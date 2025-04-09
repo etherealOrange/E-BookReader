@@ -83,7 +83,7 @@ class Main_Activity : AppCompatActivity() {
             }
         }
         mkFolderCoverDir()
-        mkBookCoverDir()
+//        mkBookCoverDir()
 
 
     }
@@ -93,7 +93,7 @@ class Main_Activity : AppCompatActivity() {
     }
     //创建存储书籍封面的图片的文件夹
     fun mkBookCoverDir(){
-        mkDir(InsideFolderName.BOOKSCOVERFOLDER.displayName)
+//        mkDir(InsideFolderName.BOOKSCOVERFOLDER.displayName)
     }
     //创建内部存储的文件夹
     private fun mkDir(string: String){

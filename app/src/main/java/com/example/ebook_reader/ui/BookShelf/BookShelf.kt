@@ -1,13 +1,18 @@
 package com.example.ebook_reader.ui.BookShelf
 
 import android.content.DialogInterface
+import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.os.Environment
+import android.provider.OpenableColumns
+import android.provider.Settings
 import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
@@ -27,9 +32,8 @@ import java.io.File
 import java.io.FileOutputStream
 import androidx.core.net.toUri
 import androidx.fragment.app.viewModels
-import com.google.android.material.dialog.MaterialDialogs
+import com.example.ebook_reader.entities.BookTypesName
 import dagger.hilt.android.AndroidEntryPoint
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class BookShelf : Fragment() {
@@ -47,7 +51,6 @@ class BookShelf : Fragment() {
 
 
     //获取Activity共享的ViewModel
-    //TODO:通过依赖注入获取ViewModel
     private val viewModel: BookShelfDataViewModel by activityViewModels()
     private val UIVM : BookShelfUIViewModel by viewModels()
 
@@ -244,7 +247,10 @@ class BookShelf : Fragment() {
             Log.d("BS 没有图片","pickImageLauncher 没有选择图片")
         }
     }
-    //保存图片到指定文件夹
+
+    /**
+     *保存图片到指定文件夹
+     */
     private fun saveImageToFolder(uri: Uri,folderName: String){
         try {
             //获取文件夹路径
@@ -267,6 +273,93 @@ class BookShelf : Fragment() {
             UIVM.clearCoverDir()
             Log.d("BS saveImageToFolder","saveImageToFolder 保存图片失败 原因:$e")
         }
+    }
+
+    /**
+     * 导入书籍的 ActivityResultLauncher
+     */
+    private val filePickerLauncher = registerForActivityResult(ActivityResultContracts.OpenDocument()) {
+        if(it !=null){
+            copyFileToFolder(it)
+        }
+        else{
+            Log.d("BS filePickerLauncher","没有选择文件")
+        }
+
+    }
+    /**
+     * 处理选中的书籍
+     * - 复制到对应内部存储
+     * - 数据库要插入书籍
+     * - 插入txt pdf epub是不同的
+     * - 插入txt时需要解析txt文件
+     * - 得到章节信息 后还需要插入章节
+     * - pdf 需要得到总页数
+     * - epub 需要解析得到章节和多媒体信息
+     * - 多媒体可能需要存储到另外的文件夹
+     * - 还需要解析章节 插入章节信息
+     */
+    private fun copyFileToFolder(uri: Uri) {
+        try {
+            val fileExtend:String? = getFileExtendFromUri(uri)
+            if(fileExtend==null||!BookTypesName.isInBookTypesName(fileExtend)){
+                Log.d("BS filePickerLauncher","文件格式不支持")
+                return
+            }
+            var folderPath =""
+            when(fileExtend){
+                BookTypesName.TXT.extension ->{
+                    folderPath = InsideFolderName.TXTBOOKSFOLDER.displayName
+                    Log.d("BS filePickerLauncher","选择的文件格式是TXT")
+                }
+                BookTypesName.EPUB.extension ->{
+                    folderPath = InsideFolderName.EPUBBOOKSFOLDER.displayName
+                    Log.d("BS filePickerLauncher","选择的文件格式是EPUB")
+                }
+                BookTypesName.PDF.extension ->{
+                    folderPath = InsideFolderName.PDFBOOKSFOLDER.displayName
+                    Log.d("BS filePickerLauncher","选择的文件格式是PDF")
+                }
+            }
+            val customFolder = File(requireContext().filesDir, folderPath)
+            if (!customFolder.exists()) {
+                customFolder.mkdirs()
+            }
+            val fileName = "${System.currentTimeMillis()}."+fileExtend
+            val outputFile = File(customFolder, fileName)
+            requireContext().contentResolver.openInputStream(uri)?.use{
+                inputStream ->
+                //将inputStream中的数据复制到outputStream中
+                inputStream.copyTo(FileOutputStream(outputFile))
+            }
+            //TODO三种文件解析
+            Log.d("BS filePickerLauncher","filePickerLauncher 保存书籍路径: ${outputFile.path}")
+
+        }
+        catch (e: RuntimeException){
+            Log.d("BS filePickerLauncher","copyFileToFolder 复制文件失败 原因:$e")
+        }
+    }
+
+    /**
+     * 找到文件的扩展名
+     */
+    private fun getFileExtendFromUri(uri: Uri): String? {
+        val cursor = requireContext().contentResolver.query(uri, null, null, null, null)
+        if (cursor == null)
+            Log.d("BS getFileExtendFromUri", "cursor is null")
+        cursor?.use {
+            if (it.moveToFirst()) {
+                val columnIndex = it.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+                if (columnIndex != -1) {
+                    Log.d("CursorContent", "未找到 columnIndex: $columnIndex")
+                }
+                if (columnIndex >= 0) {
+                    return it.getString(columnIndex).substringAfterLast('.',"")
+                }
+            }
+        }
+        return null
     }
     /**
      * 初始化所有TopBar的点击事件
@@ -305,8 +398,18 @@ class BookShelf : Fragment() {
         }
         //书本导入按钮
         topICD.BookshelfBookImportBTN.setOnClickListener {
+            if (Environment.isExternalStorageManager()) {
+                Log.d("BS filePickerLauncher","权限已经授予")
+                filePickerLauncher.launch(arrayOf(
+                    "text/plain","application/pdf","application/epub+zip"
+                )
+                    )
 
-
+            } else {
+                // 打开系统的权限管理页面
+                val intent = Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION)
+                startActivity(intent)
+            }
         }
         //设置在文件夹内 返回默认页面按钮
         topICD.BookshelfBackToDefaultBTN.setOnClickListener {
@@ -351,7 +454,6 @@ class BookShelf : Fragment() {
                         }
                     }
                 }
-
             }
 
             alertDialog?.dismiss()
