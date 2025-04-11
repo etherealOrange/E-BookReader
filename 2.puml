@@ -1,0 +1,374 @@
+@startuml
+class com.example.ebook_reader.ui.BookShelf.BookShelf_BotSheetDialog {
+- BookshelfBotSheetDialogBinding? _binding
+-  binding
+- BookShelfDataViewModel viewModel
+- ForSelectFolderAdapter? adapter
++ void onCreateView(void,LayoutInflater,void,ViewGroup?,void,Bundle?)
++ void null()
++ void onViewCreated(View,Bundle?)
+- void finishBTNonClick()
++ void onDestroy()
+}
+
+
+class com.example.ebook_reader.ui.Settings.Settings$Companion {
++ void newInstance()
+}
+
+class com.example.ebook_reader.ui.Settings.Settings {
+- SettingsViewModel viewModel
++ void onCreate(Bundle?)
++ View onCreateView(LayoutInflater,ViewGroup?,Bundle?)
+}
+
+
+interface com.example.ebook_reader.InterfacePackage.BookShelf.FoldersAdapterSelectedControl {
++ void prepareMoveToFolder(Long?)
++ void clearMoveToFolderId()
+}
+
+class com.example.ebook_reader.ui.BookShelf.BookAdapter {
+}
+class com.example.ebook_reader.ui.BookShelf.ViewHolder {
+- Long thisItemId
+-  isCurrentRefBook
+- void notInEditModelClickChange()
+- void inEditModelClickChange()
++ void getHolderCurrentPositionAndIsRefBook(Long,Boolean)
+}
+
+
+class com.example.ebook_reader.ui.MySpace.MySpaceViewModel {
+}
+class com.example.ebook_reader.entities.UIFolderView {
+}
+class com.example.ebook_reader.ui.BookShelf.ForSelectFolderAdapter {
+}
+class com.example.ebook_reader.ui.BookShelf.ViewHolder {
+- Long thisItemId
++ void setItemId(Long)
+}
+
+
+class com.example.ebook_reader.entities.FolderView {
+}
+class com.example.ebook_reader.DAO.null {
+}
+abstract class com.example.ebook_reader.DAO.AppDatabase {
++ BooksAndFoldersInfoDao booksAndFoldersInfoDao()
+}
+
+class com.example.ebook_reader.entities.ReadingRecord {
+}
+class com.example.ebook_reader.entities.null {
+}
+class com.example.ebook_reader.entities.null {
+}
+class com.example.ebook_reader.entities.CreateRecord {
+}
+class com.example.ebook_reader.ui.MySpace.MySpace$Companion {
++ void newInstance()
+}
+
+class com.example.ebook_reader.ui.MySpace.MySpace {
+- MySpaceViewModel viewModel
++ void onCreate(Bundle?)
++ View onCreateView(LayoutInflater,ViewGroup?,Bundle?)
+}
+
+
+class com.example.ebook_reader.Repository.DatabaseModule$null {
+}
+class com.example.ebook_reader.Repository.DatabaseModule {
++ void provideAppDatabase(void)
++ void provideBooksAndFoldersInfoDao(void,AppDatabase)
+}
+
+class com.example.ebook_reader.ui.PersonalCompany.PersonalCompanyViewModel {
+}
+interface com.example.ebook_reader.InterfacePackage.BookShelf.BooksAdapterSelectedControl {
++ void switchSelectedBooksId(Long)
++ void switchSelectedFolderId(Long)
+}
+
+class com.example.ebook_reader.ui.DataStatistic.DataStatistic$Companion {
++ void newInstance()
+}
+
+class com.example.ebook_reader.ui.DataStatistic.DataStatistic {
+- DataStatisticViewModel viewModel
++ void onCreate(Bundle?)
++ View onCreateView(LayoutInflater,ViewGroup?,Bundle?)
+}
+
+
+class com.example.ebook_reader.entities.null {
+}
+class com.example.ebook_reader.entities.ChapterView {
+}
+class com.example.ebook_reader.ui.BookShelf.BookShelfDataViewModel {
++ StateFlow<Boolean> isHideActionBar
++ StateFlow<Boolean> isInFolder
++ StateFlow<Long?> inWhichFolder
++ StateFlow<List<FolderView>> Folders
++ StateFlow<List<BookView>> Books
+-  _selectedBooksId
++ StateFlow<Set<Long>> selectedBooksId
+-  _selectedFolderId
++ StateFlow<Set<Long>> selectedFolderId
+- MutableStateFlow<Long?> _moveToFolderId
++ StateFlow<Long?> moveToFolderId
++ StateFlow<List<FolderAdapterUIState>> foldersAdapterUIItem
++ StateFlow<List<BookAdapterUIState>> booksAdapterUIItems
++ StateFlow<Boolean> isSingleSelectedFolder
++  isSelectThings
++ StateFlow<Boolean> canMoveBooks
++ void switchSelectedBooksId(Long)
++ void switchSelectedFolderId(Long)
++ void selectAllBooksAndFolders()
++ void clearAllSelected()
++ void clearMoveToFolderId()
++ void prepareMoveToFolder(Long?)
++ void gotoMoveBooks()
++ void switchEditModel()
++ void goIntoFolder(Long)
++ void flashInWhichFolder()
++ void getOutOfFolder()
++ void doSimulation()
++ void insertBook(BookView)
++ void insertFolder(FolderView)
++ Long getBooksNumInFolder(Long)
++ String getCurrentFolderName()
+- void simulateInsertBooks()
+- void simulateInsertBooksInFolder(Long)
+- void simulateInsertFolders()
++ void deleteSelectedBooks()
++ void deleteSelectedFolders()
+- void rmCover(String)
++ void deleteSelectedAll()
++ void insertNewFolder(String,String)
++ void insertNewBook(String,BookType,String,String)
++ void renameFolder(String)
++ void renameFolderInFolder(String)
+}
+
+
+class com.example.ebook_reader.ui.BookShelf.BookAndFolderDiffCallBack {
++ Boolean areItemsTheSame(BookAdapterUIState,BookAdapterUIState)
++ Boolean areContentsTheSame(BookAdapterUIState,BookAdapterUIState)
+}
+
+class com.example.ebook_reader.ui.BookShelf.FolderDiffCallBack {
++ Boolean areItemsTheSame(FolderAdapterUIState,FolderAdapterUIState)
++ Boolean areContentsTheSame(FolderAdapterUIState,FolderAdapterUIState)
+}
+
+class com.example.ebook_reader.MainApplication {
+}
+class com.example.ebook_reader.ui.DataStatistic.DataStatisticViewModel {
+}
+interface com.example.ebook_reader.InterfacePackage.BookShelf.BooksAdapterChangePosition {
++ void goIntoFolder(Long)
+}
+
+class com.example.ebook_reader.ui.PersonalCompany.PersonalCompany$Companion {
++ void newInstance()
+}
+
+class com.example.ebook_reader.ui.PersonalCompany.PersonalCompany {
+- PersonalCompanyViewModel viewModel
++ void onCreate(Bundle?)
++ View onCreateView(LayoutInflater,ViewGroup?,Bundle?)
+}
+
+
+class com.example.ebook_reader.entities.BookTypesName$Companion {
++ BookTypesName? fromExtension(String)
++ Boolean isInBookTypesName(String)
+}
+
+enum com.example.ebook_reader.entities.BookTypesName {
+}
+enum com.example.ebook_reader.entities.InsideFolderName {
+}
+interface com.example.ebook_reader.DAO.BooksAndFoldersInfoDao {
++ void insertBook(BookView)
++ void insertFolder(FolderView)
++ Long getBooksNum()
++ Flow<List<BookView>> getAllBooks()
++ Flow<List<BookView>> getBooksNotInFolder()
++ Flow<List<BookView>> getBooksInFolder(Long)
++ Long getBooksNumInFolder(Long)
++ void insertFolders(List<FolderView>)
++ void moveBookToFolder(Long,Long?)
++ Flow<List<FolderView>> getAllFolders()
++ String getBookCoverUrl(Long)
++ String getFolderCoverUrl(Long)
++ void renameFolder(Long,String)
++ void deleteBookById(Long)
++ void deleteFolderById(Long)
+}
+
+class com.example.ebook_reader.MySpace_Activity {
++ void onCreate(Bundle?)
+}
+
+class com.example.ebook_reader.entities.null {
+}
+class com.example.ebook_reader.entities.BookView {
+}
+enum com.example.ebook_reader.entities.BookType {
+}
+class com.example.ebook_reader.Repository.BookShelf.BookAdapterUIState {
+}
+class com.example.ebook_reader.entities.BookAndFolderItem {
+}
+class com.example.ebook_reader.ui.Settings.SettingsViewModel {
+}
+class com.example.ebook_reader.Repository.BookShelf.FolderAdapterUIState {
+}
+class com.example.ebook_reader.ui.BookShelf.BookShelf {
+- FragmentBookShelfBinding? _binding
+-  binding
+-  topICD
+-  bottomICD
+- BookShelf_BotSheetDialog? _bottomSheetDialog
+-  bottomSheetDialog
+- BookAdapter? bookAdapter
+- AlertDialog? alertDialog
+- BookShelfDataViewModel viewModel
+- BookShelfUIViewModel UIVM
+-  pickImageLauncher
+-  filePickerLauncher
++ void onCreate(Bundle?)
++ View onCreateView(LayoutInflater,ViewGroup?,Bundle?)
+- void updateTopBarVisibility()
+- void updateBottomBarVisibility()
++ void onViewCreated(View,Bundle?)
+- void initAdapter()
+- void saveImageToFolder(Uri,String)
+- void copyFileToFolder(Uri)
+- String? getFileExtendFromUri(Uri)
+- void initAllTopICD()
+- void initAllBottomICD()
+- void moveBTNClickListener()
+- void showRenameFolderDialog(BookShelfDataViewModel.(String)->Unit)
+- AlertDialog dialogBuilderFactory(String,View,(DialogInterface, Int) -> Unit,(DialogInterface, Int) -> Unit,String,String)
+- AlertDialog dialogBuilderFactory(String,String,(DialogInterface, Int) -> Unit,(DialogInterface, Int) -> Unit,String,String)
+- void deleteSelectedItems()
++ void onStart()
++ void onStop()
++ void onDestroy()
+}
+
+
+class com.example.ebook_reader.ui.BookShelf.BookShelfUIViewModel {
+-  _CoverDir
++ StateFlow<String> CoverDir
++ StateFlow<Boolean> isInFolder
++ StateFlow<Boolean> isEditModel
++ StateFlow<String> inFolderName
++ void updateCoverDir(String)
++ void clearCoverDir()
+}
+
+
+class com.example.ebook_reader.ui.TimeTravel.TimeTravelViewModel {
+}
+class com.example.ebook_reader.ui.TimeTravel.TimeTravel$Companion {
++ void newInstance()
+}
+
+class com.example.ebook_reader.ui.TimeTravel.TimeTravel {
+- TimeTravelViewModel viewModel
++ void onCreate(Bundle?)
++ View onCreateView(LayoutInflater,ViewGroup?,Bundle?)
+}
+
+
+class com.example.ebook_reader.Repository.BookShelf.BookShelfRepository {
+-  _allBooks
++ StateFlow<List<BookView>> allBooks
+-  _allFolders
++ StateFlow<List<FolderView>> allFolders
+-  _notifyBooksNumChange
++ StateFlow<List<UIFolderView>> allUIFolders
++ StateFlow<List<BookAndFolderItem>> allBooksAndFolders
+-  _inWhichFolder
++ StateFlow<Long?> inWhichFolder
+-  _isHideActionBar
++ StateFlow<Boolean> isHideActionBar
+-  _isEditModule
++ StateFlow<Boolean> isEditModel
+-  _isInFolder
++ StateFlow<Boolean> isInFolder
++ void notifyBooksNumChange()
++ void flashInWhichFolder()
++ void switchEditModule()
++ void goIntoFolder(Long)
++ void getOutOfFolder()
++ void moveBookToFolder(Long,Long?)
++ Long getBooksNum()
++ void insertBook(BookView)
++ void insertFolder(FolderView)
++ String getBookCoverUrl(Long)
++ String getFolderCoverUrl(Long)
++ void deleteBookById(Long)
++ void deleteFolderById(Long)
++ void renameFolder(Long,String)
+}
+
+
+class com.example.ebook_reader.entities.null {
+}
+class com.example.ebook_reader.entities.BookMarkView {
+}
+class com.example.ebook_reader.Main_Activity {
+- ActivityMainBinding binding
+- AppBarConfiguration appBarConfiguration
+- BookShelfDataViewModel viewModel
++ void onCreate(Bundle?)
++ void mkFolderCoverDir()
++ void mkBookCoverDir()
+- void mkDir(String)
++ Boolean onSupportNavigateUp()
+}
+
+
+
+
+com.google.android.material.bottomsheet.BottomSheetDialogFragment <|-- com.example.ebook_reader.ui.BookShelf.BookShelf_BotSheetDialog
+com.example.ebook_reader.ui.Settings.Settings +.. com.example.ebook_reader.ui.Settings.Settings$Companion
+androidx.fragment.app.Fragment <|-- com.example.ebook_reader.ui.Settings.Settings
+com.example.ebook_reader.ui.BookShelf.ViewHolder <|-- com.example.ebook_reader.ui.BookShelf.ViewHolder
+androidx.lifecycle.ViewModel <|-- com.example.ebook_reader.ui.MySpace.MySpaceViewModel
+com.example.ebook_reader.entities.BookAndFolderItem <|-- com.example.ebook_reader.entities.UIFolderView
+com.example.ebook_reader.ui.BookShelf.ViewHolder <|-- com.example.ebook_reader.ui.BookShelf.ViewHolder
+androidx.room.RoomDatabase <|-- com.example.ebook_reader.DAO.AppDatabase
+com.example.ebook_reader.ui.MySpace.MySpace +.. com.example.ebook_reader.ui.MySpace.MySpace$Companion
+androidx.fragment.app.Fragment <|-- com.example.ebook_reader.ui.MySpace.MySpace
+com.example.ebook_reader.Repository.DatabaseModule +.. com.example.ebook_reader.Repository.DatabaseModule$null
+androidx.lifecycle.ViewModel <|-- com.example.ebook_reader.ui.PersonalCompany.PersonalCompanyViewModel
+com.example.ebook_reader.ui.DataStatistic.DataStatistic +.. com.example.ebook_reader.ui.DataStatistic.DataStatistic$Companion
+androidx.fragment.app.Fragment <|-- com.example.ebook_reader.ui.DataStatistic.DataStatistic
+androidx.lifecycle.ViewModel <|-- com.example.ebook_reader.ui.BookShelf.BookShelfDataViewModel
+com.example.ebook_reader.InterfacePackage.BookShelf.BooksAdapterSelectedControl <|.. com.example.ebook_reader.ui.BookShelf.BookShelfDataViewModel
+com.example.ebook_reader.InterfacePackage.BookShelf.BooksAdapterChangePosition <|.. com.example.ebook_reader.ui.BookShelf.BookShelfDataViewModel
+com.example.ebook_reader.InterfacePackage.BookShelf.FoldersAdapterSelectedControl <|.. com.example.ebook_reader.ui.BookShelf.BookShelfDataViewModel
+com.example.ebook_reader.ui.BookShelf.ItemCallback <|-- com.example.ebook_reader.ui.BookShelf.BookAndFolderDiffCallBack
+com.example.ebook_reader.ui.BookShelf.ItemCallback <|-- com.example.ebook_reader.ui.BookShelf.FolderDiffCallBack
+android.app.Application <|-- com.example.ebook_reader.MainApplication
+androidx.lifecycle.ViewModel <|-- com.example.ebook_reader.ui.DataStatistic.DataStatisticViewModel
+com.example.ebook_reader.ui.PersonalCompany.PersonalCompany +.. com.example.ebook_reader.ui.PersonalCompany.PersonalCompany$Companion
+androidx.fragment.app.Fragment <|-- com.example.ebook_reader.ui.PersonalCompany.PersonalCompany
+com.example.ebook_reader.entities.BookTypesName +.. com.example.ebook_reader.entities.BookTypesName$Companion
+androidx.appcompat.app.AppCompatActivity <|-- com.example.ebook_reader.MySpace_Activity
+androidx.lifecycle.ViewModel <|-- com.example.ebook_reader.ui.Settings.SettingsViewModel
+androidx.fragment.app.Fragment <|-- com.example.ebook_reader.ui.BookShelf.BookShelf
+androidx.lifecycle.ViewModel <|-- com.example.ebook_reader.ui.BookShelf.BookShelfUIViewModel
+androidx.lifecycle.ViewModel <|-- com.example.ebook_reader.ui.TimeTravel.TimeTravelViewModel
+com.example.ebook_reader.ui.TimeTravel.TimeTravel +.. com.example.ebook_reader.ui.TimeTravel.TimeTravel$Companion
+androidx.fragment.app.Fragment <|-- com.example.ebook_reader.ui.TimeTravel.TimeTravel
+androidx.appcompat.app.AppCompatActivity <|-- com.example.ebook_reader.Main_Activity
+@enduml

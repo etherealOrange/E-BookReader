@@ -1,0 +1,43 @@
+@startuml
+class com.example.ebook_reader.entities.ReadingRecord {
+}
+class com.example.ebook_reader.entities.null {
+}
+class com.example.ebook_reader.entities.ChapterView {
+}
+class com.example.ebook_reader.entities.null {
+}
+class com.example.ebook_reader.entities.null {
+}
+class com.example.ebook_reader.entities.CreateRecord {
+}
+class com.example.ebook_reader.entities.UIFolderView {
+}
+class com.example.ebook_reader.entities.BookTypesName$Companion {
++ BookTypesName? fromExtension(String)
++ Boolean isInBookTypesName(String)
+}
+
+enum com.example.ebook_reader.entities.BookTypesName {
+}
+enum com.example.ebook_reader.entities.InsideFolderName {
+}
+class com.example.ebook_reader.entities.null {
+}
+class com.example.ebook_reader.entities.BookMarkView {
+}
+class com.example.ebook_reader.entities.null {
+}
+class com.example.ebook_reader.entities.BookView {
+}
+enum com.example.ebook_reader.entities.BookType {
+}
+class com.example.ebook_reader.entities.FolderView {
+}
+class com.example.ebook_reader.entities.BookAndFolderItem {
+}
+
+
+com.example.ebook_reader.entities.BookAndFolderItem <|-- com.example.ebook_reader.entities.UIFolderView
+com.example.ebook_reader.entities.BookTypesName +.. com.example.ebook_reader.entities.BookTypesName$Companion
+@enduml
