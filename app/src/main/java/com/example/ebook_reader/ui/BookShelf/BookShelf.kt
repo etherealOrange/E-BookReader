@@ -75,29 +75,29 @@ class BookShelf : ExtendFragment() {
         UIVM.state_now
             .launchLifeScopeCollectLatest {
                 when(it){
-                    BookShelfState.InEditInFolder,BookShelfState.NotInEditInFolder->{
+                    BookShelfState.InEditInFolder -> {
                         topICD.DefaultTopBar.visibility = View.GONE
                         topICD.InFolderTopBar.visibility = View.VISIBLE
                         topICD.EditModuleTopBar.visibility = View.GONE
-                    }
-                    else -> {
-                        topICD.InFolderTopBar.visibility = View.GONE
-                    }
-                }
-                when(it){
-                    BookShelfState.InEditInFolder -> {
                         topICD.BookShelfEditInFolderBTN.visibility = View.GONE
                         topICD.BookShelfFinishInFolderBTN.visibility = View.VISIBLE
                     }
                     BookShelfState.InEditNotInFolder -> {
+                        topICD.DefaultTopBar.visibility = View.GONE
+                        topICD.InFolderTopBar.visibility = View.GONE
                         topICD.EditModuleTopBar.visibility = View.VISIBLE
                     }
                     BookShelfState.NotInEditInFolder -> {
+                        topICD.DefaultTopBar.visibility = View.GONE
+                        topICD.InFolderTopBar.visibility = View.GONE
+                        topICD.EditModuleTopBar.visibility = View.VISIBLE
                         topICD.BookShelfEditInFolderBTN.visibility = View.VISIBLE
                         topICD.BookShelfFinishInFolderBTN.visibility = View.GONE
                     }
                     BookShelfState.NotInEditNotInFolder -> {
                         topICD.DefaultTopBar.visibility= View.VISIBLE
+                        topICD.InFolderTopBar.visibility = View.GONE
+                        topICD.EditModuleTopBar.visibility = View.GONE
                     }
                 }
 
