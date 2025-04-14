@@ -3,13 +3,13 @@ package com.example.ebook_reader.ui.BookShelf
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.ebook_reader.Enum.BookShelfState
 import com.example.ebook_reader.Repository.BookShelf.BookShelfRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 
@@ -40,5 +40,22 @@ class BookShelfUIViewModel @Inject constructor(private val Repo: BookShelfReposi
         started = SharingStarted.WhileSubscribed(500),
         initialValue = "主页"
     )
+
+    val state_now = isEditModel.combine(isInFolder) {edit,folder->
+        if (edit && folder){
+            BookShelfState.InEditInFolder
+        }else if (edit && !folder){
+            BookShelfState.InEditNotInFolder
+        }else if (!edit && folder){
+            BookShelfState.NotInEditInFolder
+        }else{
+            BookShelfState.NotInEditNotInFolder
+        }
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(200),
+        initialValue = BookShelfState.NotInEditNotInFolder
+    )
+
 
 }

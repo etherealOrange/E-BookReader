@@ -27,19 +27,8 @@
         app:menu="@menu/menu_nav_view_main"
         app:headerLayout="@layout/nav_view_head_main"
         tools:visibility="visible"
-
         />
 
-
-    <!--
-        <com.google.android.material.bottomnavigation.BottomNavigationView
-            android:id="@+id/nav_main"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:menu="@menu/main_content_bottom_nav" />
-        -->
 
 
 </androidx.drawerlayout.widget.DrawerLayout>

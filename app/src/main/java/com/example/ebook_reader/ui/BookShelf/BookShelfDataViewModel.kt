@@ -195,7 +195,14 @@ class BookShelfDataViewModel @Inject constructor (private val Repo: BookShelfRep
     )
 
     //切换编辑模式
-    fun switchEditModel(){
+    fun switchEditModel(bookAdapter: BookAdapter?){
+        bookAdapter?.let {
+            when(Repo.isEditModel.value){
+                true->it.closeEditModel()
+                false->it.openEditModel()
+            }
+        }
+        if(Repo.isEditModel.value){clearAllSelected()}
         Log.d("UIVM _isEditModule","_isEditModule is ${Repo.isEditModel.value}")
         Repo.switchEditModule()
     }
@@ -203,7 +210,7 @@ class BookShelfDataViewModel @Inject constructor (private val Repo: BookShelfRep
     /**
      * 选中书本时可以移动到文件夹, 选中文件夹时不能移动
      */
-    val canMoveBooks: StateFlow<Boolean> = combine(selectedBooksId,selectedFolderId){books,folder->
+    val canMoveBooks: StateFlow<Boolean> = selectedBooksId.combine(selectedFolderId){books,folder->
         Log.d("UIVM canMoveBooks","books $books folder $folder")
         books.isNotEmpty() && folder.isEmpty()
     }.stateIn(

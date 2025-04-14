@@ -3,35 +3,33 @@ package com.example.ebook_reader
 import android.os.Bundle
 import android.view.View
 import androidx.activity.viewModels
-import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.lifecycleScope
 import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
 import com.example.ebook_reader.databinding.ActivityMainBinding
+import com.example.ebook_reader.databinding.ActivityMainContentBinding
 import com.example.ebook_reader.databinding.NavViewHeadMainBinding
 import com.example.ebook_reader.entities.InsideFolderName
 import com.example.ebook_reader.ui.BookShelf.BookShelfDataViewModel
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.launch
 import java.io.File
 import kotlin.getValue
 
 @AndroidEntryPoint
-class Main_Activity : AppCompatActivity() {
+class Main_Activity : ExtendAppCompatActivity() {
     //设置Activity的布局文件
     private lateinit var binding: ActivityMainBinding
-    private  lateinit var appBarConfiguration: AppBarConfiguration
+    private lateinit var appBarConfiguration: AppBarConfiguration
+    private lateinit var navHeadBind: NavViewHeadMainBinding
     //设置Viewmodel
     private val viewModel: BookShelfDataViewModel by viewModels()
+    private var name: String = "defaultName"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        //隐藏ActionBar
-        //supportActionBar?.hide()
+
         //设置Activity的布局文件
         binding = ActivityMainBinding.inflate(layoutInflater)
         //设置Activity的布局视图
@@ -45,25 +43,15 @@ class Main_Activity : AppCompatActivity() {
         //获取头部视图
         val navHead = navView.getHeaderView(0)
         //绑定头部视图
-        val navHeadBind = NavViewHeadMainBinding.bind(navHead)
-        val button = navHeadBind.EditYourNameBTN
-        val editText = navHeadBind.EditYourNameET
-        val textView = navHeadBind.YourNameTV
-        //设置头部编辑 你的姓名 按钮的点击事件
-        button.setOnClickListener {
-            editText.setText(textView.text)
-            textView.visibility = View.INVISIBLE
-            editText.visibility = View.VISIBLE
-            editText.requestFocus()
-        }
+        navHeadBind = NavViewHeadMainBinding.bind(navHead)
+
         //设置编辑框失焦 保存姓名
-        editText.setOnFocusChangeListener { v, hasFocus ->
-            if (!hasFocus) {
-                textView.text = editText.text
-                editText.visibility = View.INVISIBLE
-                textView.visibility = View.VISIBLE
+        navHeadBind.EditYourNameET.setOnFocusChangeListener{v,hasFocus->
+            if (!hasFocus){
+                name = navHeadBind.EditYourNameET.text.toString()
             }
         }
+
         val navControl = findNavController(R.id.nav_host_main_content_fragment)
         appBarConfiguration = AppBarConfiguration(
             navControl.graph,binding.drawerLayoutMain
@@ -73,27 +61,26 @@ class Main_Activity : AppCompatActivity() {
         //启动底部导航栏
         navView.setupWithNavController(navControl)
         //获取view Model的数据 设置顶部状态栏的 显示与隐藏
-        lifecycleScope.launch {
-            viewModel.isHideActionBar.collectLatest {
-                if (it){
-                    supportActionBar?.hide()
-                }else{
-                    supportActionBar?.show()
-                }
+        viewModel.isHideActionBar.launchLifeScopeCollectLatest {
+            if (it){
+                supportActionBar?.hide()
+            }else{
+                supportActionBar?.show()
             }
         }
-        mkFolderCoverDir()
-//        mkBookCoverDir()
-
+        mkdirAll()
 
     }
-    //创建存储文件夹封面的图片的文件夹
-    fun mkFolderCoverDir(){
+
+    /**
+     *  - 创建所有需要的文件夹
+     *  - 包括 文件夹目录， txt书籍文件，pdf书籍文件，epub书籍文件
+     */
+    fun mkdirAll(){
         mkDir(InsideFolderName.FOLDERSCOVERFOLDER.displayName)
-    }
-    //创建存储书籍封面的图片的文件夹
-    fun mkBookCoverDir(){
-//        mkDir(InsideFolderName.BOOKSCOVERFOLDER.displayName)
+        mkDir(InsideFolderName.TXTBOOKSFOLDER.displayName)
+        mkDir(InsideFolderName.PDFBOOKSFOLDER.displayName)
+        mkDir(InsideFolderName.EPUBBOOKSFOLDER.displayName)
     }
     //创建内部存储的文件夹
     private fun mkDir(string: String){

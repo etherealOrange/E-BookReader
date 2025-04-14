@@ -8,15 +8,12 @@ import android.os.Environment
 import android.provider.OpenableColumns
 import android.provider.Settings
 import android.util.Log
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
-import androidx.core.view.isVisible
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
@@ -32,11 +29,13 @@ import java.io.File
 import java.io.FileOutputStream
 import androidx.core.net.toUri
 import androidx.fragment.app.viewModels
+import com.example.ebook_reader.Enum.BookShelfState
+import com.example.ebook_reader.ExtendFragment
 import com.example.ebook_reader.entities.BookTypesName
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class BookShelf : Fragment() {
+class BookShelf : ExtendFragment() {
     //ViewBinding
     private var _binding: FragmentBookShelfBinding? = null
     private val binding get() = _binding!!
@@ -73,72 +72,63 @@ class BookShelf : Fragment() {
     */
     private fun updateTopBarVisibility(){
         //更新TopBar的可见性模式
-        lifecycleScope.launch {
-            launch {
-                combine(UIVM.isInFolder,UIVM.isEditModel) {
-                        isInFolder, isEditModel ->
-                    when (isInFolder){
-                        true ->{
-                            topICD.DefaultTopBar.visibility = View.GONE
-                            topICD.InFolderTopBar.visibility = View.VISIBLE
-                            topICD.EditModuleTopBar.visibility = View.GONE
-                            when(isEditModel){
-                                true->{
-                                    topICD.BookShelfEditInFolderBTN.visibility = View.GONE
-                                    topICD.BookShelfFinishInFolderBTN.visibility = View.VISIBLE
-                                }
-                                false->{
-                                    topICD.BookShelfEditInFolderBTN.visibility = View.VISIBLE
-                                    topICD.BookShelfFinishInFolderBTN.visibility = View.GONE
-                                }
-                            }
-                        }
-                        false ->{
-                            topICD.InFolderTopBar.visibility = View.GONE
-                            when(isEditModel){
-                                true->{
-                                    topICD.DefaultTopBar.visibility = View.GONE
-                                    topICD.EditModuleTopBar.visibility = View.VISIBLE
-                                }
-                                false->{
-                                    topICD.DefaultTopBar.visibility = View.VISIBLE
-                                    topICD.EditModuleTopBar.visibility = View.GONE
-                                }
-                            }
-                        }
+        UIVM.state_now
+            .launchLifeScopeCollectLatest {
+                when(it){
+                    BookShelfState.InEditInFolder,BookShelfState.NotInEditInFolder->{
+                        topICD.DefaultTopBar.visibility = View.GONE
+                        topICD.InFolderTopBar.visibility = View.VISIBLE
+                        topICD.EditModuleTopBar.visibility = View.GONE
                     }
-                }.collectLatest { Log.d("BS 更新顶部TopBar","更新TopBar...")  }
-            }
-            //更新TopBar的 现在文件夹名称
-            launch {
-                UIVM.inFolderName.collectLatest {
-                    Log.d("BS 更新顶部TopBar","更新TopBar的文件夹名称 $it")
-                    topICD.BookShelfFolderNameTV.text = it
+                    else -> {
+                        topICD.InFolderTopBar.visibility = View.GONE
+                    }
                 }
-            }
+                when(it){
+                    BookShelfState.InEditInFolder -> {
+                        topICD.BookShelfEditInFolderBTN.visibility = View.GONE
+                        topICD.BookShelfFinishInFolderBTN.visibility = View.VISIBLE
+                    }
+                    BookShelfState.InEditNotInFolder -> {
+                        topICD.EditModuleTopBar.visibility = View.VISIBLE
+                    }
+                    BookShelfState.NotInEditInFolder -> {
+                        topICD.BookShelfEditInFolderBTN.visibility = View.VISIBLE
+                        topICD.BookShelfFinishInFolderBTN.visibility = View.GONE
+                    }
+                    BookShelfState.NotInEditNotInFolder -> {
+                        topICD.DefaultTopBar.visibility= View.VISIBLE
+                    }
+                }
+
         }
+        //更新TopBar的 现在文件夹名称
+        UIVM.inFolderName.launchLifeScopeCollectLatest {
+            Log.d("BS 更新顶部TopBar","更新TopBar的文件夹名称 $it")
+            topICD.BookShelfFolderNameTV.text = it
+        }
+
     }
+
 
     /**
      * 更新BottomBar的可见性模式
      */
     private fun updateBottomBarVisibility(){
-        lifecycleScope.launch {
-            //更新BottomBar的总体可见性模式
-            launch {
-                combine(UIVM.isInFolder,UIVM.isEditModel) {
-                        isInFolder, isEditModel ->
-                    when(isInFolder or isEditModel){
-                        true->{
-                            bottomICD.BookShelfBottomBarTotal.visibility = View.VISIBLE
-                            when(isInFolder){
-                                true->bottomICD.BookShelfRenameFolderBTN.visibility = View.GONE
-                                false->bottomICD.BookShelfRenameFolderBTN.visibility = View.VISIBLE
-                            }
-                        }
-                        false->bottomICD.BookShelfBottomBarTotal.visibility = View.GONE
-                    }
-                }.collectLatest {  }
+        //更新BottomBar的总体可见性模式
+        UIVM.state_now.launchLifeScopeCollectLatest {
+            when(it){
+                BookShelfState.NotInEditNotInFolder -> {bottomICD.BookShelfBottomBarTotal.visibility = View.GONE}
+                BookShelfState.InEditInFolder,
+                BookShelfState.NotInEditInFolder
+                         -> {
+                    bottomICD.BookShelfBottomBarTotal.visibility = View.VISIBLE
+                    bottomICD.BookShelfRenameFolderBTN.visibility = View.GONE
+                }
+                BookShelfState.InEditNotInFolder -> {
+                    bottomICD.BookShelfBottomBarTotal.visibility = View.VISIBLE
+                    bottomICD.BookShelfRenameFolderBTN.visibility = View.VISIBLE
+                }
             }
         }
     }
@@ -147,29 +137,22 @@ class BookShelf : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         initAdapter()
-        lifecycleScope.launch {
-            //只有在选中一个文件夹时才可以重命名文件夹
-            launch {
-                viewModel.isSingleSelectedFolder.collectLatest {
-                    Log.d("BS onViewCreated","更新BottomBar的重命名按钮可用性模式 $it")
-                    bottomICD.BookShelfRenameFolderBTN.isEnabled = it
-                }
-            }
-            //动态更新是否可以移动书本可用性模式
-            launch {
-                viewModel.canMoveBooks.collectLatest {
-                    Log.d("BS onViewCreated","更新BottomBar的移动按钮可用性模式 $it")
-                    bottomICD.BookShelfMoveBTN.isEnabled = it
-                }
-            }
-            //更新BottomBar的删除按钮可用性模式
-            launch {
-                viewModel.isSelectThings.collectLatest {
-                    Log.d("BS onViewCreated","更新BottomBar的删除按钮可用性模式 $it")
-                    bottomICD.BookShelfDeleteBTN.isEnabled = it
-                }
-            }
+        //只有在选中一个文件夹时才可以重命名文件夹
+        viewModel.isSingleSelectedFolder.launchLifeScopeCollectLatest {
+            Log.d("BS onViewCreated","更新BottomBar的重命名按钮可用性模式 $it")
+            bottomICD.BookShelfRenameFolderBTN.isEnabled = it
         }
+        //动态更新是否可以移动书本可用性模式
+        viewModel.canMoveBooks.launchLifeScopeCollectLatest {
+            Log.d("BS onViewCreated","更新BottomBar的移动按钮可用性模式 $it")
+            bottomICD.BookShelfMoveBTN.isEnabled = it
+        }
+        //更新BottomBar的删除按钮可用性模式
+        viewModel.isSelectThings.launchLifeScopeCollectLatest {
+            Log.d("BS onViewCreated","更新BottomBar的删除按钮可用性模式 $it")
+            bottomICD.BookShelfDeleteBTN.isEnabled = it
+        }
+
         updateTopBarVisibility()
         updateBottomBarVisibility()
         initAllTopICD()
@@ -184,22 +167,13 @@ class BookShelf : Fragment() {
         //设置layoutManager和adapter
         binding.BookRecyclerView.layoutManager = GridLayoutManager(context, 3)
         binding.BookRecyclerView.adapter = bookAdapter
-        lifecycleScope.launch {
-            //动态更新RecyclerView数据逻辑
-            launch {
-                viewModel.booksAdapterUIItems.collectLatest { newList ->
-                    Log.d("BS 初始化Adapter","initAdapter 更新RecyclerView的显示数据")
-                    bookAdapter!!.submitList(newList)
-                }
-            }
-            //每次修改EditModule都要更新RecyclerView
-            launch {
-                UIVM.isEditModel.collectLatest {
-                    Log.d("BS 初始化Adapter","initAdapter 刷新RecyclerView显示数据")
-                    bookAdapter!!.flashAllViews()
-                }
-            }
+        //动态更新RecyclerView数据逻辑
+        viewModel.booksAdapterUIItems.launchLifeScopeCollectLatest {
+            Log.d("BS 初始化Adapter","initAdapter 更新RecyclerView的显示数据")
+            bookAdapter!!.submitList(it)
         }
+
+
     }
 
     /**
@@ -349,24 +323,18 @@ class BookShelf : Fragment() {
     private fun initAllTopICD(){
         //设置在默认页面 Edit模式 进入按钮
         topICD.BookShelfEditBTN.setOnClickListener {
-            bookAdapter?.openEditModel()
-            viewModel.switchEditModel()
+            viewModel.switchEditModel(bookAdapter)
         }
         //设置在文件夹内 Edit模式 进入按钮
         topICD.BookShelfEditInFolderBTN.setOnClickListener {
-            bookAdapter?.openEditModel()
-            viewModel.switchEditModel()
+            viewModel.switchEditModel(bookAdapter)
         }
         //设置两种页面下 Edit模式 退出按钮   完成按钮
         topICD.BookshelfAllDownBTN.setOnClickListener {
-            bookAdapter?.closeEditModel()
-            viewModel.clearAllSelected()
-            viewModel.switchEditModel()
+            viewModel.switchEditModel(bookAdapter)
         }
         topICD.BookShelfFinishInFolderBTN.setOnClickListener {
-            bookAdapter?.closeEditModel()
-            viewModel.clearAllSelected()
-            viewModel.switchEditModel()
+            viewModel.switchEditModel(bookAdapter)
         }
         //书本导入按钮
         topICD.BookshelfBookImportBTN.setOnClickListener {

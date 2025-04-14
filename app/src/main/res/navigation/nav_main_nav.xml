@@ -3,7 +3,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nav_main_nav"
-    app:startDestination="@id/fragment_book_shelf" >
+    app:startDestination="@id/fragment_book_shelf"
+    >
     <fragment
         android:id="@+id/fragment_book_shelf"
         android:name="com.example.ebook_reader.ui.BookShelf.BookShelf"
