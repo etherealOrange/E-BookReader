@@ -1,4 +1,4 @@
-package com.example.ebook_reader.entities
+package com.example.ebook_reader.Enum
 
 enum class BookTypesName(internal val extension: String) {
     TXT("txt"),

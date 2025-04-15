@@ -5,9 +5,7 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Bundle
-import android.os.Environment
 import android.provider.OpenableColumns
-import android.provider.Settings
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -21,9 +19,8 @@ import androidx.recyclerview.widget.GridLayoutManager
 import com.example.ebook_reader.databinding.FragmentBookShelfBinding
 import com.example.ebook_reader.databinding.InputNewFolderBoxBinding
 import com.example.ebook_reader.databinding.InputTextboxBinding
-import com.example.ebook_reader.entities.InsideFolderName
+import com.example.ebook_reader.Enum.InsideFolderName
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileOutputStream
@@ -38,8 +35,12 @@ import coil3.toBitmap
 
 import com.example.ebook_reader.Enum.BookShelfState
 import com.example.ebook_reader.ExtendFragment
-import com.example.ebook_reader.entities.BookTypesName
+import com.example.ebook_reader.databinding.ActivityReadingBinding
+import com.example.ebook_reader.Enum.BookType
+import com.example.ebook_reader.Enum.BookTypesName
+import com.example.ebook_reader.entities.BookView
 import dagger.hilt.android.AndroidEntryPoint
+import kotlin.io.path.Path
 
 @AndroidEntryPoint
 class BookShelf : ExtendFragment() {
@@ -250,13 +251,20 @@ class BookShelf : ExtendFragment() {
      */
     private val filePickerLauncher = registerForActivityResult(ActivityResultContracts.OpenDocument()) {
         if(it !=null){
-            copyFileToFolder(it)
+            lifecycleScope.launch {
+                copyFileToFolder(it)
+                    .onSuccess {
+                        viewModel.loadBook(it)
+                    }.onFailure {
+                        Log.d("BS filePickerLauncher","filePickerLauncher 复制文件失败 原因:$it")
+                    }
+            }
         }
         else{
             Log.d("BS filePickerLauncher","没有选择文件")
         }
-
     }
+
     /**
      * 处理选中的书籍
      * - 复制到对应内部存储
@@ -268,48 +276,79 @@ class BookShelf : ExtendFragment() {
      * - epub 需要解析得到章节和多媒体信息
      * - 多媒体可能需要存储到另外的文件夹
      * - 还需要解析章节 插入章节信息
+     * - 防护成功插入书本的id
+     * - 失败返回-1
      */
-    private fun copyFileToFolder(uri: Uri) {
+    private suspend fun copyFileToFolder(uri: Uri): Result<BookView> {
         try {
-            val fileExtend:String? = getFileExtendFromUri(uri)
+            val fileFullName: String? = getFileExtendFromUri(uri)
+            val fileExtend:String? = fileFullName?.substringAfterLast('.',"")
+            val fileTitle: String? = fileFullName?.substringBeforeLast('.',"")
             if(fileExtend==null||!BookTypesName.isInBookTypesName(fileExtend)){
-                Log.d("BS filePickerLauncher","文件格式不支持")
-                return
+                Log.d("BS copyFileToFolder","文件格式不支持")
+                return Result.failure(Exception("文件格式不支持"))
             }
+            if(fileTitle==null){
+                Log.d("BS copyFileToFolder","文件名称为空")
+                return Result.failure(Exception("文件名称为空"))
+            }
+
+            var book = BookView(
+                title = fileTitle,
+                bookId = 0,
+                bookType = BookType.TXT,
+                currentPage = 0,
+                totalPages = 0,
+                coverUrl = "",
+                bookUrl = "",
+                folderId = null
+            )
             var folderPath =""
             when(fileExtend){
                 BookTypesName.TXT.extension ->{
                     folderPath = InsideFolderName.TXTBOOKSFOLDER.displayName
-                    Log.d("BS filePickerLauncher","选择的文件格式是TXT")
+                    book = book.copy(bookType = BookType.TXT)
+                    Log.d("BS copyFileToFolder","选择的文件格式是TXT")
                 }
                 BookTypesName.EPUB.extension ->{
                     folderPath = InsideFolderName.EPUBBOOKSFOLDER.displayName
-                    Log.d("BS filePickerLauncher","选择的文件格式是EPUB")
+                    book = book.copy(bookType = BookType.EPUB)
+                    Log.d("BS copyFileToFolder","选择的文件格式是EPUB")
                 }
                 BookTypesName.PDF.extension ->{
                     folderPath = InsideFolderName.PDFBOOKSFOLDER.displayName
-                    Log.d("BS filePickerLauncher","选择的文件格式是PDF")
+                    book = book.copy(bookType = BookType.PDF)
+                    Log.d("BS copyFileToFolder","选择的文件格式是PDF")
                 }
             }
+            val fileName = "${System.currentTimeMillis()}."+fileExtend
             val customFolder = File(requireContext().filesDir, folderPath)
+            val fileFinalName = Path(folderPath,fileName).toString()
+            Log.d("BS copyFileToFolder","最终文件名称是: $fileFinalName")
             if (!customFolder.exists()) {
                 customFolder.mkdirs()
             }
-            val fileName = "${System.currentTimeMillis()}."+fileExtend
-            val outputFile = File(customFolder, fileName)
+            val outputFile = File(requireContext().filesDir, fileFinalName)
             requireContext().contentResolver.openInputStream(uri)?.use{
                 inputStream ->
                 //将inputStream中的数据复制到outputStream中
                 inputStream.copyTo(FileOutputStream(outputFile))
             }
-            //TODO三种文件解析
-            Log.d("BS filePickerLauncher","filePickerLauncher 保存书籍路径: ${outputFile.path}")
+            book = book.copy(bookUrl = fileFinalName)
 
+            val id = viewModel.insertBook(book)
+            book = book.copy(bookId = id)
+            Log.d("BS copyFileToFolder","copyFileToFolder 保存书籍路径: ${book.bookUrl}")
+            return Result.success(book)
         }
         catch (e: RuntimeException){
-            Log.d("BS filePickerLauncher","copyFileToFolder 复制文件失败 原因:$e")
+
+            Log.d("BS copyFileToFolder","copyFileToFolder 复制文件失败 原因:$e")
         }
+        return Result.failure(Exception("插入失败"))
     }
+
+
 
     /**
      * 找到文件的扩展名
@@ -322,10 +361,11 @@ class BookShelf : ExtendFragment() {
             if (it.moveToFirst()) {
                 val columnIndex = it.getColumnIndex(OpenableColumns.DISPLAY_NAME)
                 if (columnIndex != -1) {
-                    Log.d("CursorContent", "未找到 columnIndex: $columnIndex")
+                    Log.d("BS getFileExtendFromUri", "未找到 columnIndex: $columnIndex")
                 }
                 if (columnIndex >= 0) {
-                    return it.getString(columnIndex).substringAfterLast('.',"")
+                    Log.d("BS getFileExtendFromUri", "文件名称: ${it.getString(columnIndex)}" )
+                    return it.getString(columnIndex)
                 }
             }
         }
@@ -364,16 +404,19 @@ class BookShelf : ExtendFragment() {
         }
         //书本导入按钮
         topICD.BookshelfBookImportBTN.setOnClickListener {
-            if (Environment.isExternalStorageManager()) {
-                Log.d("BS filePickerLauncher","权限已经授予")
-                filePickerLauncher.launch(arrayOf(
-                    "text/plain","application/pdf","application/epub+zip"
-                ))
-            } else {
-                // 打开系统的权限管理页面
-                val intent = Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION)
-                startActivity(intent)
-            }
+            filePickerLauncher.launch(arrayOf(
+                "text/plain","application/pdf","application/epub+zip"
+            ))
+//            if (Environment.isExternalStorageManager()) {
+//                Log.d("BS filePickerLauncher","权限已经授予")
+//                filePickerLauncher.launch(arrayOf(
+//                    "text/plain","application/pdf","application/epub+zip"
+//                ))
+//            } else {
+//                // 打开系统的权限管理页面
+//                val intent = Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION)
+//                startActivity(intent)
+//            }
         }
         //设置在文件夹内 返回默认页面按钮
         topICD.BookshelfBackToDefaultBTN.setOnClickListener {
@@ -468,6 +511,11 @@ class BookShelf : ExtendFragment() {
             showRenameFolderDialog(BookShelfDataViewModel::renameFolder)
 
         }
+    }
+    private fun openReadingActivity(bookId: Long){
+        val intent = Intent(requireContext(), ActivityReadingBinding::class.java)
+        intent.putExtra("bookId", bookId)
+        startActivity(intent)
     }
     /**
      * 移动书本按钮逻辑

@@ -1,4 +1,4 @@
-package com.example.ebook_reader.entities
+package com.example.ebook_reader.Enum
 
 enum class InsideFolderName(val displayName: String) {
 //    BOOKSCOVERFOLDER("BooksCovers"),

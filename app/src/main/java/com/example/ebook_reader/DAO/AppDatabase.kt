@@ -11,10 +11,12 @@ import com.example.ebook_reader.entities.ReadingRecord
 
 
 @Database(entities = [BookView::class, FolderView::class, BookMarkView::class, ChapterView::class, CreateRecord::class,
-    ReadingRecord::class], version = 1)
+    ReadingRecord::class], version = 2)
 abstract class AppDatabase: RoomDatabase() {
     //封装的 一体式 Dao接口
     abstract fun booksAndFoldersInfoDao(): BooksAndFoldersInfoDao
+    //章节信息Dao
+    abstract fun chapterInfoDao(): ChapterInfoDao
     //连接数据库
 /*    companion object {
         @Volatile

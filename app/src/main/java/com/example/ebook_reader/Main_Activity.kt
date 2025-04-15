@@ -11,7 +11,7 @@ import androidx.navigation.ui.setupWithNavController
 import com.example.ebook_reader.databinding.ActivityMainBinding
 import com.example.ebook_reader.databinding.ActivityMainContentBinding
 import com.example.ebook_reader.databinding.NavViewHeadMainBinding
-import com.example.ebook_reader.entities.InsideFolderName
+import com.example.ebook_reader.Enum.InsideFolderName
 import com.example.ebook_reader.ui.BookShelf.BookShelfDataViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import java.io.File

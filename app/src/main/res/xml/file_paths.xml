@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths>
+    <files-path
+        name="internal_files"
+        path="." />
+    <cache-path
+        name="internal_cache"
+        path="."
+        />
+    <files-path
+        name="TxtBooks"
+        path="TxtBooks/" />
+    <files-path
+        name="FoldersCovers"
+        path="FoldersCovers/"/>
+    <files-path
+        name="PdfBooks"
+        path="PdfBooks"/>
+    <files-path
+        name="EpubBooks"
+        path="EpubBooks"/>
+
+</paths>

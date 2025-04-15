@@ -22,12 +22,25 @@ object DatabaseModule {
             context.applicationContext,
             AppDatabase::class.java,
             "total_database"
-        ).build()
+        ).fallbackToDestructiveMigration()
+        .build()
 
-    //提供Dao实例(使用依赖注入的方式)
+    //提供Dao实例
     @Provides
     fun provideBooksAndFoldersInfoDao(
         db: AppDatabase
     ) = db.booksAndFoldersInfoDao()
+    //提供章节信息Dao实例
+    @Provides
+    fun provideChapterInfoDao(
+        db: AppDatabase
+    ) = db.chapterInfoDao()
+
+    @Provides
+    @Singleton
+    fun provideApplicationContext(
+        @ApplicationContext context: Context
+    ) = context
+
 
 }

@@ -3,6 +3,7 @@ package com.example.ebook_reader.entities
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.ForeignKey.Companion.CASCADE
+import androidx.room.Index
 
 @Entity(tableName = "RecordCreated",
     primaryKeys = ["bookId", "recordId"],
@@ -19,6 +20,9 @@ import androidx.room.ForeignKey.Companion.CASCADE
             childColumns = ["recordId"],
             onDelete = CASCADE
         )
+    ],
+    indices = [
+        Index(value = ["bookId","recordId"], unique = true)
     ]
     )
 data class CreateRecord(

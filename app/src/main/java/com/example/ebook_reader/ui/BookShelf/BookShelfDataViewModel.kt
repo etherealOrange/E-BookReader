@@ -1,6 +1,8 @@
 package com.example.ebook_reader.ui.BookShelf
 
+import android.content.Context
 import android.util.Log
+import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.ebook_reader.InterfacePackage.BookShelf.BooksAdapterChangePosition
@@ -9,18 +11,24 @@ import com.example.ebook_reader.InterfacePackage.BookShelf.FoldersAdapterSelecte
 import com.example.ebook_reader.Repository.BookShelf.BookAdapterUIState
 import com.example.ebook_reader.Repository.BookShelf.BookShelfRepository
 import com.example.ebook_reader.Repository.BookShelf.FolderAdapterUIState
-import com.example.ebook_reader.entities.BookType
+import com.example.ebook_reader.Enum.BookType
 import com.example.ebook_reader.entities.BookView
+import com.example.ebook_reader.entities.ChapterView
 import com.example.ebook_reader.entities.FolderView
 import com.example.ebook_reader.entities.UIFolderView
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.buffer
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -32,11 +40,14 @@ import kotlin.collections.mutableSetOf
 
 //负责数据的 获取 处理 打包 更新 添加 删除
 @HiltViewModel
-class BookShelfDataViewModel @Inject constructor (private val Repo: BookShelfRepository): ViewModel()
+class BookShelfDataViewModel @Inject constructor (
+    @ApplicationContext val context: Context,
+    private val Repo: BookShelfRepository): ViewModel()
     ,BooksAdapterSelectedControl
     ,BooksAdapterChangePosition
     ,FoldersAdapterSelectedControl
 {
+
     val isHideActionBar: StateFlow<Boolean> get() = Repo.isHideActionBar
     val isInFolder: StateFlow<Boolean> get() = Repo.isInFolder
     val inWhichFolder: StateFlow<Long?> get() = Repo.inWhichFolder
@@ -253,6 +264,163 @@ class BookShelfDataViewModel @Inject constructor (private val Repo: BookShelfRep
         Repo.getOutOfFolder()
     }
 
+
+    /**
+     * 处理导入的书籍
+     */
+    fun loadBook(book: BookView){
+        Log.d("VM loadBook","loadBook 加入的书本信息: $book")
+        when(book.bookType){
+            BookType.TXT -> {
+                processTextBook(book)
+                    .onSuccess {
+                        Log.d("VM loadBook","成功加载 txt 书本")
+
+                    }
+                    .onFailure {
+                        Log.d("BS loadBook","失败加载 txt 书本 $it")
+                    }
+            }
+            BookType.EPUB -> {
+                processEpubBook(book)
+                    .onSuccess {
+                        Log.d("BS loadBook","成功加载 epub 书本")
+                    }
+                    .onFailure {
+                        Log.d("BS loadBook","失败加载 epub 书本 $it")
+                    }
+            }
+            BookType.PDF -> {
+                processPdfBook(book)
+                    .onSuccess {
+                        Log.d("BS loadBook","成功加载 pdf 书本")
+                    }
+                    .onFailure {
+                        Log.d("BS loadBook","失败加载 pdf 书本 $it")
+                    }
+            }
+        }
+    }
+
+
+
+
+
+    /**
+     *检查文件是否存在且可读
+     */
+    private fun checkFileExistCanRead(file: File): Result<File>{
+        if(!file.exists()){
+            Log.d("VM checkFileExistCanRead","文件不存在")
+            return Result.failure(Exception("文件不存在"))
+        }
+        if(!file.canRead()){
+            Log.d("VM checkFileExistCanRead","文件不可读")
+            return Result.failure(Exception("文件不可读"))
+        }
+        return Result.success(file)
+    }
+    /**
+     * 处理所有文件的基础方法
+     */
+    private fun processBook(book: BookView, process:(File)-> Result<String>):Result<String>{
+        val file = File(context.filesDir,book.bookUrl)
+        val result = checkFileExistCanRead(file)
+        result.onSuccess {
+            Log.d("VM processBook","文件存在且可读")
+            return process(it)
+        }.onFailure {
+            return Result.failure(Exception(it))
+        }
+        return Result.failure(Exception("未知错误"))
+    }
+    //识别章节行的正则表达式
+    val chapterRegex = """^第([一二三四五六七八九十\d]+)章\s*(.*)$""".toRegex()
+    private fun isChapterLine(line: String): Boolean {
+        return chapterRegex.matches(line)
+    }
+
+    /**
+     * 处理 txt 书本
+     */
+    private fun processTextBook(book: BookView): Result<String>{
+        return processBook(book) {
+            Log.d("VM processTextBook","处理 txt 书本路径 $it")
+            var currentLines = 0
+            var line = String()
+            var chapter: ChapterView? = ChapterView(
+                chapterId = 0,
+                bookId = book.bookId,
+                chapterOrder = 0,
+                chapterTitle = "简介",
+                chapterStartLine = 0,
+                chapterEndLine = 0
+            )
+            val chapterList = mutableListOf<ChapterView>()
+            it.inputStream().bufferedReader().use {
+                //获取每一个章节的名称 和开始结束位置
+                while (it.readLine().also {line=it  }!=null) {
+                    if(isChapterLine(line)){
+                        //填写章节结束位置
+                        chapter = chapter!!.copy(chapterEndLine = currentLines-1L)
+                        chapterList.add(chapter)
+                        //下一章节开始 填写开始的 名称 顺序 开始
+                        chapter = chapter.copy(chapterTitle = line, chapterOrder = chapter.chapterOrder+1, chapterStartLine = currentLines.toLong())
+                    }
+                    currentLines++
+                }
+                chapter = chapter!!.copy(chapterEndLine = currentLines-1L)
+                chapterList.add(chapter)
+            }
+            Log.d("VM","读取的总行数 $currentLines")
+            isFinishedInsert.value=false
+            insertChapters(chapterList)
+
+
+            if(currentLines == 0){
+                Result.failure(Exception("没读取到任何文字"))
+            }
+            else{
+                Result.success("txt")
+            }
+
+        }
+    }
+    private val isFinishedInsert = MutableStateFlow<Boolean>(false)
+    private fun insertChapters(chapters: List<ChapterView>){
+        viewModelScope.launch {
+            Repo.insertChapter(chapters)
+            isFinishedInsert.value=true
+            Repo.updateChapters(chapters[0].bookId)
+            Log.d("VM insertChapters","insert 插入完毕")
+        }
+    }
+    /**
+     * 处理 epub 书本
+     */
+    private fun processEpubBook(book: BookView): Result<String>{
+        return processBook(book) {
+            Log.d("VM processEpubBook","处理epub 书本路径 $it")
+            Result.success("epub")
+        }
+    }
+    /**
+     * 处理 pdf 书本
+     */
+    private fun processPdfBook(book: BookView): Result<String>{
+        return processBook(book) {
+            Log.d("VM processPdfBook","处理pdf 书本路径 $it")
+            Result.success("pdf")
+        }
+    }
+
+
+
+
+
+
+
+
     init {
         viewModelScope.launch {
             launch {
@@ -262,6 +430,13 @@ class BookShelfDataViewModel @Inject constructor (private val Repo: BookShelfRep
             launch {
                 doSimulation()
             }
+            launch {
+                Repo.chapters.buffer(1024, BufferOverflow.SUSPEND)
+                    .collectLatest {
+                        Log.d("VM loadBook","章节总条数：${it.size}")
+                    }
+            }
+
         }
 
     }
@@ -277,10 +452,9 @@ class BookShelfDataViewModel @Inject constructor (private val Repo: BookShelfRep
 
 
     //插入书本
-    fun insertBook(book: BookView) {
-        viewModelScope.launch {
-            Repo.insertBook(book)
-        }
+    suspend fun insertBook(book: BookView): Long {
+        Log.d("VM","进行插入书本中")
+        return Repo.insertBook(book)
     }
     //插入文件夹
     fun insertFolder(folder: FolderView) {

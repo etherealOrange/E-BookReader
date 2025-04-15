@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface BooksAndFoldersInfoDao {
     @Insert
-    suspend fun insertBook(book: BookView )
+    suspend fun insertBook(book: BookView ): Long
 
     @Insert
     suspend fun insertFolder(folder: FolderView)

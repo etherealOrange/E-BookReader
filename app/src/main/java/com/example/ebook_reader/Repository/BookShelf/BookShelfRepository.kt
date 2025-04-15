@@ -2,8 +2,10 @@ package com.example.ebook_reader.Repository.BookShelf
 
 import android.util.Log
 import com.example.ebook_reader.DAO.BooksAndFoldersInfoDao
+import com.example.ebook_reader.DAO.ChapterInfoDao
 import com.example.ebook_reader.entities.BookAndFolderItem
 import com.example.ebook_reader.entities.BookView
+import com.example.ebook_reader.entities.ChapterView
 import com.example.ebook_reader.entities.FolderView
 import com.example.ebook_reader.entities.UIFolderView
 import kotlinx.coroutines.CoroutineScope
@@ -18,13 +20,16 @@ import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @OptIn(FlowPreview::class)
 @Singleton
-class BookShelfRepository @Inject constructor (private val dao: BooksAndFoldersInfoDao) {
+class BookShelfRepository @Inject constructor (
+    private val chapterDao: ChapterInfoDao
+    ,private val dao: BooksAndFoldersInfoDao) {
 
     private val _allBooks = MutableStateFlow<List<BookView>>(emptyList())
     val allBooks: StateFlow<List<BookView>> get() = _allBooks
@@ -47,11 +52,17 @@ class BookShelfRepository @Inject constructor (private val dao: BooksAndFoldersI
         started = WhileSubscribed(500),
         initialValue = emptyList()
     )
+
+    /**
+     *
+     */
+    private val _chapters = MutableStateFlow<List<ChapterView>>(emptyList())
+    val chapters: StateFlow<List<ChapterView>> get() = _chapters
+
+
     /**
      * 书籍和文件夹的联合
      */
-
-
     val allBooksAndFolders: StateFlow<List<BookAndFolderItem>> = combine(allBooks,allUIFolders) {
         books,folders->
         folders+books
@@ -75,8 +86,19 @@ class BookShelfRepository @Inject constructor (private val dao: BooksAndFoldersI
                     .distinctUntilChanged()//去除查询带来的数据库变化
                     .collectLatest { _allFolders.value=it }
             }
-
         }
+    }
+    suspend fun updateChapters(bookId: Long){
+        _chapters.value = emptyList()
+        _chapters.update {
+            Log.d("BSR updateChapters","更新 前 目前的章节列表")
+            chapterDao.selectAllChapterFromBookId(bookId)
+        }
+        Log.d("BSR updateChapters","更新 完成 目前的章节列表")
+    }
+
+    suspend fun insertChapter(chapters: List<ChapterView>) {
+        chapterDao.insertChapters(chapters = chapters)
     }
 
     private val _inWhichFolder = MutableStateFlow<Long?>(null)
@@ -127,6 +149,8 @@ class BookShelfRepository @Inject constructor (private val dao: BooksAndFoldersI
     }
 
 
+
+
     suspend fun moveBookToFolder(bookId: Long, folderId: Long?) {
         dao.moveBookToFolder(bookId, folderId)
     }
@@ -140,8 +164,9 @@ class BookShelfRepository @Inject constructor (private val dao: BooksAndFoldersI
      * 插入整个书本实例
      * @param book 书本实例
      */
-    suspend fun insertBook(book: BookView) {
-        dao.insertBook(book)
+    suspend fun insertBook(book: BookView): Long {
+        Log.d("BSR","进行插入书本中2")
+        return dao.insertBook(book)
     }
     /**
      * 插入整个文件夹实例
