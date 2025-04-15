@@ -6,11 +6,14 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.ebook_reader.databinding.BookshelfBotSheetDialogBinding
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
@@ -39,29 +42,24 @@ class BookShelf_BotSheetDialog(): BottomSheetDialogFragment() {
         }
         binding.SheetDialogRecyclerView.layoutManager = LinearLayoutManager(context)
         binding.SheetDialogRecyclerView.adapter = adapter
-        lifecycleScope.launch {
-            //更新文件夹信息
-            launch {
-                viewModel.foldersAdapterUIItem.collectLatest {
-                    adapter?.submitList(it)
-                }
+        //收集信息
+        viewModel.foldersAdapterUIItem
+            .launchLifeScopeCollectLatest {
+                adapter?.submitList(it)
             }
-            launch {
-                viewModel.isInFolder.collectLatest {
-                    if (it){
-                        binding.SheetDialogMoveOutFromFolder.visibility = View.VISIBLE
-                    }else{
-                        binding.SheetDialogMoveOutFromFolder.visibility = View.GONE
-                    }
-                }
+        //判断是否在文件夹
+        viewModel.isInFolder.launchLifeScopeCollectLatest {
+            if (it){
+                binding.SheetDialogMoveOutFromFolder.visibility = View.VISIBLE
+            }else{
+                binding.SheetDialogMoveOutFromFolder.visibility = View.GONE
             }
-            launch {
-                viewModel.moveToFolderId.collectLatest {
-                    binding.SheetDialogMoveOutFromFolderCheckBox.isChecked = it==null
-                }
-            }
-
         }
+        //判断移动到哪个文件夹
+        viewModel.moveToFolderId.launchLifeScopeCollectLatest {
+            binding.SheetDialogMoveOutFromFolderCheckBox.isChecked = it==null
+        }
+
         binding.SheetDialogMoveOutFromFolderCheckBox.isClickable=false
         binding.SheetDialogMoveOutFromFolder.isClickable=true
         binding.SheetDialogMoveOutFromFolder.setOnClickListener {
@@ -92,6 +90,25 @@ class BookShelf_BotSheetDialog(): BottomSheetDialogFragment() {
         binding.SheetDialogRecyclerView.adapter=null
         _binding=null
         adapter =null
+    }
+
+    fun <T>  Flow<T>.launchLifeScopeCollect (doCollect: suspend (T) -> Unit){
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                collect {  //这是扩展函数, 所以直接使用其中的方法
+                    doCollect(it)
+                }
+            }
+        }
+    }
+    fun <T> Flow<T>.launchLifeScopeCollectLatest (doCollect: suspend (T) -> Unit) {
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                collectLatest {
+                    doCollect(it)
+                }
+            }
+        }
     }
 
 }

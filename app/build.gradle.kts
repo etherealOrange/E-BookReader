@@ -44,6 +44,7 @@ android {
 }
 
 dependencies {
+    implementation(libs.io.coil3.kt)
     implementation(libs.androidx.room.compiler){
 //排除和其他模组的冲突
         exclude(group = "com.intellij", module = "annotations")

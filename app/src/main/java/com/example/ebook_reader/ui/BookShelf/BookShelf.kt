@@ -2,6 +2,7 @@ package com.example.ebook_reader.ui.BookShelf
 
 import android.content.DialogInterface
 import android.content.Intent
+import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
@@ -23,12 +24,18 @@ import com.example.ebook_reader.databinding.InputTextboxBinding
 import com.example.ebook_reader.entities.InsideFolderName
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileOutputStream
 import androidx.core.net.toUri
 import androidx.fragment.app.viewModels
+import coil3.imageLoader
+import coil3.load
+import coil3.request.ErrorResult
+import coil3.request.ImageRequest
+import coil3.request.SuccessResult
+import coil3.toBitmap
+
 import com.example.ebook_reader.Enum.BookShelfState
 import com.example.ebook_reader.ExtendFragment
 import com.example.ebook_reader.entities.BookTypesName
@@ -89,8 +96,8 @@ class BookShelf : ExtendFragment() {
                     }
                     BookShelfState.NotInEditInFolder -> {
                         topICD.DefaultTopBar.visibility = View.GONE
-                        topICD.InFolderTopBar.visibility = View.GONE
-                        topICD.EditModuleTopBar.visibility = View.VISIBLE
+                        topICD.InFolderTopBar.visibility = View.VISIBLE
+                        topICD.EditModuleTopBar.visibility = View.GONE
                         topICD.BookShelfEditInFolderBTN.visibility = View.VISIBLE
                         topICD.BookShelfFinishInFolderBTN.visibility = View.GONE
                     }
@@ -181,7 +188,7 @@ class BookShelf : ExtendFragment() {
      * - 复制到内部存储
      * - 把路径存储到viewModule中
      */
-    private val pickImageLauncher = registerForActivityResult(ActivityResultContracts.PickVisualMedia()) {
+    private val imagePickerLauncher = registerForActivityResult(ActivityResultContracts.PickVisualMedia()) {
             uri->
         if (uri != null) {
             Log.d("BS 进行文件夹封面保存","pickImageLauncher 选择的图片URI: $uri")
@@ -197,6 +204,7 @@ class BookShelf : ExtendFragment() {
      */
     private fun saveImageToFolder(uri: Uri,folderName: String){
         try {
+
             //获取文件夹路径
             val customFolder = File(requireContext().filesDir, folderName)
             if (!customFolder.exists()) {
@@ -204,14 +212,32 @@ class BookShelf : ExtendFragment() {
             }
             //创建文件名
             val fileName = "IMG_${System.currentTimeMillis()}.jpg"
+            //得到输出位置流
             val outputFile = File(customFolder, fileName)
-            requireContext().contentResolver.openInputStream(uri)?.use{
-                inputStream ->
-                //将inputStream中的数据复制到outputStream中
-                inputStream.copyTo(FileOutputStream(outputFile))
-            }
-            Log.d("BS saveImageToFolder","saveImageToFolder 保存图片成功")
-            UIVM.updateCoverDir(outputFile.path)
+            //加载coil3图片加载器
+            val imageLoader = requireContext().imageLoader
+            val request = ImageRequest.Builder(requireContext())
+                .data(uri)
+                .size(1080,1920)
+                .listener(object : ImageRequest.Listener{
+                    override fun onSuccess(request: ImageRequest, result: SuccessResult) {
+                        UIVM.updateCoverDir(outputFile.path)
+                    }
+                    override fun onError(request: ImageRequest, result: ErrorResult) {
+                        UIVM.clearCoverDir()
+                        Log.d("BS saveImageToFolder","saveImageToFolder 保存图片失败 原因:$result")
+                    }
+                })
+                .target{
+                    val bitmap = it.toBitmap()
+                    outputFile.outputStream().use {
+                        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, it)
+                    }
+                    Log.d("BS saveImageToFolder","成功 存储图片到 ${outputFile.absolutePath}")
+                }
+                .build()
+            imageLoader.enqueue(request)
+
             Log.d("BS saveImageToFolder","saveImageToFolder 保存图片路径: ${outputFile.path}")
         }catch (e: RuntimeException){
             UIVM.clearCoverDir()
@@ -376,13 +402,11 @@ class BookShelf : ExtendFragment() {
             //新建文件夹的视图 和 按钮 逻辑
             val inputNewFolderBoxBinding = InputNewFolderBoxBinding.inflate(LayoutInflater.from(requireContext()))
             inputNewFolderBoxBinding.addFolderCoverBTN.setOnClickListener {
-                pickImageLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
-                lifecycleScope.launch {
-                    UIVM.CoverDir.collectLatest {
-                        Log.d("BS BookshelfNewFolderBTN Top", "切换为: ${it.toUri()}")
-                        if (it != "") {
-                            inputNewFolderBoxBinding.imageShow.setImageURI(it.toUri())
-                        }
+                imagePickerLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                UIVM.CoverDir.launchLifeScopeCollectLatest {
+                    Log.d("BS BookshelfNewFolderBTN", "切换弹窗文件夹封面图片为: ${it.toUri()}")
+                    if (it != "") {
+                        inputNewFolderBoxBinding.imageShow.load(it.toUri())
                     }
                 }
             }

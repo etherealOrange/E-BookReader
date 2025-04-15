@@ -10,6 +10,7 @@ import androidx.compose.runtime.currentRecomposeScope
 import androidx.core.net.toUri
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import coil3.load
 import com.example.ebook_reader.InterfacePackage.BookShelf.FoldersAdapterSelectedControl
 import com.example.ebook_reader.R
 import com.example.ebook_reader.Repository.BookShelf.FolderAdapterUIState
@@ -78,10 +79,10 @@ class ForSelectFolderAdapter (
         //图片加载逻辑
         val coverUrl = view.folder.coverUrl
         if(coverUrl.isNotEmpty()){
-            binding.CDFolderCoverIV.setImageURI(coverUrl.toUri())
+            binding.CDFolderCoverIV.load(coverUrl.toUri())
         }
         else{
-            binding.CDFolderCoverIV.setImageResource(R.drawable.ic_launcher_foreground)
+            binding.CDFolderCoverIV.load(R.drawable.ic_launcher_foreground)
         }
         binding.CDFolderNameTV.text = view.folder.title
         val containBooksText = "共${view.booksNum}本书"

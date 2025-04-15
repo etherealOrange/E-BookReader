@@ -19,8 +19,9 @@ legacySupportV4 = "1.0.0"
 lifecycleLivedataKtx = "2.6.1"
 lifecycleViewmodelKtx = "2.6.1"
 room = "2.5.2"
-hilt = "2.48"
+hilt = "2.51.1"
 leakcanary = "2.12"
+coil = "3.1.0"
 
 [libraries]
 androidx-recyclerview = { group = "androidx.recyclerview",name = "recyclerview", version.ref = "recyclerview" }
@@ -55,6 +56,8 @@ hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref
 hilt-compiler = { group = "com.google.dagger", name = "hilt-compiler", version.ref = "hilt" }
 leakcanary-android = { group = "com.squareup.leakcanary", name = "leakcanary-android", version.ref = "leakcanary" }
 leakcanary-support-fragment = { group = "com.squareup.leakcanary", name = "leakcanary-support-fragment", version.ref = "leakcanary" }
+io-coil3-kt = { group = "io.coil-kt.coil3", name = "coil", version.ref = "coil" }
+
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
