@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     id("com.google.devtools.ksp")
     id("com.google.dagger.hilt.android")
+    id("org.jetbrains.kotlin.plugin.parcelize")
 }
 
 android {
@@ -44,6 +45,7 @@ android {
 }
 
 dependencies {
+    implementation(libs.androidx.paging)
     implementation(libs.io.coil3.kt)
     implementation(libs.androidx.room.compiler){
 //排除和其他模组的冲突

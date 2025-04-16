@@ -88,14 +88,14 @@ class BookShelfRepository @Inject constructor (
             }
         }
     }
-    suspend fun updateChapters(bookId: Long){
-        _chapters.value = emptyList()
-        _chapters.update {
-            Log.d("BSR updateChapters","更新 前 目前的章节列表")
-            chapterDao.selectAllChapterFromBookId(bookId)
-        }
-        Log.d("BSR updateChapters","更新 完成 目前的章节列表")
-    }
+//    suspend fun updateChapters(bookId: Long){
+//        _chapters.value = emptyList()
+//        _chapters.update {
+//            Log.d("BSR updateChapters","更新 前 目前的章节列表")
+//            chapterDao.selectAllChapterFromBookId(bookId)
+//        }
+//        Log.d("BSR updateChapters","更新 完成 目前的章节列表")
+//    }
 
     suspend fun insertChapter(chapters: List<ChapterView>) {
         chapterDao.insertChapters(chapters = chapters)
@@ -148,6 +148,12 @@ class BookShelfRepository @Inject constructor (
         _isHideActionBar.value = false
     }
 
+    /**
+     * 修改书本总章节数
+     */
+    suspend fun updateBookTotalPages(bookId: Long,pages: Long){
+        dao.updateBookPages(bookId,pages)
+    }
 
 
 

@@ -10,16 +10,17 @@ import androidx.recyclerview.widget.RecyclerView
 import coil3.load
 
 import com.example.ebook_reader.InterfacePackage.BookShelf.BooksAdapterChangePosition
+import com.example.ebook_reader.InterfacePackage.BookShelf.BooksAdapterOpenActivity
 import com.example.ebook_reader.InterfacePackage.BookShelf.BooksAdapterSelectedControl
 import com.example.ebook_reader.R
 import com.example.ebook_reader.Repository.BookShelf.BookAdapterUIState
 import com.example.ebook_reader.databinding.CardviewBinding
 import com.example.ebook_reader.entities.BookAndFolderItem
 import com.example.ebook_reader.entities.BookView
-import com.example.ebook_reader.entities.FolderView
 import com.example.ebook_reader.entities.UIFolderView
 
 class BookAdapter (
+    private val openActivity: BooksAdapterOpenActivity,
     private val changePosition: BooksAdapterChangePosition,
     private val selectedControl: BooksAdapterSelectedControl
 ):ListAdapter<BookAdapterUIState, BookAdapter.ViewHolder>(
@@ -32,6 +33,7 @@ class BookAdapter (
         //获取当前ViewHolder的位置的ItemId 和 是否是书本
         private var thisItemId: Long = 0
         private var isCurrentRefBook = false
+        private var book: BookView? = null
         init {
             binding.root.setOnClickListener {
                 when (_isEditModel){
@@ -57,7 +59,8 @@ class BookAdapter (
             when (isCurrentRefBook){
                 true->{
                     //跳转到阅读界面
-                    Log.d("BookAdapter-notInEditModelClickChange", "notInEditModelClickChange: $thisItemId")
+                    openActivity.openActivity(book!!)
+                    Log.d("BA notInEditModelClickChange", "去到数据id: $thisItemId")
                 }
                 false->{
                     //跳转到文件夹界面
@@ -73,9 +76,17 @@ class BookAdapter (
             }
         }
         //给当前ViewHolder提供当前位置的ItemId 和 是否是书本
-        fun getHolderCurrentPositionAndIsRefBook(itemId: Long, isRefBook: Boolean){
+        fun getHolderCurrentPositionAndIsRefBook(itemId: Long, item: BookAdapterUIState){
             thisItemId = itemId
-            isCurrentRefBook = isRefBook
+            when(item.item){
+                is BookView->{
+                    isCurrentRefBook = true
+                    book = item.item
+                }
+                else -> {
+                    isCurrentRefBook = false
+                }
+            }
         }
 
     }
@@ -114,7 +125,7 @@ class BookAdapter (
         //设置CheckBox是否点击
         holder.binding.CDSelectedCheckBox.isChecked = item.isSelected
         //给当前ViewHolder提供当前位置的ItemId 和 是否是书本 为了在点击事件中使用
-        holder.getHolderCurrentPositionAndIsRefBook(itemId, item.item is BookView)
+        holder.getHolderCurrentPositionAndIsRefBook(itemId, item)
     }
     //开始编辑模式
     fun openEditModel(){

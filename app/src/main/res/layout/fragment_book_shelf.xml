@@ -20,9 +20,6 @@
         android:id="@+id/BookRecyclerView"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:paddingVertical="16dp"
-        android:clipToPadding="false"
-        android:overScrollMode="never"
         app:layout_constraintTop_toBottomOf="@id/BookShelf_TopBar_ICD"
         app:layout_constraintBottom_toTopOf="@+id/Bookshelf_BottomBar_ICD"/>
     <include

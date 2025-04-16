@@ -2,7 +2,6 @@ package com.example.ebook_reader.ui.BookShelf
 
 import android.content.Context
 import android.util.Log
-import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.ebook_reader.InterfacePackage.BookShelf.BooksAdapterChangePosition
@@ -18,21 +17,24 @@ import com.example.ebook_reader.entities.FolderView
 import com.example.ebook_reader.entities.UIFolderView
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.buffer
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import java.io.File
+import java.util.concurrent.locks.ReadWriteLock
+import java.util.concurrent.locks.ReentrantReadWriteLock
 import javax.inject.Inject
 import kotlin.Long
 import kotlin.collections.mutableSetOf
@@ -268,14 +270,17 @@ class BookShelfDataViewModel @Inject constructor (
     /**
      * 处理导入的书籍
      */
-    fun loadBook(book: BookView){
+    suspend fun loadBook(book: BookView){
         Log.d("VM loadBook","loadBook 加入的书本信息: $book")
         when(book.bookType){
             BookType.TXT -> {
                 processTextBook(book)
                     .onSuccess {
+                        //更新总章节数
+                        Repo.updateBookTotalPages(it[0].bookId,it.size.toLong())
+                        //插入章节
+                        insertChapters(it)
                         Log.d("VM loadBook","成功加载 txt 书本")
-
                     }
                     .onFailure {
                         Log.d("BS loadBook","失败加载 txt 书本 $it")
@@ -323,7 +328,7 @@ class BookShelfDataViewModel @Inject constructor (
     /**
      * 处理所有文件的基础方法
      */
-    private fun processBook(book: BookView, process:(File)-> Result<String>):Result<String>{
+    private fun processBook(book: BookView, process:(File)-> Result<List<ChapterView>>):Result<List<ChapterView>>{
         val file = File(context.filesDir,book.bookUrl)
         val result = checkFileExistCanRead(file)
         result.onSuccess {
@@ -339,11 +344,10 @@ class BookShelfDataViewModel @Inject constructor (
     private fun isChapterLine(line: String): Boolean {
         return chapterRegex.matches(line)
     }
-
     /**
      * 处理 txt 书本
      */
-    private fun processTextBook(book: BookView): Result<String>{
+    private fun processTextBook(book: BookView): Result<List<ChapterView>>{
         return processBook(book) {
             Log.d("VM processTextBook","处理 txt 书本路径 $it")
             var currentLines = 0
@@ -373,47 +377,76 @@ class BookShelfDataViewModel @Inject constructor (
                 chapterList.add(chapter)
             }
             Log.d("VM","读取的总行数 $currentLines")
-            isFinishedInsert.value=false
-            insertChapters(chapterList)
-
-
             if(currentLines == 0){
                 Result.failure(Exception("没读取到任何文字"))
             }
             else{
-                Result.success("txt")
+                Result.success(chapterList)
             }
+        }
+    }
 
+    /**
+     * 获取读写锁
+     */
+    val lock = ReentrantReadWriteLock()
+
+    /**
+     * 控制章节插入的写锁
+     */
+    val writeLock get()= lock.writeLock()
+
+    /**
+     * 控制章节查询的读锁
+     */
+    val readLock get()= lock.readLock()
+    private suspend fun insertChapters(chapters: List<ChapterView>): Result<Boolean>{
+        try {
+            withContext(Dispatchers.IO) {
+                writeLock.lock()
+                Repo.insertChapter(chapters)
+                writeLock.unlock()
+                Log.d("VM insertChapters","insert 插入完毕")
+            }
+        }catch (e: Exception) {
+            return Result.failure(e)
         }
+        return Result.success(true)
     }
-    private val isFinishedInsert = MutableStateFlow<Boolean>(false)
-    private fun insertChapters(chapters: List<ChapterView>){
-        viewModelScope.launch {
-            Repo.insertChapter(chapters)
-            isFinishedInsert.value=true
-            Repo.updateChapters(chapters[0].bookId)
-            Log.d("VM insertChapters","insert 插入完毕")
-        }
-    }
+//    suspend fun selectChaptersFromBookId(bookId: Long): Result<Boolean>{
+//        try {
+//            withContext(Dispatchers.IO) {
+//                readLock.lock()
+//                Repo.updateChapters(bookId)
+//                readLock.unlock()
+//                Log.d("VM insertChapters", "拉取章节信息")
+//            }
+//        }catch (e: Exception){
+//            return Result.failure(e)
+//        }
+//        return Result.success(true)
+//    }
+
     /**
      * 处理 epub 书本
      */
-    private fun processEpubBook(book: BookView): Result<String>{
+    private fun processEpubBook(book: BookView): Result<List<ChapterView>>{
         return processBook(book) {
             Log.d("VM processEpubBook","处理epub 书本路径 $it")
-            Result.success("epub")
+            Result.success(mutableListOf())
         }
     }
     /**
      * 处理 pdf 书本
      */
-    private fun processPdfBook(book: BookView): Result<String>{
+    private fun processPdfBook(book: BookView): Result<List<ChapterView>>{
         return processBook(book) {
             Log.d("VM processPdfBook","处理pdf 书本路径 $it")
-            Result.success("pdf")
+            Result.success(mutableListOf())
         }
     }
 
+    private val isFinishedInsert = MutableStateFlow<Boolean>(false)
 
 
 

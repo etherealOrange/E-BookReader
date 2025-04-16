@@ -13,7 +13,13 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.EBookReader">
         <activity
-            android:name=".ui.ReadingBook.ReadingBook"
+            android:name=".ui.ReadingBook.Reading_EPUB"
+            android:exported="false" />
+        <activity
+            android:name=".ui.ReadingBook.Reading_PDF"
+            android:exported="false" />
+        <activity
+            android:name=".ui.ReadingBook.Reading_TXT"
             android:exported="false" />
         <activity
             android:name=".MySpace_Activity"
@@ -27,9 +33,10 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
         <provider
-            android:authorities="${applicationId}.fileprovider"
             android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
             android:exported="false"
             android:grantUriPermissions="true">
             <meta-data

@@ -22,6 +22,9 @@ interface BooksAndFoldersInfoDao {
     @Query("SELECT * FROM BooksInfo")
     fun getAllBooks(): Flow<List<BookView>>
 
+    @Query("UPDATE BooksInfo SET totalPages = :pages Where bookId = :bookId")
+    suspend fun updateBookPages(bookId: Long, pages: Long)
+
     @Query("SELECT * FROM BooksInfo Where folderId is null")
     fun getBooksNotInFolder(): Flow<List<BookView>>
 

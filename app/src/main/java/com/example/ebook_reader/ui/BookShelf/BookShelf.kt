@@ -35,15 +35,18 @@ import coil3.toBitmap
 
 import com.example.ebook_reader.Enum.BookShelfState
 import com.example.ebook_reader.ExtendFragment
-import com.example.ebook_reader.databinding.ActivityReadingBinding
 import com.example.ebook_reader.Enum.BookType
 import com.example.ebook_reader.Enum.BookTypesName
+import com.example.ebook_reader.InterfacePackage.BookShelf.BooksAdapterOpenActivity
 import com.example.ebook_reader.entities.BookView
+import com.example.ebook_reader.ui.ReadingBook.Reading_EPUB
+import com.example.ebook_reader.ui.ReadingBook.Reading_PDF
+import com.example.ebook_reader.ui.ReadingBook.Reading_TXT
 import dagger.hilt.android.AndroidEntryPoint
 import kotlin.io.path.Path
 
 @AndroidEntryPoint
-class BookShelf : ExtendFragment() {
+class BookShelf : ExtendFragment() , BooksAdapterOpenActivity{
     //ViewBinding
     private var _binding: FragmentBookShelfBinding? = null
     private val binding get() = _binding!!
@@ -170,7 +173,7 @@ class BookShelf : ExtendFragment() {
     private fun initAdapter(){
         //设置书本的ListAdapter
         if(bookAdapter==null){
-            bookAdapter = BookAdapter(viewModel,viewModel)
+            bookAdapter = BookAdapter(openActivity = this,viewModel,viewModel)
         }
         //设置layoutManager和adapter
         binding.BookRecyclerView.layoutManager = GridLayoutManager(context, 3)
@@ -254,7 +257,9 @@ class BookShelf : ExtendFragment() {
             lifecycleScope.launch {
                 copyFileToFolder(it)
                     .onSuccess {
+                        Log.d("BS","等待章节插入 数据库")
                         viewModel.loadBook(it)
+                        Log.d("BS","成功把章节插入 数据库")
                     }.onFailure {
                         Log.d("BS filePickerLauncher","filePickerLauncher 复制文件失败 原因:$it")
                     }
@@ -512,9 +517,16 @@ class BookShelf : ExtendFragment() {
 
         }
     }
-    private fun openReadingActivity(bookId: Long){
-        val intent = Intent(requireContext(), ActivityReadingBinding::class.java)
-        intent.putExtra("bookId", bookId)
+
+    override fun openActivity(book: BookView) {
+
+        var intent: Intent? = null
+        when(book.bookType){
+            BookType.TXT ->{ intent = Intent(requireContext(), Reading_TXT::class.java)}
+            BookType.PDF -> { intent = Intent(requireContext(), Reading_PDF::class.java)}
+            BookType.EPUB -> { intent = Intent(requireContext(), Reading_EPUB::class.java)}
+        }
+        intent.putExtra("book", book)
         startActivity(intent)
     }
     /**
@@ -639,5 +651,6 @@ class BookShelf : ExtendFragment() {
         alertDialog=null
         Log.d("BS onDestroy","success")
     }
+
 }
 
