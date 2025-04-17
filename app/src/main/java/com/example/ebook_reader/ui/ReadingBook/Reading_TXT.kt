@@ -70,12 +70,9 @@ class Reading_TXT : ExtendAppCompatActivity() {
         }
 
         //设置左侧抽屉  默认打开的是左边的视图, open打开右边 close打开左边
-
-
-//        bind.main.setTransition(R.xml.chapter_drawer_motion_scene)
-//        bind.test.setOnClickListener {
-//            bind.main.transitionToState(R.id.open)
-//        }
+        bind.chaptersReadingBtn.setOnClickListener {
+            bind.main.open()
+        }
 
 
 
