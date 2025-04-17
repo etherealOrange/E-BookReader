@@ -63,6 +63,8 @@
 
 
 
+
+
     <style name="TopBarText" parent="TextAppearance.AppCompat.Title">
         <item name="android:textSize">24sp</item>
         <item name="android:textColor">@color/white</item>

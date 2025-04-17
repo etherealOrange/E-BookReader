@@ -8,10 +8,17 @@ import com.example.ebook_reader.entities.ChapterView
 import com.example.ebook_reader.entities.CreateRecord
 import com.example.ebook_reader.entities.FolderView
 import com.example.ebook_reader.entities.ReadingRecord
+import com.example.ebook_reader.entities.ReadingSetting
 
 
-@Database(entities = [BookView::class, FolderView::class, BookMarkView::class, ChapterView::class, CreateRecord::class,
-    ReadingRecord::class], version = 2)
+@Database(entities = [
+    BookView::class
+    , FolderView::class
+    , BookMarkView::class
+    , ChapterView::class
+    , CreateRecord::class
+    , ReadingRecord::class
+                     ], version = 2)
 abstract class AppDatabase: RoomDatabase() {
     //封装的 一体式 Dao接口
     abstract fun booksAndFoldersInfoDao(): BooksAndFoldersInfoDao

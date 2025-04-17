@@ -45,13 +45,14 @@ android {
 }
 
 dependencies {
+    implementation(libs.google.gson)
     implementation(libs.androidx.paging)
     implementation(libs.io.coil3.kt)
     implementation(libs.androidx.room.compiler){
 //排除和其他模组的冲突
         exclude(group = "com.intellij", module = "annotations")
     }
-    implementation(libs.leakcanary.android)
+//    implementation(libs.leakcanary.android)
 //    implementation(libs.leakcanary.support.fragment)
 
     implementation(libs.hilt.android)

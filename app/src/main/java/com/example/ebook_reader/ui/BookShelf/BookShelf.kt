@@ -550,7 +550,6 @@ class BookShelf : ExtendFragment() , BooksAdapterOpenActivity{
     private fun moveBTNClickListener(){
         bottomICD.BookShelfMoveBTN.setOnClickListener {
             bottomSheetDialog.show(parentFragmentManager,bottomSheetDialog.tag )
-
         }
     }
 

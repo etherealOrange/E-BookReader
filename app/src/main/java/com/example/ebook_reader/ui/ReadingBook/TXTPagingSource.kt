@@ -31,7 +31,16 @@ class TXTPagingSource (
             val cacheNum = 10L
             val chapterIndexes = index.getChapterIndexes((pageNumber*cacheNum).toLong(),cacheNum)
             Log.d("TPS load","章节索引 ${chapterIndexes.size}  页码 $pageNumber")
-            val chapters = readChapters(chapterIndexes)
+            var chapters = readChapters(chapterIndexes)
+            if(chapters.isEmpty()){
+                chapters = listOf(
+                    ChapterPage(
+                        title = "书本不存在",
+                        order = 0,
+                        content = "章节内容不存在"
+                    )
+                )
+            }
             LoadResult.Page(
                 data = chapters,
                 prevKey = if(pageNumber <= 0 ) null else pageNumber -1,
