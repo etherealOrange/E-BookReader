@@ -13,7 +13,10 @@ import com.example.ebook_reader.Repository.ReadingBook.ChapterPage
 import com.example.ebook_reader.databinding.FragmentTxtPageBinding
 import com.example.ebook_reader.entities.ReadingSetting
 
-class TXTChapterAdapter(private val context: Context, private var config:ReadingSetting) : PagingDataAdapter<ChapterPage, TXTChapterAdapter.ViewHolder>(DIFF_CALLBACK){
+class TXTChapterAdapter(
+    private val context: Context
+    , private var config:ReadingSetting)
+    : PagingDataAdapter<ChapterPage, TXTChapterAdapter.ViewHolder>(DIFF_CALLBACK){
     override fun onCreateViewHolder(
         parent: ViewGroup,
         viewType: Int
@@ -64,7 +67,7 @@ class TXTChapterAdapter(private val context: Context, private var config:Reading
     companion object{
         private val DIFF_CALLBACK = object : DiffUtil.ItemCallback<ChapterPage>() {
             override fun areItemsTheSame(oldItem: ChapterPage, newItem: ChapterPage): Boolean {
-                return oldItem.title == newItem.title
+                return oldItem.order == newItem.order
             }
             override fun areContentsTheSame(oldItem: ChapterPage, newItem: ChapterPage): Boolean {
                 return oldItem == newItem

@@ -76,6 +76,16 @@ class ViewModelOnTXT @Inject constructor(
                     ),
                     pagingSourceFactory = { TXTPagingSource(this@ViewModelOnTXT, txtReader) }
                 ).flow.cachedIn(viewModelScope)
+
+                chapterListFlow = Pager(
+                    config = PagingConfig(
+                        pageSize = 10,
+                        maxSize = 50,
+                        prefetchDistance = 10,
+                        enablePlaceholders = false
+                    ),
+                    pagingSourceFactory = { TXTChapterListSource(this@ViewModelOnTXT)}
+                ).flow.cachedIn(viewModelScope)
                 _isInitFinished.value=true
             }
         }
@@ -85,11 +95,15 @@ class ViewModelOnTXT @Inject constructor(
 
 
     /**
-     * paging3 的章节缓存加载的原始数据
+     * paging3 的章节内容缓存加载的原始数据 加载章节内容的数据
      */
     @OptIn(ExperimentalCoroutinesApi::class)
     lateinit var chapterFlow: Flow<PagingData<ChapterPage>>
 
+    /**
+     * paging3 的章节索引缓存加载 加载章节列表的数据
+     */
+    lateinit var chapterListFlow: Flow<PagingData<ChapterIndex>>
 
 
     /**

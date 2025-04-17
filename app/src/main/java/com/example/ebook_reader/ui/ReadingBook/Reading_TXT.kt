@@ -1,16 +1,21 @@
 package com.example.ebook_reader.ui.ReadingBook
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import android.util.Log
+import android.view.MotionEvent
 import androidx.activity.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.PagerSnapHelper
+import androidx.recyclerview.widget.RecyclerView
 import com.example.ebook_reader.ConfigManager
 import com.example.ebook_reader.ExtendAppCompatActivity
+import com.example.ebook_reader.R
 import com.example.ebook_reader.databinding.ActivityReadingTxtBinding
 import com.example.ebook_reader.entities.BookView
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.filter
 
@@ -21,20 +26,20 @@ class Reading_TXT : ExtendAppCompatActivity() {
     private lateinit var bottomDialog: TXTBottomDialog
     private val configManager = ConfigManager.getInstance(this)
 
+    @SuppressLint("ClickableViewAccessibility")
     @OptIn(FlowPreview::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         bind = ActivityReadingTxtBinding.inflate(layoutInflater)
         setContentView(bind.root)
-
         viewModel.updateConfig(configManager.getConfig())
-
         bottomDialog = TXTBottomDialog()
-
-
-
-
         Log.d("RB","onCreate 成功创建")
+
+
+
+
+
         //设置章节的Adapter
         val chapterAdapter = TXTChapterAdapter(this,viewModel.config.value)
 
@@ -44,7 +49,7 @@ class Reading_TXT : ExtendAppCompatActivity() {
 
         //同步章节数据
         viewModel.isInitFinished.filter { it }.launchLifeScopeCollectLatest {
-            viewModel.chapterFlow.launchLifeScopeCollectLatest { Log.d("RT ","$it"); chapterAdapter.submitData(it) }
+            viewModel.chapterFlow.launchLifeScopeCollectLatest { chapterAdapter.submitData(it) }
         }
 
         bind.recyclerView.apply {
@@ -53,11 +58,35 @@ class Reading_TXT : ExtendAppCompatActivity() {
             PagerSnapHelper().attachToRecyclerView(this)
         }
 
+        val chapterListAdapter = TXTChapterListAdapter()
+        viewModel.isInitFinished.filter { it }.launchLifeScopeCollectLatest {
+            viewModel.chapterListFlow.launchLifeScopeCollectLatest {
+                bind.ChapterTitle.text = viewModel.book.title
+                chapterListAdapter.submitData(it)  }
+        }
+        bind.chapterList.apply {
+            layoutManager = LinearLayoutManager(this@Reading_TXT, LinearLayoutManager.VERTICAL,false)
+            this.adapter = chapterListAdapter
+        }
+
+        //设置左侧抽屉  默认打开的是左边的视图, open打开右边 close打开左边
+
+
+//        bind.main.setTransition(R.xml.chapter_drawer_motion_scene)
+//        bind.test.setOnClickListener {
+//            bind.main.transitionToState(R.id.open)
+//        }
+
+
+
+
+        //底部抽屉
         bind.settingReadingBtn.setOnClickListener {
             bottomDialog.show(supportFragmentManager,"BottomDialog")
         }
 
     }
+
 
     override fun onStart() {
         super.onStart()

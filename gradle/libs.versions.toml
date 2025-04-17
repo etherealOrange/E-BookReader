@@ -62,6 +62,7 @@ io-coil3-kt = { group = "io.coil-kt.coil3", name = "coil", version.ref = "coil" 
 androidx-paging = { group = "androidx.paging", name = "paging-runtime-ktx", version.ref = "androidxPaging" }
 google-gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }
 
+
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }

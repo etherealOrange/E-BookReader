@@ -22,7 +22,7 @@ class TXTPagingSource (
 {
 
     override fun getRefreshKey(state: PagingState<Int, ChapterPage>): Int? {
-        Log.d("TPS", state.anchorPosition.toString())
+        Log.d("TPS getRefreshKey", state.anchorPosition.toString())
         return ( (state.anchorPosition ?: 0) - state.config.initialLoadSize / 2).coerceAtLeast(0)
     }
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, ChapterPage> {
