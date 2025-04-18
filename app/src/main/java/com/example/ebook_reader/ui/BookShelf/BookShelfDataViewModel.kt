@@ -15,6 +15,7 @@ import com.example.ebook_reader.entities.BookView
 import com.example.ebook_reader.entities.ChapterView
 import com.example.ebook_reader.entities.FolderView
 import com.example.ebook_reader.entities.UIFolderView
+import com.example.ebook_reader.ui.ReadingBook.TxtReader
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
@@ -340,28 +341,31 @@ class BookShelfDataViewModel @Inject constructor (
         return Result.failure(Exception("未知错误"))
     }
     //识别章节行的正则表达式
-    val chapterRegex = """^第([一二三四五六七八九十\d]+)章\s*(.*)$""".toRegex()
-    private fun isChapterLine(line: String): Boolean {
-        return chapterRegex.matches(line)
-    }
+//    val chapterRegex = """^第([一二三四五六七八九十\d]+)章\s*(.*)$""".toRegex()
+//    private fun isChapterLine(line: String): Boolean {
+//        return chapterRegex.matches(line)
+//    }
     /**
      * 处理 txt 书本
      */
     private fun processTextBook(book: BookView): Result<List<ChapterView>>{
         return processBook(book) {
             Log.d("VM processTextBook","处理 txt 书本路径 $it")
-            var currentLines = 0
+            val reader = TxtReader.getNewInstance(it)
+            Result.success(reader.loadBook(book)).also { reader.close() }
+/*            var currentLines = 0
             var line = String()
             var chapter: ChapterView? = ChapterView(
                 chapterId = 0,
                 bookId = book.bookId,
                 chapterOrder = 0,
                 chapterTitle = "简介",
-                chapterStartLine = 0,
-                chapterEndLine = 0
+                startBytes = 0,
+                endBytes = 0,
+                partOrder = 0
             )
-            val chapterList = mutableListOf<ChapterView>()
-            it.inputStream().bufferedReader().use {
+            val chapterList = mutableListOf<ChapterView>()*/
+   /*         it.inputStream().bufferedReader().use {
                 //获取每一个章节的名称 和开始结束位置
                 while (it.readLine().also {line=it  }!=null) {
                     if(isChapterLine(line)){
@@ -382,7 +386,7 @@ class BookShelfDataViewModel @Inject constructor (
             }
             else{
                 Result.success(chapterList)
-            }
+            }*/
         }
     }
 

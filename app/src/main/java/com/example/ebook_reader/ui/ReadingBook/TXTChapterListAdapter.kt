@@ -29,7 +29,12 @@ class TXTChapterListAdapter
     ) {
         val bind = holder.bind
         getItem(position)?.let {
-            bind.chapterName.text = it.title
+            if(it.partOrder>0){
+                val title = it.title+"part ${it.partOrder}"
+                bind.chapterName.text = title
+            }else{
+                bind.chapterName.text = it.title
+            }
         }?: run {
             Log.d("TCLA onBindViewHolder","章节不存在")
             bind.chapterName.text = "章节不存在"

@@ -21,12 +21,14 @@ class TXTChapterListSource(
             val pageNumber = params.key ?: 0
             val cacheNum = 10L
             var chapterIndexes = index.getChapterIndexes((pageNumber*cacheNum).toLong(),cacheNum)
+                .sortedBy { it.chapterOrder }
             if(chapterIndexes.isEmpty()){
                 chapterIndexes = listOf(ChapterIndex(
                     title = "书本不存在",
                     chapterOrder = 0,
-                    startLine = 0,
-                    endLint = 0
+                    startByte = 0,
+                    endByte = 0,
+                    partOrder = 0,
                 ))
             }
             LoadResult.Page(

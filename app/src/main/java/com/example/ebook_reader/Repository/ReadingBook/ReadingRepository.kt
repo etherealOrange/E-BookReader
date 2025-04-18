@@ -16,7 +16,7 @@ class ReadingRepository@Inject constructor (
      * 获取章节列表
      */
     suspend fun getChaptersFromBookId(bookId: Long): List<ChapterView> {
-        val list = chapterDao.selectAllChapterFromBookId(bookId = bookId)
+        val list = chapterDao.selectAllChapterFromBookId(bookId = bookId).sortedBy { it.chapterOrder }
         Log.d("RR getChaptersFromBookId","列表长度: ${list.size} \n")
         return list
     }

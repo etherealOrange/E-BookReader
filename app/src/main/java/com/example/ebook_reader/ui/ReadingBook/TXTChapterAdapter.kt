@@ -35,6 +35,7 @@ class TXTChapterAdapter(
         position: Int
     ) {
         val bind = holder.binding
+        bind.scrollOfTextView.scrollTo(0,0)
 
         getItem(position)?.let {
             bind.TextView.textSize = config.textSize.toFloat()

@@ -86,6 +86,20 @@ class ViewModelOnTXT @Inject constructor(
                     ),
                     pagingSourceFactory = { TXTChapterListSource(this@ViewModelOnTXT)}
                 ).flow.cachedIn(viewModelScope)
+
+//                txtReader.loadBook()
+//                    .filter { it.chapterOrder>400 }
+//                    .forEach {
+//                    Log.d("VMT init","章节信息\n $it")
+//                }
+//                txtReader.readManyLines(20409,22822).also {
+//                    Log.d("VMT init","章节内容\n $it")
+//                }
+
+//                val pattern = """\n第([一二三四五六七八九十\d]+)章\s*(.*)\r?\n""".toRegex()
+//                pattern.findAll("hhhhh\n第1章 一笑出门去，千里落花风\r\n").forEach { match ->
+//                    Log.d("VMT init", "match ${match.value} 是否有回车")
+//                }
                 _isInitFinished.value=true
             }
         }
@@ -123,8 +137,9 @@ class ViewModelOnTXT @Inject constructor(
                         ChapterIndex(
                             title = chapter.chapterTitle,
                             chapterOrder = chapter.chapterOrder,
-                            startLine = chapter.chapterStartLine,
-                            endLint = chapter.chapterEndLine
+                            startByte = chapter.startBytes,
+                            endByte = chapter.endBytes,
+                            partOrder = chapter.partOrder
                         )
                     )
                 }
@@ -223,6 +238,11 @@ class ViewModelOnTXT @Inject constructor(
         Log.d("VMT cancelJobAndDo", "取消了任务")
         minusOrPlus()
         job=null
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        txtReader.close()
     }
 
 
