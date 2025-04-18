@@ -103,21 +103,16 @@ class ViewModelOnTXT @Inject constructor(
     val changePosition get() = _changePosition.asStateFlow()
 
 
-    private var canJump: Boolean =false
+     var canJump: Boolean =false
      var jump =0L
     /**
      * 跳转到指定章节
      */
     override fun refreshChapterFlow(position: Long) {
-//        val key = KeyOfPages(position,10)
-//        _isInitFinished.value=false
-
         Log.d("VMT refreshChapterFlow", "开始 刷新章节 $position  ")
         jump = position
         canJump  = true
         _changePosition.value = !_changePosition.value
-
-//        _isInitFinished.value=true
         Log.d("VMT refreshChapterFlow","刷新完毕")
     }
 

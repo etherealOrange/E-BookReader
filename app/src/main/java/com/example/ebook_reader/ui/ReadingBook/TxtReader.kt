@@ -12,36 +12,16 @@ class TxtReader(
     private val file: File
 )
 {
-    private var line = String()
-    private var currentIndex: Long = 0
-    private val builder = StringBuilder()
-//    private var reader: BufferedReader? = null
-
     private var rd: RandomAccessFile? = null
     private val cur get() = rd!!
 
 
     init {
         if(file.isFile){
-//            reader = file.bufferedReader()
             rd = RandomAccessFile(file,"r")
         }
     }
 
-//    fun readNextLines(len: Long): String? {
-//        if(reader==null) return ""
-//        builder.clear()
-//        for(i in 0 until len){
-//            reader!!.readLine()?.also { line=it } ?:throw Exception("读取 到$currentIndex 遇到EOF")
-//            line = "    "+line.trim()+"\n"
-//            if(i/100>0) {
-//                Log.d("TR readNextLines", "读取到第 $currentIndex 行: $line")
-//            }
-//            builder.append(line)
-//            currentIndex++
-//        }
-//        return builder.toString()
-//    }
 
     /**
      * - 负责读取指定书本的部分章节内容

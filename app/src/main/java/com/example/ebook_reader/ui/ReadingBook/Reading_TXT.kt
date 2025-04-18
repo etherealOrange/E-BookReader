@@ -56,6 +56,7 @@ class Reading_TXT : ExtendAppCompatActivity() {
         //章节跳转
         viewModel.changePosition.launchLifeScopeCollectLatest {
             chapterAdapter.refresh()
+            viewModel.canJump=false
         }
 
         bind.recyclerView.apply {
