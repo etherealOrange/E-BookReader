@@ -120,7 +120,7 @@ class TxtReader(
             bookId = book.bookId,
             chapterTitle = "简介",
             chapterOrder = 0,
-            startBytes = 0,
+            startBytes = -1, //读取时会加一所以为了简介的完整需要-1
             endBytes = 0,
             partOrder = 0,
         )
