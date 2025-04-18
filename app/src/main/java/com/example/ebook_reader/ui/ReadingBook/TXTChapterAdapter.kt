@@ -44,9 +44,10 @@ class TXTChapterAdapter(
 
             bind.ChapterTitle.text = it.title
             bind.TextView.text = it.content
+            Log.d("TCA onBindViewHolder","章节顺序号 ${it.order} 名称 ${it.title}  请求Position $position")
 
         } ?: run {
-            Log.d("TCA onBindViewHolder","章节不存在")
+            Log.d("TCA onBindViewHolder","章节不存在 Position $position")
             bind.ChapterTitle.text = "章节不存在"
             bind.TextView.text = "章节内容不存在"
         }

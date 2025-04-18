@@ -15,7 +15,7 @@ class TxtReader(
     private var line = String()
     private var currentIndex: Long = 0
     private val builder = StringBuilder()
-    private var reader: BufferedReader? = null
+//    private var reader: BufferedReader? = null
 
     private var rd: RandomAccessFile? = null
     private val cur get() = rd!!
@@ -23,7 +23,7 @@ class TxtReader(
 
     init {
         if(file.isFile){
-            reader = file.bufferedReader()
+//            reader = file.bufferedReader()
             rd = RandomAccessFile(file,"r")
         }
     }
@@ -51,7 +51,7 @@ class TxtReader(
         if(rd == null) return ""
         return try{
             val startPlusOne = start+1
-            val constLen = 10240
+            val constLen = 1024
             var totalByte = end - startPlusOne
             val buffer = ByteArray(constLen)
             val builder = StringBuilder()
@@ -79,7 +79,7 @@ class TxtReader(
                     //就代表最后一次读取 只取需要的长度
                     if(diffByte < sum.size){
                         val context = sum.copyOfRange(0, diffByte.toInt()).toString(Charsets.UTF_8)
-                        Log.d("TR readManyLines", "读取到最后一行 $context")
+//                        Log.d("TR readManyLines", "读取到最后一行 $context")
                         context
                             .split('\n')
                             .forEach { builder.append("    "+it.trim()+"\n") }
@@ -119,7 +119,7 @@ class TxtReader(
             chapterId = 0,
             bookId = book.bookId,
             chapterTitle = "简介",
-            chapterOrder = 0,
+            chapterOrder = -1, //添加前会把Order+1
             startBytes = -1, //读取时会加一所以为了简介的完整需要-1
             endBytes = 0,
             partOrder = 0,
@@ -266,7 +266,7 @@ class TxtReader(
     }
 
     fun close() {
-        reader?.close()
+//        reader?.close()
         rd?.close()
     }
 

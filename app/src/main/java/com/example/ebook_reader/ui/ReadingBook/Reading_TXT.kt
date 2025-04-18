@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.MotionEvent
 import androidx.activity.viewModels
+import androidx.core.view.size
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.PagerSnapHelper
 import androidx.recyclerview.widget.RecyclerView
@@ -49,7 +50,12 @@ class Reading_TXT : ExtendAppCompatActivity() {
 
         //同步章节数据
         viewModel.isInitFinished.filter { it }.launchLifeScopeCollectLatest {
-            viewModel.chapterFlow.launchLifeScopeCollectLatest { chapterAdapter.submitData(it) }
+            viewModel.chapterFlow.launchLifeScopeCollectLatest { chapterAdapter.submitData(it)
+            }
+        }
+        //章节跳转
+        viewModel.changePosition.launchLifeScopeCollectLatest {
+            chapterAdapter.refresh()
         }
 
         bind.recyclerView.apply {
@@ -58,7 +64,7 @@ class Reading_TXT : ExtendAppCompatActivity() {
             PagerSnapHelper().attachToRecyclerView(this)
         }
 
-        val chapterListAdapter = TXTChapterListAdapter()
+        val chapterListAdapter = TXTChapterListAdapter(viewModel)
         viewModel.isInitFinished.filter { it }.launchLifeScopeCollectLatest {
             viewModel.chapterListFlow.launchLifeScopeCollectLatest {
                 bind.ChapterTitle.text = viewModel.book.title
@@ -69,11 +75,12 @@ class Reading_TXT : ExtendAppCompatActivity() {
             this.adapter = chapterListAdapter
         }
 
+
+
         //设置左侧抽屉  默认打开的是左边的视图, open打开右边 close打开左边
         bind.chaptersReadingBtn.setOnClickListener {
             bind.main.open()
         }
-
 
 
 

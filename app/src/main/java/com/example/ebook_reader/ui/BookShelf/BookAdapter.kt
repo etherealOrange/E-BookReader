@@ -60,7 +60,7 @@ class BookAdapter (
                 true->{
                     //跳转到阅读界面
                     openActivity.openActivity(book!!)
-                    Log.d("BA notInEditModelClickChange", "去到数据id: $thisItemId")
+//                    Log.d("BA notInEditModelClickChange", "去到数据id: $thisItemId")
                 }
                 false->{
                     //跳转到文件夹界面
@@ -98,7 +98,7 @@ class BookAdapter (
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val item = getItem(position)
         var itemId: Long = 0
-        Log.d("BA onBindViewHolder", "onBindViewHolder:在进行ViewBind\n $item")
+//        Log.d("BA onBindViewHolder", "onBindViewHolder:在进行ViewBind\n $item")
 
         //处理Book和Folder视图的绑定 并设置itemId
         when(item.item){
@@ -142,7 +142,7 @@ class BookAdapter (
         holder: ViewHolder,
         view: UIFolderView
     ) {
-        Log.d("BA bindFolder", "bindFolder: $view")
+//        Log.d("BA bindFolder", "bindFolder: $view")
         val binding = holder.binding
 
         //显示书本 而非文件夹
@@ -166,7 +166,7 @@ class BookAdapter (
         holder: ViewHolder,
         view: BookView
     ) {
-        Log.d("BA bindBook", "bindBook: $view")
+//        Log.d("BA bindBook", "bindBook: $view")
         val binding = holder.binding
 
         //显示文件夹 而不是书本

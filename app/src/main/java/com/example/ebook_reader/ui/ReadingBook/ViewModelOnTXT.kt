@@ -11,8 +11,10 @@ import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import com.example.ebook_reader.Enum.BookType
 import com.example.ebook_reader.InterfacePackage.ReadingBook.GetChapterIndexes
+import com.example.ebook_reader.InterfacePackage.ReadingBook.RefreshChapterFlow
 import com.example.ebook_reader.Repository.ReadingBook.ChapterIndex
 import com.example.ebook_reader.Repository.ReadingBook.ChapterPage
+import com.example.ebook_reader.Repository.ReadingBook.KeyOfPages
 import com.example.ebook_reader.Repository.ReadingBook.ReadingRepository
 import com.example.ebook_reader.entities.BookView
 import com.example.ebook_reader.entities.ChapterView
@@ -36,7 +38,9 @@ class ViewModelOnTXT @Inject constructor(
     @ApplicationContext context: Context,
     private val Repo: ReadingRepository,
     private val savedStateHandle: SavedStateHandle,
-) : ViewModel(), GetChapterIndexes {
+) : ViewModel()
+    , GetChapterIndexes
+    , RefreshChapterFlow{
 
     private val _config = MutableStateFlow<ReadingSetting>(ReadingSetting())
     val config get() = _config.asStateFlow()
@@ -68,14 +72,16 @@ class ViewModelOnTXT @Inject constructor(
 
                 txtReader = TxtReader(File(context.filesDir, book.bookUrl))
                 chapterFlow = Pager(
+                    initialKey = 0,
                     config = PagingConfig(
-                        pageSize = 2,
-                        maxSize = 10,
+                        pageSize = 10,
+                        maxSize = 30,
                         prefetchDistance = 1,
                         enablePlaceholders = false
                     ),
-                    pagingSourceFactory = { TXTPagingSource(this@ViewModelOnTXT, txtReader) }
+                    pagingSourceFactory = { TXTPagingSource(this@ViewModelOnTXT, txtReader,jump,canJump) }
                 ).flow.cachedIn(viewModelScope)
+
 
                 chapterListFlow = Pager(
                     config = PagingConfig(
@@ -86,24 +92,36 @@ class ViewModelOnTXT @Inject constructor(
                     ),
                     pagingSourceFactory = { TXTChapterListSource(this@ViewModelOnTXT)}
                 ).flow.cachedIn(viewModelScope)
-
-//                txtReader.loadBook()
-//                    .filter { it.chapterOrder>400 }
-//                    .forEach {
-//                    Log.d("VMT init","章节信息\n $it")
-//                }
-//                txtReader.readManyLines(20409,22822).also {
-//                    Log.d("VMT init","章节内容\n $it")
-//                }
-
-//                val pattern = """\n第([一二三四五六七八九十\d]+)章\s*(.*)\r?\n""".toRegex()
-//                pattern.findAll("hhhhh\n第1章 一笑出门去，千里落花风\r\n").forEach { match ->
-//                    Log.d("VMT init", "match ${match.value} 是否有回车")
-//                }
                 _isInitFinished.value=true
             }
         }
     }
+
+    private val _changePosition = MutableStateFlow<Boolean>(false)
+    /**
+     * 返回提供体现要改变跳转位置
+     */
+    val changePosition get() = _changePosition.asStateFlow()
+
+
+    private var canJump: Boolean =false
+     var jump =0L
+    /**
+     * 跳转到指定章节
+     */
+    override fun refreshChapterFlow(position: Long) {
+//        val key = KeyOfPages(position,10)
+//        _isInitFinished.value=false
+
+        Log.d("VMT refreshChapterFlow", "开始 刷新章节 $position  ")
+        jump = position
+        canJump  = true
+        _changePosition.value = !_changePosition.value
+
+//        _isInitFinished.value=true
+        Log.d("VMT refreshChapterFlow","刷新完毕")
+    }
+
     private lateinit var txtReader : TxtReader
     private lateinit var _chapters : List<ChapterView>
 
@@ -126,54 +144,28 @@ class ViewModelOnTXT @Inject constructor(
      * - size 读取的数量
      */
     override fun getChapterIndexes(start: Long, size: Long): List<ChapterIndex> {
-        return mutableListOf<ChapterIndex>().apply {
-            Log.d("VMT getChapterIndexes","开始读取章节索引 $start $size\n 章节大小${_chapters.size}")
-            _chapters.forEachIndexed {
-                index, chapter ->
-                if(index>= start+size)return@forEachIndexed
-                Log.d("VMT getChapterIndexes","章节索引 $index \n $chapter")
-                if (index in start until start + size) {
-                    add(
-                        ChapterIndex(
-                            title = chapter.chapterTitle,
-                            chapterOrder = chapter.chapterOrder,
-                            startByte = chapter.startBytes,
-                            endByte = chapter.endBytes,
-                            partOrder = chapter.partOrder
-                        )
-                    )
-                }
-            }
-
+        if(_chapters.isEmpty()) return emptyList()
+        //限制其长度不超过章节索引的总长度
+        val end = (start + size).coerceAtMost(_chapters.size.toLong())
+        //限制其长度不小于0
+        val startIndex = start.coerceAtLeast(0).toInt()
+        val endIndex = end.toInt()
+        Log.d("VMT getChapterIndexes","开始读取章节索引 开始start $start 大小size $size\n 章节总大小${_chapters.size}")
+        return _chapters.subList(startIndex,endIndex).mapIndexed {
+            index,chapter->
+            ChapterIndex(
+                title = chapter.chapterTitle,
+                chapterOrder = chapter.chapterOrder,
+                startByte = chapter.startBytes,
+                endByte = chapter.endBytes,
+                partOrder = chapter.partOrder
+            )
         }
-
     }
 
-    //阻止多个按钮一起按下
-    private val canSingleTouch = MutableStateFlow<Boolean>(true)
-    //计算按住总时长
-    private val _touchMillis = MutableStateFlow<Long>(0)
-    //开始按下的时间
-    private val startTouchMillis = MutableStateFlow<Long>(0)
-    val touchMillis = _touchMillis.asStateFlow()
-    private val repeatDelay =200L
-    private val startRepeatDelay = 500L
 
-    //开始按下
-    fun startTouch(){
-        startTouchMillis.value= System.currentTimeMillis()
-    }
-    //结束按下 同时更新按下的总时间
-    fun endTouch(){
-        _touchMillis.value = System.currentTimeMillis() - startTouchMillis.value
-    }
 
-    fun doTouching(){
-        canSingleTouch.value=false
-    }
-    fun notTouching(){
-        canSingleTouch.value=true
-    }
+
     //进行一次字体大小的减法
     fun minusTextSize(){
         if(_config.value.textSize>20){
@@ -221,6 +213,8 @@ class ViewModelOnTXT @Inject constructor(
     //进行持续的操作
     private var job: Job?=null
     fun keepDoThing(minusOrPlus: () -> Unit){
+        val repeatDelay =200L
+        val startRepeatDelay = 500L
         job?.cancel()
         job = viewModelScope.launch(Dispatchers.IO) {
             Log.d("VMT keepMinusThing","开始持续操作")

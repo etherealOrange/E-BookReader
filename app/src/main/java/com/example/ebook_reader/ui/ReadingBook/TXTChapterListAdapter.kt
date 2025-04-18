@@ -6,10 +6,13 @@ import android.view.ViewGroup
 import androidx.paging.PagingDataAdapter
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
+import com.example.ebook_reader.InterfacePackage.ReadingBook.RefreshChapterFlow
 import com.example.ebook_reader.Repository.ReadingBook.ChapterIndex
 import com.example.ebook_reader.databinding.FragmentChapterListItemBinding
 
-class TXTChapterListAdapter
+class TXTChapterListAdapter(
+    private val gotoChapter : RefreshChapterFlow
+)
     : PagingDataAdapter<ChapterIndex, TXTChapterListAdapter.ViewHolder>(DIFF_CALLBACK) {
     override fun onCreateViewHolder(
         parent: ViewGroup,
@@ -20,6 +23,7 @@ class TXTChapterListAdapter
             ,parent
             ,false
         )
+        Log.d("TCLA onCreateViewHolder","创建章节列表")
         return ViewHolder(bind)
     }
 
@@ -29,6 +33,7 @@ class TXTChapterListAdapter
     ) {
         val bind = holder.bind
         getItem(position)?.let {
+            holder.setOrder(it.chapterOrder)
             if(it.partOrder>0){
                 val title = it.title+"part ${it.partOrder}"
                 bind.chapterName.text = title
@@ -53,7 +58,19 @@ class TXTChapterListAdapter
         }
     }
     inner class ViewHolder(val bind: FragmentChapterListItemBinding)
-        : RecyclerView.ViewHolder(bind.root)
+        : RecyclerView.ViewHolder(bind.root) {
+        private var order = 0L
+
+        init {
+            bind.chapterName.setOnClickListener {
+                gotoChapter.refreshChapterFlow(order)
+            }
+        }
+
+        fun setOrder(o: Long){
+            order = o
+        }
+    }
 
 
 }
