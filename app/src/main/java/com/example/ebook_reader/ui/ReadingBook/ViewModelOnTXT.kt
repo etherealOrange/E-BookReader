@@ -79,18 +79,20 @@ class ViewModelOnTXT @Inject constructor(
                         enablePlaceholders = false
                     ),
                     pagingSourceFactory = { TXTPagingSource(this@ViewModelOnTXT, txtReader,jump,canJump) }
-                ).flow.cachedIn(viewModelScope)
+                ).also { jump =0L ; canJump = false }
+                    .flow.cachedIn(viewModelScope)
 
 
                 chapterListFlow = Pager(
                     config = PagingConfig(
-                        pageSize = 10,
-                        maxSize = 50,
+                        pageSize = 20,
+                        maxSize = 60,
                         prefetchDistance = 10,
                         enablePlaceholders = false
                     ),
-                    pagingSourceFactory = { TXTChapterListSource(this@ViewModelOnTXT)}
-                ).flow.cachedIn(viewModelScope)
+                    pagingSourceFactory = { TXTChapterListSource(this@ViewModelOnTXT,listCanJump,listJump)}
+                ).also { listJump= 0L ; listCanJump = false }
+                    .flow.cachedIn(viewModelScope)
                 _isInitFinished.value=true
             }
         }
@@ -103,8 +105,8 @@ class ViewModelOnTXT @Inject constructor(
     val changePosition get() = _changePosition.asStateFlow()
 
 
-     var canJump: Boolean =false
-     var jump =0L
+     private var canJump: Boolean =false
+     private var jump =0L
     /**
      * 跳转到指定章节
      */
@@ -114,6 +116,30 @@ class ViewModelOnTXT @Inject constructor(
         canJump  = true
         _changePosition.value = !_changePosition.value
         Log.d("VMT refreshChapterFlow","刷新完毕")
+    }
+
+    private var listCanJump : Boolean =false
+    private var listJump =0L
+    private val _changListPosition = MutableStateFlow<Boolean>(false)
+    val changeListPosition get() = _changListPosition.asStateFlow()
+    /**
+     * 刷新章节列表
+     * @param isToStartOrEnd true 表示跳转到开始 false表示跳转到结束
+     */
+    fun refreshChapterListFlow(isToStartOrEnd: Boolean){
+        Log.d("VMT refreshChapterListFlow", "开始跳转到 ${if(isToStartOrEnd) "开始" else "结束"}")
+
+        if(isToStartOrEnd){
+            listJump = 0
+            listCanJump =true
+        }
+        else{
+            listJump = _chapters.size.toLong()
+            Log.d("TCLS","章节列表跳转到 $listJump")
+            listCanJump = true
+        }
+        _changListPosition.value = !_changListPosition.value
+        Log.d("VMT refreshChapterListFlow","刷新完毕")
     }
 
     private lateinit var txtReader : TxtReader

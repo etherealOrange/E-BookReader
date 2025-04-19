@@ -64,33 +64,54 @@
     <!--    章节列表-->
     <RelativeLayout
         android:id="@+id/left_Dialog"
-        android:layout_width="300dp"
+        android:layout_width="wrap_content"
         android:layout_height="match_parent"
-        android:layout_gravity="start"
-        >
+        android:layout_gravity="start">
+
         <LinearLayout
+            android:id="@+id/chapter_panel"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:orientation="vertical"
-            android:id="@+id/chapter_panel"
-            android:paddingHorizontal="10dp"
-            android:paddingVertical="15dp"
             android:background="#FFFFFFFF"
-            >
+            android:orientation="vertical"
+            android:paddingHorizontal="10dp"
+            android:paddingVertical="15dp">
+
             <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/Chapter_Title"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:id="@+id/Chapter_Title"
-                android:text="title"
-                android:padding="10dp"
-                android:textSize="20sp"
                 android:maxLines="1"
-                />
-            <androidx.recyclerview.widget.RecyclerView
+                android:padding="10dp"
+                android:text="title"
+                android:textSize="20sp" />
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                >
+                <com.google.android.material.button.MaterialButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:id="@+id/to_Top_List_BTN"
+                    android:text="顶部"
+                    android:textSize="15sp"
+                    />
+                <com.google.android.material.button.MaterialButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:id="@+id/to_Bottom_List_BTN"
+                    android:text="底部"
+                    android:textSize="15sp"
+                    />
+            </LinearLayout>
+
+            <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/chapter_list"
-                />
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
         </LinearLayout>
     </RelativeLayout>
 

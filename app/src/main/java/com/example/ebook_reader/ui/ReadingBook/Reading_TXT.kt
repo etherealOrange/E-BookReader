@@ -56,7 +56,6 @@ class Reading_TXT : ExtendAppCompatActivity() {
         //章节跳转
         viewModel.changePosition.launchLifeScopeCollectLatest {
             chapterAdapter.refresh()
-            viewModel.canJump=false
         }
 
         bind.recyclerView.apply {
@@ -71,12 +70,26 @@ class Reading_TXT : ExtendAppCompatActivity() {
                 bind.ChapterTitle.text = viewModel.book.title
                 chapterListAdapter.submitData(it)  }
         }
+        //章节列表跳转
+        viewModel.changeListPosition.launchLifeScopeCollectLatest {
+            chapterListAdapter.refresh()
+        }
+
         bind.chapterList.apply {
             layoutManager = LinearLayoutManager(this@Reading_TXT, LinearLayoutManager.VERTICAL,false)
             this.adapter = chapterListAdapter
         }
 
 
+
+
+        //设置章节列表的 底部 底部 按钮
+        bind.toTopListBTN.setOnClickListener {
+            viewModel.refreshChapterListFlow(true)
+        }
+        bind.toBottomListBTN.setOnClickListener {
+            viewModel.refreshChapterListFlow(false)
+        }
 
         //设置左侧抽屉  默认打开的是左边的视图, open打开右边 close打开左边
         bind.chaptersReadingBtn.setOnClickListener {

@@ -8,19 +8,29 @@ import com.example.ebook_reader.Repository.ReadingBook.ChapterIndex
 import java.lang.Exception
 
 class TXTChapterListSource(
-    private val index: GetChapterIndexes
+    private val index: GetChapterIndexes,
+    private val canJump: Boolean,
+    private val jump: Long = 0L
 )
     : PagingSource<Int, ChapterIndex>(){
     override fun getRefreshKey(state: PagingState<Int, ChapterIndex>): Int? {
-        Log.d("TCLS getRefreshKey", state.anchorPosition.toString())
-        return ( (state.anchorPosition ?: 0) - state.config.initialLoadSize / 2).coerceAtLeast(0)
+        Log.d("TCLS getRefreshKey", "计划中 要 canJump $canJump jump $jump")
+        if (canJump) {
+            Log.d("TCLS getRefreshKey", "跳转到位置 $jump")
+            return jump.toInt()
+        }
+        return state.anchorPosition
     }
 
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, ChapterIndex> {
         return try {
-            val pageNumber = params.key ?: 0
-            val cacheNum = 10L
-            var chapterIndexes = index.getChapterIndexes((pageNumber*cacheNum).toLong(),cacheNum)
+            var pageNumber = params.key ?: 0
+            var cacheNum = 1
+            if(pageNumber < 0){
+                pageNumber = 0
+                cacheNum = cacheNum + pageNumber
+            }
+            var chapterIndexes = index.getChapterIndexes(pageNumber.toLong(),cacheNum.toLong())
                 .sortedBy { it.chapterOrder }
             if(chapterIndexes.isEmpty()){
                 chapterIndexes = listOf(ChapterIndex(
@@ -33,8 +43,8 @@ class TXTChapterListSource(
             }
             LoadResult.Page(
                 data = chapterIndexes,
-                prevKey = if(pageNumber <= 0 ) null else pageNumber -1,
-                nextKey = if (chapterIndexes.size < cacheNum) null else pageNumber + 1
+                prevKey = if(pageNumber <= 0 ) null else pageNumber - cacheNum,
+                nextKey = if (chapterIndexes.size < cacheNum) null else pageNumber + cacheNum
             )
         }catch (e: Exception){
             Log.d("TCLS load","发生错误 ${e.message}")

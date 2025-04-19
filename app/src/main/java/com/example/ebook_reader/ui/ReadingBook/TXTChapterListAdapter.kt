@@ -23,7 +23,6 @@ class TXTChapterListAdapter(
             ,parent
             ,false
         )
-        Log.d("TCLA onCreateViewHolder","创建章节列表")
         return ViewHolder(bind)
     }
 
