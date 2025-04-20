@@ -96,7 +96,6 @@ class TxtReader(
         var content =String()
         val pattern = """\n第([一二三四五六七八九十\d]+)章\s*(.*)\r?\n""".toRegex()
         var chapter = ChapterView(
-            chapterId = 0,
             bookId = book.bookId,
             chapterTitle = "简介",
             chapterOrder = -1, //添加前会把Order+1

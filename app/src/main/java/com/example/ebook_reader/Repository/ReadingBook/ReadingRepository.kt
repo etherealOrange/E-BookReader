@@ -1,9 +1,15 @@
 package com.example.ebook_reader.Repository.ReadingBook
 
 import android.util.Log
-import com.example.ebook_reader.DAO.BooksAndFoldersInfoDao
 import com.example.ebook_reader.DAO.ChapterInfoDao
+import com.example.ebook_reader.entities.BookMarkView
 import com.example.ebook_reader.entities.ChapterView
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -12,13 +18,61 @@ class ReadingRepository@Inject constructor (
     private val chapterDao: ChapterInfoDao
     ) {
 
+
+    /**
+     * 获取当前章节的书签信息
+     */
+    private var _currentBookMark: MutableStateFlow<BookMarkView?> = MutableStateFlow(null)
+    val currentBookMark: StateFlow<BookMarkView?> get() = _currentBookMark
+    //获取当前章节的书签信息
+    suspend fun setCurrentBookMark(bookId: Long,order: Long) {
+        _currentBookMark.value = chapterDao.currentBookMark(bookId,order)
+    }
+    /**
+     * 开启 切换 获取书签信息
+     */
+    suspend fun getBookMarkSrc(bookId: Long, order: Long): BookMarkSrc {
+        return chapterDao.getBookMarkSrc(bookId,order)
+    }
+
+    /**
+     * 获取书签是否存在
+     */
+    suspend fun isBookMarkExist(bookId: Long, chapterOrder: Long): Boolean {
+        val count = chapterDao.selectBookMarkIsExist(bookId, chapterOrder)
+        Log.d("RR isBookMarkExist","书签是否存在 $count")
+        return count > 0
+    }
+
     /**
      * 获取章节列表
      */
     suspend fun getChaptersFromBookId(bookId: Long): List<ChapterView> {
-        val list = chapterDao.selectAllChapterFromBookId(bookId = bookId).sortedBy { it.chapterOrder }
+        val list = chapterDao.selectAllChapterFromBookId(bookId = bookId)
         Log.d("RR getChaptersFromBookId","列表长度: ${list.size} \n")
         return list
     }
+    /**
+     * 插入书签信息
+     */
+    suspend fun insertBookMark(bookMark: BookMarkView) {
+        Log.d("RR insertBookMark","插入书签 bookId: ${bookMark.bookId} chapterOrder: ${bookMark.chapterOrder} ")
+        chapterDao.insertBookMark(bookMark)
+    }
+    /**
+     * 删除书签信息
+     */
+    suspend fun deleteBookMark(bookId: Long, chapterOrder: Long) {
+        Log.d("RR deleteBookMark","删除书签 bookId: $bookId chapterOrder: $chapterOrder")
+        chapterDao.deleteBookMark(bookId, chapterOrder)
+    }
+    /**
+     * 更新书签信息
+     */
+    suspend fun updateBookMark(bookId: Long, chapterOrder: Long, content: String) {
+        Log.d("RR updateBookMark","更新书签 bookId: $bookId chapterOrder: $chapterOrder ")
+        chapterDao.updateBookMark(bookId, chapterOrder, content)
+    }
+
 
 }

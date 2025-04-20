@@ -10,11 +10,16 @@ import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import com.example.ebook_reader.Enum.BookType
+import com.example.ebook_reader.InterfacePackage.ReadingBook.DeleteBookMark
+import com.example.ebook_reader.InterfacePackage.ReadingBook.GetBookMarks
 import com.example.ebook_reader.InterfacePackage.ReadingBook.GetChapterIndexes
 import com.example.ebook_reader.InterfacePackage.ReadingBook.RefreshChapterFlow
+import com.example.ebook_reader.Repository.ReadingBook.BookMarkUI
 import com.example.ebook_reader.Repository.ReadingBook.ChapterIndex
 import com.example.ebook_reader.Repository.ReadingBook.ChapterPage
 import com.example.ebook_reader.Repository.ReadingBook.ReadingRepository
+import com.example.ebook_reader.Repository.ReadingBook.transferBookMark
+import com.example.ebook_reader.entities.BookMarkView
 import com.example.ebook_reader.entities.BookView
 import com.example.ebook_reader.entities.ChapterView
 import com.example.ebook_reader.entities.ReadingSetting
@@ -27,6 +32,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.io.File
@@ -36,10 +42,13 @@ import javax.inject.Inject
 class ViewModelOnTXT @Inject constructor(
     @ApplicationContext context: Context,
     private val Repo: ReadingRepository,
-    private val savedStateHandle: SavedStateHandle,
+    savedStateHandle: SavedStateHandle,
 ) : ViewModel()
     , GetChapterIndexes
-    , RefreshChapterFlow{
+    , RefreshChapterFlow
+    , GetBookMarks
+    , DeleteBookMark
+{
 
     private val _config = MutableStateFlow<ReadingSetting>(ReadingSetting())
     val config get() = _config.asStateFlow()
@@ -60,6 +69,47 @@ class ViewModelOnTXT @Inject constructor(
         totalPages = 0L,
         folderId = null,
     )
+    val currentBookMark =Repo.currentBookMark
+    private var _currentChapterPos = MutableStateFlow<Long>(0L)
+    val currentChapterPos = _currentChapterPos.asStateFlow()
+    fun updatePos(pos: Long){
+        _currentChapterPos.value = pos
+        viewModelScope.launch(Dispatchers.IO) {
+            Repo.setCurrentBookMark(book.bookId, pos)
+        }
+    }
+    fun changeBookMark(content: String){
+        val pos = _currentChapterPos.value
+        viewModelScope.launch {
+            if(Repo.isBookMarkExist(book.bookId, pos)){
+                Repo.updateBookMark(book.bookId, pos, content)
+            }
+            else{
+                Repo.insertBookMark(BookMarkView(
+                    bookId = book.bookId,
+                    chapterOrder = pos,
+                    content = content
+                ))
+            }
+            jumpOfBookMark.notifyChange()
+        }
+    }
+
+    /**
+     * 删除书签
+     */
+    override fun delete(order: Long) {
+        viewModelScope.launch {
+            Repo.deleteBookMark(book.bookId, order)
+            jumpOfBookMark.notifyChange()
+        }
+    }
+    init {
+        viewModelScope.launch {
+            currentChapterPos.collectLatest {  }
+        }
+    }
+
 
     private val _isInitFinished = MutableStateFlow<Boolean>(false)
     val isInitFinished = _isInitFinished.asStateFlow()
@@ -78,8 +128,8 @@ class ViewModelOnTXT @Inject constructor(
                         prefetchDistance = 1,
                         enablePlaceholders = false
                     ),
-                    pagingSourceFactory = { TXTPagingSource(this@ViewModelOnTXT, txtReader,jump,canJump) }
-                ).also { jump =0L ; canJump = false }
+                    pagingSourceFactory = { TXTPagingSource(this@ViewModelOnTXT, txtReader,jumpOfChapter) }
+                ).also { updatePos(jumpOfChapter.toPosition);jumpOfChapter.resetJump() }
                     .flow.cachedIn(viewModelScope)
 
 
@@ -90,57 +140,99 @@ class ViewModelOnTXT @Inject constructor(
                         prefetchDistance = 10,
                         enablePlaceholders = false
                     ),
-                    pagingSourceFactory = { TXTChapterListSource(this@ViewModelOnTXT,listCanJump,listJump)}
-                ).also { listJump= 0L ; listCanJump = false }
+                    pagingSourceFactory = { TXTChapterListSource(this@ViewModelOnTXT,jumpOfList)}
+                ).also { jumpOfList.resetJump() }
                     .flow.cachedIn(viewModelScope)
+
+
+                bookMarkFlow = Pager(
+                    config = PagingConfig(
+                        pageSize = 20,
+                        maxSize = 60,
+                        prefetchDistance = 10,
+                        enablePlaceholders = false
+                    ),
+                    pagingSourceFactory = { TXTBookMarkSource(this@ViewModelOnTXT,jumpOfBookMark) }
+                ).also { jumpOfBookMark.resetJump() }
+                    .flow.cachedIn(viewModelScope)
+
                 _isInitFinished.value=true
             }
         }
     }
 
-    private val _changePosition = MutableStateFlow<Boolean>(false)
+
+    lateinit var bookMarkFlow: Flow<PagingData<BookMarkUI>>
+
+    override suspend fun getBookMarks(
+        order: Long
+    ): transferBookMark {
+        val pair = Repo.getBookMarkSrc(book.bookId, order
+            .coerceAtLeast(0)
+            .coerceAtMost(_chapters.size.toLong())
+        )
+
+        return transferBookMark(
+            bookMark = pair.bookMark,
+            preId = pair.preId,
+            nextId = pair.nextId,
+            order = order,
+            title = _chapters[order.toInt()].chapterTitle
+        )
+    }
+
+    val jumpOfBookMark = JumpSolve()
+
     /**
-     * 返回提供体现要改变跳转位置
+     * 跳转和刷新书签
+     * - 在主视图 下方的查看书签, 点击的时候需要跳转到指定 位置的书签
+     * - 在书签列表中, 点击定位时需要到指定位置的书签
+     * - 删除的时候
+     * - 所有更新BookMark的时候
      */
-    val changePosition get() = _changePosition.asStateFlow()
+    fun refreshBookMarkFlow(position: Long){
+        Log.d("VMT refreshBookMarkFlow", "开始 刷新书签 $position  ")
+        jumpOfBookMark.setJump(position)
+        jumpOfBookMark.notifyChange()
+        Log.d("VMT refreshBookMarkFlow","刷新完毕")
+    }
+    /**
+     * 跳转到指定章节
+     */
+    val jumpOfChapter = JumpSolve()
 
-
-     private var canJump: Boolean =false
-     private var jump =0L
     /**
      * 跳转到指定章节
      */
     override fun refreshChapterFlow(position: Long) {
         Log.d("VMT refreshChapterFlow", "开始 刷新章节 $position  ")
-        jump = position
-        canJump  = true
-        _changePosition.value = !_changePosition.value
+        jumpOfChapter.setJump(position)
+        jumpOfChapter.notifyChange()
         Log.d("VMT refreshChapterFlow","刷新完毕")
     }
 
-    private var listCanJump : Boolean =false
-    private var listJump =0L
-    private val _changListPosition = MutableStateFlow<Boolean>(false)
-    val changeListPosition get() = _changListPosition.asStateFlow()
+    /**
+     * 章节列表跳转
+     */
+    val jumpOfList = JumpSolve()
     /**
      * 刷新章节列表
      * @param isToStartOrEnd true 表示跳转到开始 false表示跳转到结束
      */
     fun refreshChapterListFlow(isToStartOrEnd: Boolean){
         Log.d("VMT refreshChapterListFlow", "开始跳转到 ${if(isToStartOrEnd) "开始" else "结束"}")
-
         if(isToStartOrEnd){
-            listJump = 0
-            listCanJump =true
+            jumpOfList.setJump(0L)
         }
         else{
-            listJump = _chapters.size.toLong()
-            Log.d("TCLS","章节列表跳转到 $listJump")
-            listCanJump = true
+            jumpOfList.setJump(_chapters.size.toLong()-1)
+            Log.d("VMT refreshChapterListFlow","章节列表跳转到 ${jumpOfList.toPosition}")
         }
-        _changListPosition.value = !_changListPosition.value
+        jumpOfList.notifyChange()
         Log.d("VMT refreshChapterListFlow","刷新完毕")
     }
+
+
 
     private lateinit var txtReader : TxtReader
     private lateinit var _chapters : List<ChapterView>
@@ -166,12 +258,11 @@ class ViewModelOnTXT @Inject constructor(
     override fun getChapterIndexes(start: Long, size: Long): List<ChapterIndex> {
         if(_chapters.isEmpty()) return emptyList()
         //限制其长度不超过章节索引的总长度
-        val end = (start + size).coerceAtMost(_chapters.size.toLong())
+        val end = (start + size).coerceAtMost(_chapters.size.toLong()).toInt()
         //限制其长度不小于0
-        val startIndex = start.coerceAtLeast(0).toInt()
-        val endIndex = end.toInt()
+        val startIndex = start.coerceAtLeast(0).toInt().coerceAtMost(end)
         Log.d("VMT getChapterIndexes","开始读取章节索引 开始start $start 大小size $size\n 章节总大小${_chapters.size}")
-        return _chapters.subList(startIndex,endIndex).mapIndexed {
+        return _chapters.subList(startIndex,end).mapIndexed {
             index,chapter->
             ChapterIndex(
                 title = chapter.chapterTitle,
@@ -182,6 +273,8 @@ class ViewModelOnTXT @Inject constructor(
             )
         }
     }
+
+
 
 
 

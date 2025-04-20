@@ -8,6 +8,7 @@ import androidx.room.Index
 import androidx.room.PrimaryKey
 
 @Entity(tableName = "ChaptersInfo",
+    primaryKeys = ["bookId","chapterOrder"],
     foreignKeys =[
         ForeignKey(
             entity = BookView::class,
@@ -26,10 +27,9 @@ import androidx.room.PrimaryKey
  * - 结束为下一章节开始前一行 获取内容需要 <=
  */
 data class ChapterView(
-    @PrimaryKey(autoGenerate = true) val chapterId: Long,
     val bookId: Long,
-    val chapterTitle: String,
     val chapterOrder: Long,
+    val chapterTitle: String,
     val startBytes: Long,
     val endBytes: Long,
     val partOrder: Long

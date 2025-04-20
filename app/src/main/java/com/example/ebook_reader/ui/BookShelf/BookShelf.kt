@@ -39,6 +39,7 @@ import com.example.ebook_reader.Enum.BookType
 import com.example.ebook_reader.Enum.BookTypesName
 import com.example.ebook_reader.InterfacePackage.BookShelf.BooksAdapterOpenActivity
 import com.example.ebook_reader.entities.BookView
+import com.example.ebook_reader.ui.DialogBuilderFactory
 import com.example.ebook_reader.ui.ReadingBook.Reading_EPUB
 import com.example.ebook_reader.ui.ReadingBook.Reading_PDF
 import com.example.ebook_reader.ui.ReadingBook.Reading_TXT
@@ -461,7 +462,7 @@ class BookShelf : ExtendFragment() , BooksAdapterOpenActivity{
 
             alertDialog?.dismiss()
             //弹窗
-            alertDialog = dialogBuilderFactory("新建文件夹",inputNewFolderBoxBinding.root,
+            alertDialog = DialogBuilderFactory.build(requireContext(),"新建文件夹",inputNewFolderBoxBinding.root,
                 {_,_->
                     Log.d("BS 新建文件夹","点击确认")
                     if(inputNewFolderBoxBinding.editTextInput.text?.isEmpty() == true){
@@ -491,7 +492,7 @@ class BookShelf : ExtendFragment() , BooksAdapterOpenActivity{
         bottomICD.BookShelfDeleteBTN.setOnClickListener {
             alertDialog?.dismiss()
             var yourChoice: Boolean? = null
-            alertDialog = dialogBuilderFactory("删除书本或文件夹",
+            alertDialog = DialogBuilderFactory.build(requireContext(),"删除书本或文件夹",
                 "确定删除选中的书本和文件夹吗？(此过程不可逆!)",
                 { _, _ ->
                     deleteSelectedItems()
@@ -565,7 +566,7 @@ class BookShelf : ExtendFragment() , BooksAdapterOpenActivity{
         val inputBoxBinding: InputTextboxBinding =
             InputTextboxBinding.inflate(LayoutInflater.from(requireContext()))
         alertDialog?.dismiss()
-        alertDialog = dialogBuilderFactory("文件夹新名称",inputBoxBinding.root,
+        alertDialog = DialogBuilderFactory.build(requireContext(),"文件夹新名称",inputBoxBinding.root,
             {_,_->
                 val newName = inputBoxBinding.editTextInput.text.toString()
                 if (newName.isNotEmpty()){
@@ -583,42 +584,6 @@ class BookShelf : ExtendFragment() , BooksAdapterOpenActivity{
         }
     }
 
-    /**
-     * MaterialAlertDialogBuilder 对话框创建工厂
-     */
-    private fun dialogBuilderFactory(
-        title: String,
-        view: View,
-        positiveButtonClickListener: (DialogInterface, Int) -> Unit,
-        negativeButtonClickListener: (DialogInterface, Int) -> Unit,
-        positiveButtonText: String = "确定",
-        negativeButtonText: String = "取消",
-    ): AlertDialog {
-        return MaterialAlertDialogBuilder(requireContext())
-            .setTitle(title)
-            .setView(view)
-            .setPositiveButton(positiveButtonText, positiveButtonClickListener)
-            .setNegativeButton(negativeButtonText, negativeButtonClickListener)
-            .create()
-    }
-    /**
-     * MaterialAlertDialogBuilder 对话框创建工厂
-     */
-    private fun dialogBuilderFactory(
-        title: String,
-        message: String,
-        positiveButtonClickListener: (DialogInterface, Int) -> Unit,
-        negativeButtonClickListener: (DialogInterface, Int) -> Unit,
-        positiveButtonText: String = "确定",
-        negativeButtonText: String = "取消",
-    ): AlertDialog {
-        return MaterialAlertDialogBuilder(requireContext())
-            .setTitle(title)
-            .setMessage(message)
-            .setPositiveButton(positiveButtonText, positiveButtonClickListener)
-            .setNegativeButton(negativeButtonText, negativeButtonClickListener)
-            .create()
-    }
 
     /**
      * 在文件夹内只删除书本, 在主页删除书本和文件夹

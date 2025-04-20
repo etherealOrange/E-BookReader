@@ -18,7 +18,7 @@ import com.example.ebook_reader.entities.ReadingSetting
     , ChapterView::class
     , CreateRecord::class
     , ReadingRecord::class
-                     ], version = 3)
+                     ], version = 4)
 abstract class AppDatabase: RoomDatabase() {
     //封装的 一体式 Dao接口
     abstract fun booksAndFoldersInfoDao(): BooksAndFoldersInfoDao

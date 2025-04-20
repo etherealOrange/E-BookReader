@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.Log
 import android.util.TypedValue
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.paging.PagingDataAdapter
@@ -12,10 +13,14 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.ebook_reader.Repository.ReadingBook.ChapterPage
 import com.example.ebook_reader.databinding.FragmentTxtPageBinding
 import com.example.ebook_reader.entities.ReadingSetting
+import androidx.core.view.isVisible
+import com.example.ebook_reader.Repository.ReadingBook.MakeBookMark
 
 class TXTChapterAdapter(
     private val context: Context
-    , private var config:ReadingSetting)
+    ,private var config:ReadingSetting
+    ,private val bookMark: MakeBookMark
+)
     : PagingDataAdapter<ChapterPage, TXTChapterAdapter.ViewHolder>(DIFF_CALLBACK){
     override fun onCreateViewHolder(
         parent: ViewGroup,
@@ -26,6 +31,7 @@ class TXTChapterAdapter(
             parent,
             false
         )
+
         return ViewHolder(bind)
     }
 
@@ -38,6 +44,7 @@ class TXTChapterAdapter(
         bind.scrollOfTextView.scrollTo(0,0)
 
         getItem(position)?.let {
+            holder.setPos(it.order)
             bind.TextView.textSize = config.textSize.toFloat()
             bind.TextView.lineHeight = spToPx(config.textSize + config.lineSpacing).toInt()
             bind.TextView.letterSpacing = config.letterSpacing.toFloat()/100
@@ -77,6 +84,17 @@ class TXTChapterAdapter(
         }
     }
     inner class ViewHolder(val binding: FragmentTxtPageBinding):
-        RecyclerView.ViewHolder(binding.root)
+        RecyclerView.ViewHolder(binding.root){
+            private var pos =0L
+            init {
+                binding.addBookMarkBTN.setOnClickListener {
+                    if(it.isVisible){
+                        Log.d("TCA ViewHolder","添加书签 $pos")
+                        bookMark.makeBookMark(pos)
+                    }
+                }
+            }
+            fun setPos(pos: Long){this.pos=pos}
+        }
 
 }

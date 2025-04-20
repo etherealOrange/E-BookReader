@@ -35,8 +35,10 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:layout_marginHorizontal="10dp"
+                android:layout_marginHorizontal="8dp"
                 android:id="@+id/setting_reading_btn"
+                android:gravity="center"
+                android:layout_gravity="center"
                 android:text="设置"
                 android:textSize="20sp"
                 />
@@ -44,21 +46,25 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:layout_marginHorizontal="10dp"
+                android:layout_marginHorizontal="8dp"
+                android:gravity="center"
                 android:id="@+id/chapters_reading_btn"
                 android:text="章节"
+                android:layout_gravity="center"
                 android:textSize="20sp"
                 />
             <com.google.android.material.button.MaterialButton
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:layout_marginHorizontal="10dp"
-                android:id="@+id/bookmark_reading_btn"
-                android:text="书签"
-                android:textSize="20sp"
+                android:gravity="center"
+                android:layout_marginHorizontal="8dp"
+                android:id="@+id/look_bookmark_reading_btn"
+                android:layout_gravity="center"
+                android:padding="5dp"
+                android:text="查看书签"
+                android:textSize="13sp"
                 />
-
         </LinearLayout>
     </LinearLayout>
     <!--    章节列表-->
@@ -111,17 +117,57 @@
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/chapter_list"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent" />
+                android:layout_height="match_parent"
+                android:scrollbars="vertical"
+                android:scrollbarStyle="insideOverlay"
+                />
         </LinearLayout>
     </RelativeLayout>
-
-
-
-
-
-
-
-
-
+    <RelativeLayout
+        android:id="@+id/right_Dialog"
+        android:layout_width="280dp"
+        android:layout_height="match_parent"
+        android:layout_gravity="end"
+        >
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#FFFFFFFF"
+            android:orientation="vertical"
+            >
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+                <com.google.android.material.textview.MaterialTextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="书签"
+                    android:textSize="20sp"
+                    android:gravity="center"
+                    />
+                <com.google.android.material.button.MaterialButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0"
+                    android:id="@+id/jump_to_Bookmark"
+                    android:text="跳转本章"
+                    android:textSize="20sp"
+                    android:paddingHorizontal="0dp"
+                    />
+            </LinearLayout>
+            <androidx.recyclerview.widget.RecyclerView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:paddingHorizontal="10dp"
+                android:paddingVertical="15dp"
+                android:id="@+id/bookmark_list"
+                android:clipToPadding="true"
+                android:scrollbars="vertical"
+                android:scrollbarStyle="insideOverlay"
+            />
+        </LinearLayout>
+    </RelativeLayout>
 
 </androidx.drawerlayout.widget.DrawerLayout>

@@ -7,19 +7,21 @@ import androidx.room.Index
 import androidx.room.PrimaryKey
 
 @Entity(tableName = "BookMarksInfo",
+    primaryKeys = ["bookId","chapterOrder"],
     foreignKeys =[
         ForeignKey(
             entity = ChapterView::class,
-            parentColumns = ["chapterId"],
-            childColumns = ["chapterId"],
+            parentColumns = ["bookId","chapterOrder"],
+            childColumns = ["bookId","chapterOrder"],
             onDelete = CASCADE
         )
     ],
     indices = [
-        Index(value = ["chapterId"], unique = true)
+        Index(value = ["bookId","chapterOrder"], unique = true)
     ]
     )
 data class BookMarkView(
-    @PrimaryKey(autoGenerate = true) val chapterId: Long,
-    val startBytes: Long
+    val bookId: Long,
+    val chapterOrder : Long,
+    val content : String
 )

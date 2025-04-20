@@ -5,19 +5,19 @@ import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import com.example.ebook_reader.InterfacePackage.ReadingBook.GetChapterIndexes
 import com.example.ebook_reader.Repository.ReadingBook.ChapterIndex
+import kotlinx.coroutines.runBlocking
 import java.lang.Exception
 
 class TXTChapterListSource(
     private val index: GetChapterIndexes,
-    private val canJump: Boolean,
-    private val jump: Long = 0L
+    private val jump: JumpSolve
 )
     : PagingSource<Int, ChapterIndex>(){
     override fun getRefreshKey(state: PagingState<Int, ChapterIndex>): Int? {
-        Log.d("TCLS getRefreshKey", "计划中 要 canJump $canJump jump $jump")
-        if (canJump) {
+        Log.d("TCLS getRefreshKey", "计划中 要 canJump ${jump.canJump} jump ${jump.toPosition}")
+        if (jump.canJump) {
             Log.d("TCLS getRefreshKey", "跳转到位置 $jump")
-            return jump.toInt()
+            return jump.toPosition.toInt()
         }
         return state.anchorPosition
     }
@@ -32,15 +32,7 @@ class TXTChapterListSource(
             }
             var chapterIndexes = index.getChapterIndexes(pageNumber.toLong(),cacheNum.toLong())
                 .sortedBy { it.chapterOrder }
-            if(chapterIndexes.isEmpty()){
-                chapterIndexes = listOf(ChapterIndex(
-                    title = "书本不存在",
-                    chapterOrder = 0,
-                    startByte = 0,
-                    endByte = 0,
-                    partOrder = 0,
-                ))
-            }
+
             LoadResult.Page(
                 data = chapterIndexes,
                 prevKey = if(pageNumber <= 0 ) null else pageNumber - cacheNum,
