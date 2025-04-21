@@ -54,10 +54,10 @@ class BookShelf : ExtendFragment() , BooksAdapterOpenActivity{
     //TopBar和BottomBar include布局 和底部抽屉的布局
     private val topICD get() = binding.BookShelfTopBarICD
     private val bottomICD get() = binding.BookshelfBottomBarICD
-    private var _bottomSheetDialog: BookShelf_BotSheetDialog? = BookShelf_BotSheetDialog()
-    private val bottomSheetDialog get() = _bottomSheetDialog!!
+    private val bottomSheetDialog  = BookShelf_BotSheetDialog()
 
-    private var bookAdapter: BookAdapter? = null
+
+    private val bookAdapter by lazy { BookAdapter(openActivity = this,viewModel,viewModel) }
     private var alertDialog: AlertDialog?=null
 
 
@@ -172,10 +172,8 @@ class BookShelf : ExtendFragment() , BooksAdapterOpenActivity{
     }
 
     private fun initAdapter(){
-        //设置书本的ListAdapter
-        if(bookAdapter==null){
-            bookAdapter = BookAdapter(openActivity = this,viewModel,viewModel)
-        }
+
+
         //设置layoutManager和adapter
         binding.BookRecyclerView.layoutManager = GridLayoutManager(context, 3)
         binding.BookRecyclerView.adapter = bookAdapter
@@ -606,11 +604,11 @@ class BookShelf : ExtendFragment() , BooksAdapterOpenActivity{
     override fun onDestroy() {
         super.onDestroy()
 
-        binding.BookRecyclerView.adapter=null
+        if(_binding!=null){
+            binding.BookRecyclerView.adapter=null
+        }
         _binding = null
-        bookAdapter = null
-        _bottomSheetDialog?.dismiss()
-        _bottomSheetDialog = null
+
         alertDialog?.dismiss()
         alertDialog=null
         Log.d("BS onDestroy","success")

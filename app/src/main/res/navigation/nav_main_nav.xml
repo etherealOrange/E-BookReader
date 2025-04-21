@@ -10,11 +10,7 @@
         android:name="com.example.ebook_reader.ui.BookShelf.BookShelf"
         android:label="@string/MyBookshelf"
         tools:layout="@layout/fragment_book_shelf" />
-    <fragment
-        android:id="@+id/fragment_personal_company"
-        android:name="com.example.ebook_reader.ui.PersonalCompany.PersonalCompany"
-        android:label="@string/PersonalCompany"
-        tools:layout="@layout/fragment_personal_company"/>
+
     <fragment
         android:id="@+id/fragment_time_travel"
         android:name="com.example.ebook_reader.ui.TimeTravel.TimeTravel"

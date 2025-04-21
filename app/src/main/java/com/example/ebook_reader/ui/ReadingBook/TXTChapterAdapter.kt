@@ -12,7 +12,7 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.example.ebook_reader.Repository.ReadingBook.ChapterPage
 import com.example.ebook_reader.databinding.FragmentTxtPageBinding
-import com.example.ebook_reader.entities.ReadingSetting
+import com.example.ebook_reader.ReadingSetting
 import androidx.core.view.isVisible
 import com.example.ebook_reader.Repository.ReadingBook.MakeBookMark
 

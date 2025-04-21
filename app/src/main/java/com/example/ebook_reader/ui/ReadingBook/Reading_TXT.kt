@@ -39,7 +39,7 @@ class Reading_TXT : ExtendAppCompatActivity()
         super.onCreate(savedInstanceState)
         bind = ActivityReadingTxtBinding.inflate(layoutInflater)
         setContentView(bind.root)
-        viewModel.updateConfig(configManager.getConfig())
+        viewModel.updateConfig(configManager.getReadingConfig())
         bottomDialog = TXTBottomDialog()
         Log.d("RB","onCreate 成功创建")
 
@@ -193,7 +193,7 @@ class Reading_TXT : ExtendAppCompatActivity()
 
     override fun onStop() {
         super.onStop()
-        configManager.saveConfig(viewModel.config.value)
+        configManager.saveReadingConfig(viewModel.config.value)
         Log.d("RB","onStop 停止")
     }
 

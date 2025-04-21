@@ -8,7 +8,7 @@ import com.example.ebook_reader.entities.ChapterView
 import com.example.ebook_reader.entities.CreateRecord
 import com.example.ebook_reader.entities.FolderView
 import com.example.ebook_reader.entities.ReadingRecord
-import com.example.ebook_reader.entities.ReadingSetting
+import com.example.ebook_reader.ReadingSetting
 
 
 @Database(entities = [

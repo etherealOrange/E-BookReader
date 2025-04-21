@@ -22,7 +22,7 @@ import com.example.ebook_reader.Repository.ReadingBook.transferBookMark
 import com.example.ebook_reader.entities.BookMarkView
 import com.example.ebook_reader.entities.BookView
 import com.example.ebook_reader.entities.ChapterView
-import com.example.ebook_reader.entities.ReadingSetting
+import com.example.ebook_reader.ReadingSetting
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers

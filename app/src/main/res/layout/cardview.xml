@@ -4,7 +4,8 @@
     android:layout_width="120dp"
     android:layout_height="180dp"
     android:layout_margin="10dp"
-    style="@style/Theme.EBookReader">
+    android:background="?attr/colorSurface"
+    >
     <com.google.android.material.checkbox.MaterialCheckBox
         android:id="@+id/CD_Selected_CheckBox"
         android:visibility="visible"
@@ -20,21 +21,23 @@
         android:visibility="invisible"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:padding="5dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
         >
         <ImageView
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/CD_BookTitle_TV"
-        android:id="@+id/CD_BookCover_IV"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:src="@drawable/ic_launcher_foreground"
-        android:scaleType="centerCrop"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toTopOf="@id/CD_BookTitle_TV"
+            android:id="@+id/CD_BookCover_IV"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:src="@drawable/ic_launcher_foreground"
+            android:scaleType="centerCrop"
+            android:background="?attr/colorSecondary"
         />
-        <TextView
+        <com.google.android.material.textview.MaterialTextView
             app:layout_constraintTop_toBottomOf="@id/CD_BookCover_IV"
             app:layout_constraintBottom_toTopOf="@+id/CD_ChapterProgress_TV"
             android:id="@+id/CD_BookTitle_TV"
@@ -43,19 +46,19 @@
             android:maxLines="1"
             android:ellipsize="end"
             android:text="Book Title"
+            android:textColor="?attr/colorOnSurface"
             android:textSize="12sp"
-            android:textColor="@color/black"
             android:gravity="center"
             />
-        <TextView
+        <com.google.android.material.textview.MaterialTextView
             app:layout_constraintTop_toBottomOf="@id/CD_BookTitle_TV"
             app:layout_constraintBottom_toTopOf="@+id/CD_ReadProgress_PB"
             android:id="@+id/CD_ChapterProgress_TV"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="读到第?章/总共?章"
+            android:textColor="?attr/colorOnSurface"
             android:textSize="10sp"
-            android:textColor="@color/black"
             android:gravity="start"
             />
 
@@ -80,6 +83,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        android:padding="5dp"
         app:layout_constraintBottom_toBottomOf="parent"
         >
         <ImageView
@@ -90,8 +94,9 @@
             android:layout_height="0dp"
             android:src="@drawable/ic_launcher_foreground"
             android:scaleType="centerCrop"
+            android:background="?attr/colorSecondary"
             />
-        <TextView
+        <com.google.android.material.textview.MaterialTextView
             android:visibility="visible"
             app:layout_constraintTop_toTopOf="@+id/CD_FolderCover_IV"
             app:layout_constraintStart_toStartOf="@+id/CD_FolderCover_IV"
@@ -102,14 +107,14 @@
             android:layout_height="wrap_content"
             android:maxLines="3"
             android:ellipsize="end"
+            android:textStyle="bold"
             android:layout_margin="10dp"
             android:text="文件夹名称"
             android:textSize="12sp"
-            android:textColor="@color/black"
-            android:background="#A0FFFFFF"
+            android:textColor="?attr/colorSecondaryFixed"
             android:gravity="center"
             />
-        <TextView
+        <com.google.android.material.textview.MaterialTextView
             app:layout_constraintTop_toBottomOf="@id/CD_FolderCover_IV"
             app:layout_constraintBottom_toBottomOf="parent"
             android:id="@+id/CD_FolderContainBooks_TV"
@@ -119,7 +124,7 @@
             android:ellipsize="end"
             android:text="共几本书"
             android:textSize="12sp"
-            android:textColor="@color/black"
+            android:textColor="?attr/colorOnSurface"
             android:gravity="center"
             />
 

@@ -78,7 +78,7 @@
             android:id="@+id/chapter_panel"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="#FFFFFFFF"
+            android:background="?attr/colorSurface"
             android:orientation="vertical"
             android:paddingHorizontal="10dp"
             android:paddingVertical="15dp">
@@ -90,6 +90,7 @@
                 android:maxLines="1"
                 android:padding="10dp"
                 android:text="title"
+                android:textColor="?attr/colorOnSurface"
                 android:textSize="20sp" />
             <LinearLayout
                 android:layout_width="match_parent"
@@ -132,7 +133,7 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="#FFFFFFFF"
+            android:background="?attr/colorSurface"
             android:orientation="vertical"
             >
             <LinearLayout
@@ -143,6 +144,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
+                    android:textColor="?attr/colorOnSurface"
                     android:text="书签"
                     android:textSize="20sp"
                     android:gravity="center"

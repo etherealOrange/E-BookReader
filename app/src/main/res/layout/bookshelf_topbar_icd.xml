@@ -10,11 +10,11 @@
         android:id="@+id/BookShelf_TopBar_Total"
         app:layout_constraintTop_toTopOf="parent"
         app:cardElevation="2dp"
-        app:cardBackgroundColor="@android:color/white">
+        app:cardBackgroundColor="?attr/colorSurface">
         <!-- Default_TopBar -->
         <LinearLayout
             android:id="@+id/Default_TopBar"
-            android:visibility="gone"
+            android:visibility="visible"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="horizontal"
@@ -99,7 +99,7 @@
         <!-- InFolder_TopBar -->
         <LinearLayout
             android:id="@+id/InFolder_TopBar"
-            android:visibility="visible"
+            android:visibility="gone"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="horizontal"
@@ -150,7 +150,7 @@
                 android:ellipsize="end"
                 android:maxLines="2"
                 android:textSize="17sp"
-                android:textColor="@color/black"
+                android:textColor="?attr/colorOnSurface"
                 android:gravity="center"
                 />
             <View

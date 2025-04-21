@@ -9,12 +9,8 @@ import android.view.ViewGroup
 import com.example.ebook_reader.R
 
 class DataStatistic : Fragment() {
-
-    companion object {
-        fun newInstance() = DataStatistic()
-    }
-
     private val viewModel: DataStatisticViewModel by viewModels()
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
