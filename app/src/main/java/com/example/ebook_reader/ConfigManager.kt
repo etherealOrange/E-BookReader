@@ -1,9 +1,14 @@
 package com.example.ebook_reader
 
+import android.content.ContentValues
 import android.content.Context
+import android.net.Uri
+import android.provider.MediaStore
+import android.widget.Toast
 import com.example.ebook_reader.ReadingSetting
 import com.google.gson.Gson
 import androidx.core.content.edit
+import java.io.IOException
 
 class ConfigManager private constructor(context: Context){
     private val prefs = context.getSharedPreferences("ReadingConfig", Context.MODE_PRIVATE)
@@ -25,6 +30,42 @@ class ConfigManager private constructor(context: Context){
     fun getOtherConfig(): OtherSetting{
         val json = others.getString("OtherConfig", null) ?: return OtherSetting()
         return gson.fromJson(json, OtherSetting::class.java)
+    }
+    //导出配置到Download
+    fun exportConfig(context: Context,configAll: ConfigAll){
+        val fileName = "E-Book-config.json"
+        val contentValues = ContentValues().apply {
+            put(MediaStore.Downloads.DISPLAY_NAME, fileName)
+            put(MediaStore.Downloads.MIME_TYPE, "application/json")
+        }
+        try {
+            val uri = context.contentResolver.insert(
+                MediaStore.Downloads.EXTERNAL_CONTENT_URI,
+                contentValues
+            )?:throw IOException("无法创建文件")
+            context.contentResolver.openOutputStream(uri)?.use {
+                val configAll = ConfigAll(
+                    readingConfig = configAll.readingConfig,
+                    otherConfig = configAll.otherConfig
+                )
+                val json = Gson().toJson(configAll)
+                it.write(json.toByteArray())
+            }
+            Toast.makeText(context,"导出成功 $fileName", Toast.LENGTH_LONG).show()
+        }catch (e: Exception){
+            Toast.makeText(context,"导出失败 ${e.message}", Toast.LENGTH_LONG).show()
+        }
+
+    }
+    //导入配置
+    fun importConfig(context: Context, uri: Uri): Result<ConfigAll>{
+        val jsonString = context.contentResolver.openInputStream(uri)?.bufferedReader().use { it?.readText() }
+        if (jsonString == null) {
+            return Result.failure(IOException("无法读取文件"))
+        }
+        val s = Gson().fromJson(jsonString, ConfigAll::class.java)
+            ?:return Result.failure(IOException("无法解析文件"))
+        return Result.success(s)
     }
 
     companion object{
@@ -55,4 +96,9 @@ data class OtherSetting(
     var name:String = "你好",
     var dayTheme: Boolean = true,
     var sleepTime: Int = 20
+)
+
+data class ConfigAll(
+    var readingConfig: ReadingSetting = ReadingSetting(),
+    var otherConfig: OtherSetting = OtherSetting()
 )

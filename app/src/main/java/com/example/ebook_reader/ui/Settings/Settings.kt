@@ -1,30 +1,35 @@
 package com.example.ebook_reader.ui.Settings
 
 import android.annotation.SuppressLint
+import android.content.ContentValues
 import androidx.fragment.app.viewModels
 import android.os.Bundle
+import android.provider.MediaStore
 import android.text.Editable
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.widget.doOnTextChanged
+import com.example.ebook_reader.ConfigAll
 import com.example.ebook_reader.ConfigManager
+import com.example.ebook_reader.ExtendFragment
 import com.example.ebook_reader.OtherSetting
 import com.example.ebook_reader.R
 import com.example.ebook_reader.ReadingSetting
 import com.example.ebook_reader.databinding.FragmentSettingsBinding
+import com.google.gson.Gson
 import dagger.hilt.android.AndroidEntryPoint
+import okio.IOException
 
 @AndroidEntryPoint
-class Settings : Fragment() {
+class Settings : ExtendFragment() {
     private val viewModel: SettingsViewModel by viewModels()
     private lateinit var bind : FragmentSettingsBinding
     private lateinit var configManager : ConfigManager
-    private lateinit var otherConfig : OtherSetting
-    private lateinit var readingConfig : ReadingSetting
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -36,16 +41,36 @@ class Settings : Fragment() {
     ): View {
         bind = FragmentSettingsBinding.inflate(inflater,container,false)
         configManager = ConfigManager.getInstance(inflater.context)
-        otherConfig = configManager.getOtherConfig()
-        readingConfig = configManager.getReadingConfig()
+        viewModel.updateOtherConfig(configManager.getOtherConfig())
+        viewModel.updateReadingConfig(configManager.getReadingConfig())
         return bind.root
     }
 
     @SuppressLint("SetTextI18n")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        //动态更新UI
+        viewModel.readingConfig.launchLifeScopeCollectLatest {
+            val textSize = it.textSize.toString()
+            val letterSpacing = it.letterSpacing.toString()
+            val lineSpacing = it.lineSpacing.toString()
+            if(bind.textSizeEdit.text.toString() != textSize){
+                bind.textSizeEdit.setText(textSize)
+            }
+            if (bind.textLetterSpacingEdit.text.toString() != letterSpacing){
+                bind.textLetterSpacingEdit.setText(letterSpacing)
+            }
+            if (bind.textLineSpacingEdit.text.toString() != lineSpacing){
+                bind.textLineSpacingEdit.setText(lineSpacing)
+            }
+        }
+        viewModel.otherConfig.launchLifeScopeCollectLatest {
+            val sleepTime = it.sleepTime.toString()
+            if (bind.timeToNotifyEdit.text.toString() != sleepTime){
+                bind.timeToNotifyEdit.setText(sleepTime)
+            }
+        }
         //设置字体大小
-        bind.textSizeEdit.setText(readingConfig.textSize.toString())
         bind.textSizeEdit.doOnTextChanged {
             text,_,_,_ ->
             val size = text.toString().toIntOrNull()
@@ -54,13 +79,12 @@ class Settings : Fragment() {
                 return@doOnTextChanged
             }
             if (size in 20..35){
-                readingConfig.textSize = size
+                viewModel.updateReadingConfig(viewModel.readingConfig.value.copy(textSize = size))
             }else{
                 bind.textSizeEdit.error = "请输入范围在20-35之间的数字"
             }
         }
         //设置行高
-        bind.textLineSpacingEdit.setText(readingConfig.lineSpacing.toString())
         bind.textLineSpacingEdit.doOnTextChanged {
             text,_,_,_->
             val lineSpacing = text.toString().toIntOrNull()
@@ -69,14 +93,13 @@ class Settings : Fragment() {
                 return@doOnTextChanged
             }
             if (lineSpacing in 0..30){
-                readingConfig.lineSpacing = lineSpacing
+                viewModel.updateReadingConfig(viewModel.readingConfig.value.copy(lineSpacing = lineSpacing))
             }else{
                 bind.textLineSpacingEdit.error = "请输入范围在0-30之间的数字"
             }
         }
 
         //设置字间距
-        bind.textLetterSpacingEdit.setText(readingConfig.letterSpacing.toString())
         bind.textLetterSpacingEdit.doOnTextChanged { text, _, _, _ ->
             val letterSpacing = text.toString().toIntOrNull()
             if (letterSpacing == null) {
@@ -84,14 +107,13 @@ class Settings : Fragment() {
                 return@doOnTextChanged
             }
             if (letterSpacing in 0..30) {
-                readingConfig.letterSpacing = letterSpacing
+                viewModel.updateReadingConfig(viewModel.readingConfig.value.copy(letterSpacing = letterSpacing))
             } else {
                 bind.textLetterSpacingEdit.error = "请输入范围在0-30之间的数字"
             }
         }
 
         //设置提醒时间
-        bind.timeToNotifyEdit.setText(otherConfig.sleepTime.toString())
         bind.timeToNotifyEdit.doOnTextChanged {
             text,_,_,_->
             val sleepTime = text.toString().toIntOrNull()
@@ -100,7 +122,7 @@ class Settings : Fragment() {
                 return@doOnTextChanged
             }
             if (sleepTime in 0..480){
-                otherConfig.sleepTime = sleepTime
+                viewModel.updateOtherConfig(viewModel.otherConfig.value.copy(sleepTime = sleepTime))
             }else{
                 bind.timeToNotifyEdit.error = "请输入范围在0-480之间的数字"
             }
@@ -121,23 +143,49 @@ class Settings : Fragment() {
             requireActivity().recreate()
         }
 
+        //导出配置
+        bind.saveConfig.setOnClickListener {
+            configManager.exportConfig(requireContext(),
+                ConfigAll(
+                    readingConfig = viewModel.readingConfig.value,
+                    otherConfig = viewModel.otherConfig.value
+                )
+            )
+        }
+        //导入配置
+        bind.loadConfig.setOnClickListener {
+            jsonPickerLauncher.launch(arrayOf("application/json"))
+        }
 
-
-
+    }
+    private val jsonPickerLauncher = registerForActivityResult(ActivityResultContracts.OpenDocument()) {
+        uri->
+        if(uri!=null){
+            configManager.importConfig(requireContext(),uri)
+                .onSuccess {
+                    viewModel.updateOtherConfig(it.otherConfig)
+                    viewModel.updateReadingConfig(it.readingConfig)
+                    Toast.makeText(requireContext(),"导入成功 ", Toast.LENGTH_LONG).show()
+                }
+                .onFailure {
+                    Toast.makeText(requireContext(),"导入失败 ${it.message}", Toast.LENGTH_LONG).show()
+                }
+        }
     }
 
 
 
     override fun onStart() {
         super.onStart()
-        otherConfig = configManager.getOtherConfig()
-        readingConfig = configManager.getReadingConfig()
+        viewModel.updateOtherConfig(configManager.getOtherConfig())
+        viewModel.updateReadingConfig(configManager.getReadingConfig())
+
     }
 
     override fun onPause() {
         super.onPause()
-        configManager.saveOtherConfig(otherConfig)
-        configManager.saveReadingConfig(readingConfig)
+        configManager.saveOtherConfig(viewModel.otherConfig.value)
+        configManager.saveReadingConfig(viewModel.readingConfig.value)
     }
 
 
