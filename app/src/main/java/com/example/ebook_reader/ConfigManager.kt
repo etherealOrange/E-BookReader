@@ -4,6 +4,7 @@ import android.content.ContentValues
 import android.content.Context
 import android.net.Uri
 import android.provider.MediaStore
+import android.util.Log
 import android.widget.Toast
 import com.example.ebook_reader.ReadingSetting
 import com.google.gson.Gson
@@ -28,6 +29,7 @@ class ConfigManager private constructor(context: Context){
         others.edit { putString("OtherConfig",json) }
     }
     fun getOtherConfig(): OtherSetting{
+        Log.d("ConfigManager", "getOtherConfig: 得到新的配置}")
         val json = others.getString("OtherConfig", null) ?: return OtherSetting()
         return gson.fromJson(json, OtherSetting::class.java)
     }

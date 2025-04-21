@@ -2,10 +2,12 @@ package com.example.ebook_reader.ui.Settings
 
 import android.annotation.SuppressLint
 import android.content.ContentValues
+import android.content.res.Configuration
 import androidx.fragment.app.viewModels
 import android.os.Bundle
 import android.provider.MediaStore
 import android.text.Editable
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -14,6 +16,7 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.widget.doOnTextChanged
+import androidx.sqlite.db.SupportSQLiteOpenHelper
 import com.example.ebook_reader.ConfigAll
 import com.example.ebook_reader.ConfigManager
 import com.example.ebook_reader.ExtendFragment
@@ -23,6 +26,7 @@ import com.example.ebook_reader.ReadingSetting
 import com.example.ebook_reader.databinding.FragmentSettingsBinding
 import com.google.gson.Gson
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.delay
 import okio.IOException
 
 @AndroidEntryPoint
@@ -66,8 +70,23 @@ class Settings : ExtendFragment() {
         }
         viewModel.otherConfig.launchLifeScopeCollectLatest {
             val sleepTime = it.sleepTime.toString()
+            val nightMode = !it.dayTheme
+            val isNightMode = Configuration.UI_MODE_NIGHT_YES == (requireContext().resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK)
+
+            Log.d("Settings", "现在的nightTheme: $nightMode")
+            Log.d("Settings", "onViewCreated: $isNightMode")
+            Log.d("Settings", "onViewCreated: ${Configuration.UI_MODE_NIGHT_YES} ${requireContext().resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK}")
+
             if (bind.timeToNotifyEdit.text.toString() != sleepTime){
                 bind.timeToNotifyEdit.setText(sleepTime)
+            }
+            if (nightMode != isNightMode) {
+                if (nightMode) {
+                    AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
+                } else {
+                    AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
+                }
+                requireActivity().recreate()
             }
         }
         //设置字体大小
@@ -130,17 +149,13 @@ class Settings : ExtendFragment() {
 
         //切换 白天主题
         bind.toDayThemeBtn.setOnClickListener {
-            AppCompatDelegate.setDefaultNightMode(
-                AppCompatDelegate.MODE_NIGHT_NO
-            )
-            requireActivity().recreate()
+            Log.d("Settings","点击了白天主题 ${viewModel.otherConfig.value.dayTheme}")
+            viewModel.updateOtherConfig(viewModel.otherConfig.value.copy(dayTheme = true))
         }
         //切换 夜晚主题
         bind.toNightThemeBtn.setOnClickListener {
-            AppCompatDelegate.setDefaultNightMode(
-                AppCompatDelegate.MODE_NIGHT_YES
-            )
-            requireActivity().recreate()
+            viewModel.updateOtherConfig(viewModel.otherConfig.value.copy(dayTheme = false))
+            Log.d("Settings","点击了夜晚主题 ${viewModel.otherConfig.value.dayTheme}")
         }
 
         //导出配置
@@ -175,18 +190,9 @@ class Settings : ExtendFragment() {
 
 
 
-    override fun onStart() {
-        super.onStart()
-        viewModel.updateOtherConfig(configManager.getOtherConfig())
-        viewModel.updateReadingConfig(configManager.getReadingConfig())
-
-    }
-
-    override fun onPause() {
-        super.onPause()
+    override fun onDestroy() {
+        super.onDestroy()
         configManager.saveOtherConfig(viewModel.otherConfig.value)
         configManager.saveReadingConfig(viewModel.readingConfig.value)
     }
-
-
 }
