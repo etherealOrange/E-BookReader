@@ -23,6 +23,9 @@ import com.example.ebook_reader.entities.BookMarkView
 import com.example.ebook_reader.entities.BookView
 import com.example.ebook_reader.entities.ChapterView
 import com.example.ebook_reader.ReadingSetting
+import com.example.ebook_reader.entities.BookRecord
+import com.example.ebook_reader.entities.PageDeduplication
+import com.example.ebook_reader.ui.TimeRecorder.BookRecorder
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
@@ -40,10 +43,10 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ViewModelOnTXT @Inject constructor(
-    @ApplicationContext context: Context,
+    @ApplicationContext val context: Context,
     private val Repo: ReadingRepository,
     savedStateHandle: SavedStateHandle,
-) : ViewModel()
+) : BaseReadingViewModel(savedStateHandle)
     , GetChapterIndexes
     , RefreshChapterFlow
     , GetBookMarks
@@ -53,24 +56,16 @@ class ViewModelOnTXT @Inject constructor(
     private val _config = MutableStateFlow<ReadingSetting>(ReadingSetting())
     val config get() = _config.asStateFlow()
 
+    lateinit var recorder: BookRecorder
+
     fun updateConfig(config: ReadingSetting) {
         Log.d("VMT updateConfig", "更新配置 $config")
         _config.value = config
     }
 
-    private val _book = savedStateHandle.get<BookView>("book")
-    val book get() = _book?: BookView(
-        bookId = -1L,
-        title = "没有书本",
-        bookUrl = "",
-        bookType = BookType.TXT,
-        coverUrl = "",
-        currentPage = 0L,
-        totalPages = 0L,
-        folderId = null,
-    )
+
     val currentBookMark =Repo.currentBookMark
-    private var _currentChapterPos = MutableStateFlow<Long>(0L)
+    private var _currentChapterPos = MutableStateFlow<Long>(book.currentPage)
     val currentChapterPos = _currentChapterPos.asStateFlow()
     fun updatePos(pos: Long){
         _currentChapterPos.value = pos
@@ -118,10 +113,12 @@ class ViewModelOnTXT @Inject constructor(
             launch {
                 _isInitFinished.value=false
                 _chapters = Repo.getChaptersFromBookId(book.bookId).sortedBy { it.chapterOrder }
+                //加载记录器
+                recorder = BookRecorder(Repo.getPagesDeduplication(book.bookId),book.bookId)
 
                 txtReader = TxtReader(File(context.filesDir, book.bookUrl))
                 chapterFlow = Pager(
-                    initialKey = 0,
+                    initialKey = book.currentPage,
                     config = PagingConfig(
                         pageSize = 10,
                         maxSize = 30,
@@ -129,7 +126,10 @@ class ViewModelOnTXT @Inject constructor(
                         enablePlaceholders = false
                     ),
                     pagingSourceFactory = { TXTPagingSource(this@ViewModelOnTXT, txtReader,jumpOfChapter) }
-                ).also { updatePos(jumpOfChapter.toPosition);jumpOfChapter.resetJump() }
+                ).also {
+                    updatePos(jumpOfChapter.toPosition)
+                    jumpOfChapter.resetJump()
+                }
                     .flow.cachedIn(viewModelScope)
 
 
@@ -160,7 +160,9 @@ class ViewModelOnTXT @Inject constructor(
             }
         }
     }
-
+    fun updateRecord(){
+        recorder.insertRecord(Repo)
+    }
 
     lateinit var bookMarkFlow: Flow<PagingData<BookMarkUI>>
 
@@ -208,6 +210,7 @@ class ViewModelOnTXT @Inject constructor(
         Log.d("VMT refreshChapterFlow", "开始 刷新章节 $position  ")
         jumpOfChapter.setJump(position)
         jumpOfChapter.notifyChange()
+        recorder.plusPage(position)
         Log.d("VMT refreshChapterFlow","刷新完毕")
     }
 
@@ -349,6 +352,7 @@ class ViewModelOnTXT @Inject constructor(
 
     override fun onCleared() {
         super.onCleared()
+        Repo.updateCurrentPage(book.bookId,_currentChapterPos.value)
         txtReader.close()
     }
 

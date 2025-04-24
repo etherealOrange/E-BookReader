@@ -239,7 +239,7 @@ class TxtReader(
     }
 
     companion object{
-        public fun getNewInstance(file: File): TxtReader {
+        fun getNewInstance(file: File): TxtReader {
             return TxtReader(file)
         }
     }

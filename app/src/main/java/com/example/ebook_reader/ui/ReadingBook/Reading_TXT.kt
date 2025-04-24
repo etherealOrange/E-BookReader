@@ -23,6 +23,8 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.last
 
 @AndroidEntryPoint
 class Reading_TXT : ExtendAppCompatActivity()
@@ -42,6 +44,9 @@ class Reading_TXT : ExtendAppCompatActivity()
         viewModel.updateConfig(configManager.getReadingConfig())
         bottomDialog = TXTBottomDialog()
         Log.d("RB","onCreate 成功创建")
+
+
+
 
 
 
@@ -77,8 +82,9 @@ class Reading_TXT : ExtendAppCompatActivity()
                         val position = (recyclerView.layoutManager as LinearLayoutManager).findFirstVisibleItemPosition()
                         Log.d("RB","当前章节位置 $position")
                         val item = chapterAdapter.peek(position)
-                        Log.d("RB","当前章节 ${item?.title} 位置 $position")
+                        Log.d("RB","当前章节 ${item?.title} 顺序 ${item?.order}")
                         viewModel.updatePos(item?.order?:0L)
+                        viewModel.recorder.plusPage(item?.order?:viewModel.currentChapterPos.value)
                     }
                 }
             }
@@ -194,16 +200,26 @@ class Reading_TXT : ExtendAppCompatActivity()
     override fun onStop() {
         super.onStop()
         configManager.saveReadingConfig(viewModel.config.value)
+        viewModel.updateRecord()
         Log.d("RB","onStop 停止")
     }
 
     override fun onResume() {
         super.onResume()
+        viewModel.isInitFinished.filter { it }.launchLifeScopeCollectLatest {
+            viewModel.recorder.start(viewModel.currentChapterPos.value)
+            return@launchLifeScopeCollectLatest
+        }
         Log.d("RB","onResume 恢复")
     }
 
     override fun onPause() {
         super.onPause()
+        viewModel.isInitFinished.filter { it }.launchLifeScopeCollectLatest {
+            viewModel.recorder.pause()
+            return@launchLifeScopeCollectLatest
+        }
+
         Log.d("RB","onResume 暂停")
     }
 

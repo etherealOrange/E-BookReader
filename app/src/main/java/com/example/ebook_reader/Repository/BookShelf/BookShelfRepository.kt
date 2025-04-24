@@ -186,16 +186,25 @@ class BookShelfRepository @Inject constructor (
      * @param bookId 书本id
      * @return 书本封面路径
      */
-    suspend fun getBookCoverUrl(bookId: Long): String {
-        return dao.getBookCoverUrl(bookId)
+    fun getBookCoverUrl(bookId: Long): String? {
+        return allBooks.value.filter { bookId==it.bookId }.map { it.coverUrl }.firstOrNull()
+    }
+
+    /**
+     * 得到书本的路径
+     * @param bookId 书本id
+     * @return 书本路径
+     */
+    fun getBookUrl(bookId: Long): String? {
+        return allBooks.value.filter { bookId==it.bookId }.map { it.bookUrl }.firstOrNull()
     }
     /**
      * 得到文件夹封面的路径
      * @param folderId 文件夹id
      * @return 文件夹封面路径
      */
-    suspend fun getFolderCoverUrl(folderId: Long): String {
-        return dao.getFolderCoverUrl(folderId)
+    fun getFolderCoverUrl(folderId: Long): String? {
+        return allFolders.value.filter { folderId==it.folderId }.map { it.coverUrl }.firstOrNull()
     }
     /**
      * 删除书本实例

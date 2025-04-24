@@ -43,11 +43,6 @@ interface BooksAndFoldersInfoDao {
     @Query("SELECT * FROM FoldersInfo")
     fun getAllFolders(): Flow<List<FolderView>>
 
-    @Query("SELECT coverUrl from BooksInfo where bookId = :bookId")
-    suspend fun getBookCoverUrl(bookId: Long): String
-
-    @Query("SELECT coverUrl from FoldersInfo Where folderId = :folderId")
-    suspend fun getFolderCoverUrl(folderId: Long): String
 
     @Query("UPDATE FoldersInfo SET title = :title Where folderId = :folderId")
     suspend fun renameFolder(folderId: Long, title: String)

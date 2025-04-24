@@ -31,10 +31,8 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import java.io.File
-import java.util.concurrent.locks.ReadWriteLock
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import javax.inject.Inject
 import kotlin.Long
@@ -546,7 +544,8 @@ class BookShelfDataViewModel @Inject constructor (
             if(selectedBooksId.value.isEmpty())return@launch
             selectedBooksId.value.forEach {
                 Log.d("VM deleteSelectedBooks","删除了书本id $it")
-                rmCover(Repo.getBookCoverUrl(it))
+                Repo.getBookUrl(it)?.let { rmUri(it) }
+                Repo.getBookCoverUrl(it)?.let { rmUri(it) }
                 Repo.deleteBookById(it)
             }
             Repo.notifyBooksNumChange()
@@ -563,16 +562,18 @@ class BookShelfDataViewModel @Inject constructor (
             if (selectedFolderId.value.isEmpty())return@launch
             selectedFolderId.value.forEach {
                 Log.d("VM deleteSelectedFolders","删除了文件夹id $it")
-                rmCover(Repo.getFolderCoverUrl(it))
+                Repo.getFolderCoverUrl(it)?.let {
+                    rmUri(it)
+                }
                 Repo.deleteFolderById(it)
             }
             clearAllSelected()
         }
     }
     /**
-     * 删除封面
+     * 根据Uri删除文件
      */
-    private fun rmCover(uri: String){
+    private fun rmUri(uri: String){
         val file = File(uri)
         if(file.exists()){
             file.delete()

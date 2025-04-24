@@ -17,6 +17,7 @@ dependencyResolutionManagement {
         maven { url =uri("https://maven.aliyun.com/repository/public") }
         maven { url =uri("https://maven.aliyun.com/repository/google") }
         maven { url =uri("https://maven.aliyun.com/repository/grails-core") }
+        maven { url =uri("https://www.jitpack.io") }
         google()
         mavenCentral()
     }

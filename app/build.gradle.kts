@@ -45,6 +45,7 @@ android {
 }
 
 dependencies {
+
     implementation(libs.google.gson)
     implementation(libs.androidx.paging)
     implementation(libs.io.coil3.kt)

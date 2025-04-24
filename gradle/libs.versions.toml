@@ -25,6 +25,7 @@ coil = "3.1.0"
 androidxPaging= "3.3.2"
 gson = "2.13.0"
 
+
 [libraries]
 androidx-recyclerview = { group = "androidx.recyclerview",name = "recyclerview", version.ref = "recyclerview" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }

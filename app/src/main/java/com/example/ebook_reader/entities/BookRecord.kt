@@ -5,8 +5,8 @@ import androidx.room.ForeignKey
 import androidx.room.ForeignKey.Companion.CASCADE
 import androidx.room.Index
 
-@Entity(tableName = "RecordCreated",
-    primaryKeys = ["bookId", "recordId"],
+@Entity(tableName = "BookRecord",
+    primaryKeys = ["bookId", "timeOfRecord"],
     foreignKeys = [
         ForeignKey(
             entity = BookView::class,
@@ -14,18 +14,18 @@ import androidx.room.Index
             childColumns = ["bookId"],
             onDelete = CASCADE
         ),
-        ForeignKey(
-            entity = ReadingRecord::class,
-            parentColumns = ["recordId"],
-            childColumns = ["recordId"],
-            onDelete = CASCADE
-        )
     ],
     indices = [
-        Index(value = ["bookId","recordId"], unique = true)
+        Index(value = ["bookId","timeOfRecord"], unique = true)
     ]
     )
-data class CreateRecord(
+/**
+ * @param bookId 书本ID
+ * @param timeOfRecord 实际记录的时间
+ * @param duration 阅读总时间(每次更新累加)
+ */
+data class BookRecord(
     val bookId:Long,
-    val recordId: Long
+    val timeOfRecord:Long,
+    val duration:Long,
 )

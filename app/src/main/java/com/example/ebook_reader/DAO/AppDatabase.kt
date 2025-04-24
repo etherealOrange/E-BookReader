@@ -5,10 +5,9 @@ import androidx.room.RoomDatabase
 import com.example.ebook_reader.entities.BookMarkView
 import com.example.ebook_reader.entities.BookView
 import com.example.ebook_reader.entities.ChapterView
-import com.example.ebook_reader.entities.CreateRecord
+import com.example.ebook_reader.entities.BookRecord
 import com.example.ebook_reader.entities.FolderView
-import com.example.ebook_reader.entities.ReadingRecord
-import com.example.ebook_reader.ReadingSetting
+import com.example.ebook_reader.entities.PageDeduplication
 
 
 @Database(entities = [
@@ -16,9 +15,9 @@ import com.example.ebook_reader.ReadingSetting
     , FolderView::class
     , BookMarkView::class
     , ChapterView::class
-    , CreateRecord::class
-    , ReadingRecord::class
-                     ], version = 4)
+    , BookRecord::class
+    , PageDeduplication::class
+                     ], version = 6)
 abstract class AppDatabase: RoomDatabase() {
     //封装的 一体式 Dao接口
     abstract fun booksAndFoldersInfoDao(): BooksAndFoldersInfoDao
