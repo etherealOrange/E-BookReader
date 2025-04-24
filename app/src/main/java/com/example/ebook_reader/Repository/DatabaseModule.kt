@@ -25,6 +25,11 @@ object DatabaseModule {
         ).fallbackToDestructiveMigration()
         .build()
 
+    @Provides
+    fun provideDataInfoDao(
+        db: AppDatabase
+    ) = db.DataInfoDao()
+
     //提供Dao实例
     @Provides
     fun provideBooksAndFoldersInfoDao(

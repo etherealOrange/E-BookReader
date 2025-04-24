@@ -10,6 +10,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
@@ -194,35 +195,10 @@ class BookShelf : ExtendFragment() , BooksAdapterOpenActivity{
     private val imagePickerLauncher = registerForActivityResult(ActivityResultContracts.PickVisualMedia()) {
             uri->
         if (uri != null) {
-            Log.d("BS 进行文件夹封面保存","pickImageLauncher 选择的图片URI: $uri")
-            saveImageToFolder(uri,InsideFolderName.FOLDERSCOVERFOLDER.displayName)
-        } else {
-            UIVM.clearCoverDir()
-            Log.d("BS 没有图片","pickImageLauncher 没有选择图片")
-        }
-    }
-
-    /**
-     *保存图片到指定文件夹
-     */
-    private fun saveImageToFolder(uri: Uri,folderName: String){
-        try {
-
-            //获取文件夹路径
-            val customFolder = File(requireContext().filesDir, folderName)
-            if (!customFolder.exists()) {
-                customFolder.mkdirs()
-            }
-            //创建文件名
-            val fileName = "IMG_${System.currentTimeMillis()}.jpg"
-            //得到输出位置流
-            val outputFile = File(customFolder, fileName)
-            //加载coil3图片加载器
-            val imageLoader = requireContext().imageLoader
-            val request = ImageRequest.Builder(requireContext())
-                .data(uri)
-                .size(1080,1920)
-                .listener(object : ImageRequest.Listener{
+            Log.d("BS 进行图书封面保存","bookCoverPickerLauncher 选择的图片URI: $uri")
+            val outputFile = getOutputFile(InsideFolderName.FOLDERSCOVERFOLDER.displayName)
+            saveImageToFolder(uri,outputFile,
+                object : ImageRequest.Listener{
                     override fun onSuccess(request: ImageRequest, result: SuccessResult) {
                         UIVM.updateCoverDir(outputFile.path)
                     }
@@ -230,24 +206,75 @@ class BookShelf : ExtendFragment() , BooksAdapterOpenActivity{
                         UIVM.clearCoverDir()
                         Log.d("BS saveImageToFolder","saveImageToFolder 保存图片失败 原因:$result")
                     }
-                })
-                .target{
-                    val bitmap = it.toBitmap()
-                    outputFile.outputStream().use {
-                        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, it)
-                    }
-                    Log.d("BS saveImageToFolder","成功 存储图片到 ${outputFile.absolutePath}")
                 }
-                .build()
-            imageLoader.enqueue(request)
-
-            Log.d("BS saveImageToFolder","saveImageToFolder 保存图片路径: ${outputFile.path}")
-        }catch (e: RuntimeException){
+            )
+        } else {
             UIVM.clearCoverDir()
-            Log.d("BS saveImageToFolder","saveImageToFolder 保存图片失败 原因:$e")
+            Log.d("BS 没有图片","pickImageLauncher 没有选择图片")
         }
     }
 
+    /**
+     * 选择图书封面
+     */
+    private val bookCoverPickerLauncher = registerForActivityResult(ActivityResultContracts.PickVisualMedia()) {
+            uri->
+        if (uri != null) {
+            Log.d("BS 进行图书封面保存","bookCoverPickerLauncher 选择的图片URI: $uri")
+            val outputFile = getOutputFile(InsideFolderName.TXTCOVERSFOLDER.displayName)
+            saveImageToFolder(uri,outputFile,
+                object : ImageRequest.Listener{
+                override fun onSuccess(request: ImageRequest, result: SuccessResult) {
+                    if(bookId!=0L){
+                        UIVM.updateBookCover(bookId,outputFile.path)
+                    }
+                }
+                override fun onError(request: ImageRequest, result: ErrorResult) {
+                    Toast.makeText(requireContext(),"保存图片失败",Toast.LENGTH_SHORT).show()
+                    Log.d("BS saveImageToFolder","saveImageToFolder 保存图片失败 原因:$result")
+                }
+            }
+            )
+        } else {
+            Toast.makeText(requireContext(),"保存图片失败, 未找到路径",Toast.LENGTH_SHORT).show()
+            Log.d("BS 没有图片","bookCoverPickerLauncher 没有选择图片")
+        }
+    }
+
+    private fun getOutputFile(folderName: String): File{
+        //获取文件夹路径
+        val customFolder = File(requireContext().filesDir, folderName)
+        if (!customFolder.exists()) {
+            customFolder.mkdirs()
+        }
+        //创建文件名
+        val fileName = "IMG_${System.currentTimeMillis()}.jpg"
+        //得到输出位置流
+        return File(customFolder, fileName)
+    }
+    /**
+     *保存图片到指定文件夹
+     */
+    private fun saveImageToFolder(uri: Uri, outputFile: File, listener: ImageRequest.Listener){
+        //加载coil3图片加载器
+        val imageLoader = requireContext().imageLoader
+        val request = ImageRequest.Builder(requireContext())
+            .data(uri)
+            .size(1080,1920)
+            .listener(listener)
+            .target{
+                val bitmap = it.toBitmap()
+                outputFile.outputStream().use {
+                    bitmap.compress(Bitmap.CompressFormat.JPEG, 100, it)
+                }
+                Log.d("BS saveImageToFolder","成功 存储图片到 ${outputFile.absolutePath}")
+            }
+            .build()
+        imageLoader.enqueue(request)
+        Log.d("BS saveImageToFolder","saveImageToFolder 保存图片路径: ${outputFile.path}")
+    }
+
+    private var bookId = 0L
     /**
      * 导入书籍的 ActivityResultLauncher
      */
@@ -257,7 +284,9 @@ class BookShelf : ExtendFragment() , BooksAdapterOpenActivity{
                 copyFileToFolder(it)
                     .onSuccess {
                         Log.d("BS","等待章节插入 数据库")
+                        bookId = it.bookId
                         viewModel.loadBook(it)
+                        bookCoverPickerLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
                         Log.d("BS","成功把章节插入 数据库")
                     }.onFailure {
                         Log.d("BS filePickerLauncher","filePickerLauncher 复制文件失败 原因:$it")
@@ -271,17 +300,7 @@ class BookShelf : ExtendFragment() , BooksAdapterOpenActivity{
 
     /**
      * 处理选中的书籍
-     * - 复制到对应内部存储
-     * - 数据库要插入书籍
-     * - 插入txt pdf epub是不同的
-     * - 插入txt时需要解析txt文件
-     * - 得到章节信息 后还需要插入章节
-     * - pdf 需要得到总页数
-     * - epub 需要解析得到章节和多媒体信息
-     * - 多媒体可能需要存储到另外的文件夹
-     * - 还需要解析章节 插入章节信息
-     * - 防护成功插入书本的id
-     * - 失败返回-1
+     * - 包括书本记录的插入
      */
     private suspend fun copyFileToFolder(uri: Uri): Result<BookView> {
         try {
@@ -339,7 +358,6 @@ class BookShelf : ExtendFragment() , BooksAdapterOpenActivity{
                 inputStream.copyTo(FileOutputStream(outputFile))
             }
             book = book.copy(bookUrl = fileFinalName)
-
             val id = viewModel.insertBook(book)
             book = book.copy(bookId = id)
             Log.d("BS copyFileToFolder","copyFileToFolder 保存书籍路径: ${book.bookUrl}")

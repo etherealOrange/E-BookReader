@@ -9,8 +9,10 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
@@ -26,6 +28,12 @@ class BookShelfUIViewModel @Inject constructor(private val Repo: BookShelfReposi
     fun clearCoverDir(){
         _CoverDir.value=""
     }
+    fun updateBookCover(bookId: Long, cover: String){
+        viewModelScope.launch {
+            Repo.updateBookCover(bookId,cover)
+        }
+    }
+
 
     /**
      * 当前在文件夹内的id 进行过检查 一定在存在的文件夹内

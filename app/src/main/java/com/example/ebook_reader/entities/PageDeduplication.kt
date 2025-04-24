@@ -25,5 +25,6 @@ import androidx.room.Index
 data class PageDeduplication(
     val bookId:Long,
     val pageStart:Long,
+    val timeOfRecord:Long,
     val pageEnd:Long,
 )

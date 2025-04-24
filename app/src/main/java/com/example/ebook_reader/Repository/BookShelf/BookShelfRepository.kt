@@ -52,6 +52,9 @@ class BookShelfRepository @Inject constructor (
         started = WhileSubscribed(500),
         initialValue = emptyList()
     )
+    suspend fun updateBookCover(bookId: Long,url: String){
+        dao.updateBookCover(bookId,url)
+    }
 
     /**
      *

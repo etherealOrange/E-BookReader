@@ -83,7 +83,8 @@ class ViewModelOnTXT @Inject constructor(
                 Repo.insertBookMark(BookMarkView(
                     bookId = book.bookId,
                     chapterOrder = pos,
-                    content = content
+                    content = content,
+                    timeOfRecord = System.currentTimeMillis()
                 ))
             }
             jumpOfBookMark.notifyChange()
@@ -210,6 +211,7 @@ class ViewModelOnTXT @Inject constructor(
         Log.d("VMT refreshChapterFlow", "开始 刷新章节 $position  ")
         jumpOfChapter.setJump(position)
         jumpOfChapter.notifyChange()
+        updatePos(position)
         recorder.plusPage(position)
         Log.d("VMT refreshChapterFlow","刷新完毕")
     }

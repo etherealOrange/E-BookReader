@@ -13,6 +13,10 @@ interface BooksAndFoldersInfoDao {
     @Insert
     suspend fun insertBook(book: BookView ): Long
 
+
+    @Query("update BooksInfo set coverUrl = :url where bookId = :bookId")
+    suspend fun updateBookCover(bookId: Long, url: String)
+
     @Insert
     suspend fun insertFolder(folder: FolderView)
 

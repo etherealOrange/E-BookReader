@@ -90,6 +90,7 @@ class BookRecorder(
                         bookId = bookId,
                         pageStart = it.start,
                         pageEnd = it.end,
+                        timeOfRecord = System.currentTimeMillis()
                     )
                 }
             )

@@ -23,5 +23,6 @@ import androidx.room.PrimaryKey
 data class BookMarkView(
     val bookId: Long,
     val chapterOrder : Long,
+    val timeOfRecord:Long,
     val content : String
 )

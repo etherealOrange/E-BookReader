@@ -46,6 +46,7 @@ class ReadingRepository@Inject constructor (
                         bookId = it.bookId,
                         pageStart = it.pageStart,
                         pageEnd = it.pageEnd,
+                        timeOfRecord = System.currentTimeMillis()
                     )
                 )
             }
