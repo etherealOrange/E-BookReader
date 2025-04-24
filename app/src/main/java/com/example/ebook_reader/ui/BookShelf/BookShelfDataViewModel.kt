@@ -1,7 +1,9 @@
 package com.example.ebook_reader.ui.BookShelf
 
 import android.content.Context
+import android.graphics.pdf.PdfRenderer
 import android.util.Log
+import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.ebook_reader.InterfacePackage.BookShelf.BooksAdapterChangePosition
@@ -298,6 +300,9 @@ class BookShelfDataViewModel @Inject constructor (
                 processPdfBook(book)
                     .onSuccess {
                         Log.d("BS loadBook","成功加载 pdf 书本")
+
+
+
                     }
                     .onFailure {
                         Log.d("BS loadBook","失败加载 pdf 书本 $it")
@@ -338,11 +343,7 @@ class BookShelfDataViewModel @Inject constructor (
         }
         return Result.failure(Exception("未知错误"))
     }
-    //识别章节行的正则表达式
-//    val chapterRegex = """^第([一二三四五六七八九十\d]+)章\s*(.*)$""".toRegex()
-//    private fun isChapterLine(line: String): Boolean {
-//        return chapterRegex.matches(line)
-//    }
+
     /**
      * 处理 txt 书本
      */
@@ -351,40 +352,6 @@ class BookShelfDataViewModel @Inject constructor (
             Log.d("VM processTextBook","处理 txt 书本路径 $it")
             val reader = TxtReader.getNewInstance(it)
             Result.success(reader.loadBook(book)).also { reader.close() }
-/*            var currentLines = 0
-            var line = String()
-            var chapter: ChapterView? = ChapterView(
-                chapterId = 0,
-                bookId = book.bookId,
-                chapterOrder = 0,
-                chapterTitle = "简介",
-                startBytes = 0,
-                endBytes = 0,
-                partOrder = 0
-            )
-            val chapterList = mutableListOf<ChapterView>()*/
-   /*         it.inputStream().bufferedReader().use {
-                //获取每一个章节的名称 和开始结束位置
-                while (it.readLine().also {line=it  }!=null) {
-                    if(isChapterLine(line)){
-                        //填写章节结束位置
-                        chapter = chapter!!.copy(chapterEndLine = currentLines-1L)
-                        chapterList.add(chapter)
-                        //下一章节开始 填写开始的 名称 顺序 开始
-                        chapter = chapter.copy(chapterTitle = line, chapterOrder = chapter.chapterOrder+1, chapterStartLine = currentLines.toLong())
-                    }
-                    currentLines++
-                }
-                chapter = chapter!!.copy(chapterEndLine = currentLines-1L)
-                chapterList.add(chapter)
-            }
-            Log.d("VM","读取的总行数 $currentLines")
-            if(currentLines == 0){
-                Result.failure(Exception("没读取到任何文字"))
-            }
-            else{
-                Result.success(chapterList)
-            }*/
         }
     }
 
@@ -398,10 +365,7 @@ class BookShelfDataViewModel @Inject constructor (
      */
     val writeLock get()= lock.writeLock()
 
-    /**
-     * 控制章节查询的读锁
-     */
-    val readLock get()= lock.readLock()
+
     private suspend fun insertChapters(chapters: List<ChapterView>): Result<Boolean>{
         try {
             withContext(Dispatchers.IO) {
@@ -415,19 +379,7 @@ class BookShelfDataViewModel @Inject constructor (
         }
         return Result.success(true)
     }
-//    suspend fun selectChaptersFromBookId(bookId: Long): Result<Boolean>{
-//        try {
-//            withContext(Dispatchers.IO) {
-//                readLock.lock()
-//                Repo.updateChapters(bookId)
-//                readLock.unlock()
-//                Log.d("VM insertChapters", "拉取章节信息")
-//            }
-//        }catch (e: Exception){
-//            return Result.failure(e)
-//        }
-//        return Result.success(true)
-//    }
+
 
     /**
      * 处理 epub 书本
@@ -444,6 +396,14 @@ class BookShelfDataViewModel @Inject constructor (
     private fun processPdfBook(book: BookView): Result<List<ChapterView>>{
         return processBook(book) {
             Log.d("VM processPdfBook","处理pdf 书本路径 $it")
+            val pdfDescriptor = context.contentResolver.openFileDescriptor(it.toUri(),"r")?:null
+            if (pdfDescriptor==null){ return@processBook Result.failure(Exception("无法读取pdf文件")) }
+            val pdfReader = PdfRenderer(pdfDescriptor)
+            val pageCount = pdfReader.pageCount
+            pdfDescriptor.close()
+            viewModelScope.launch {
+                Repo.updateBookTotalPages(book.bookId,pageCount.toLong())
+            }
             Result.success(mutableListOf())
         }
     }
