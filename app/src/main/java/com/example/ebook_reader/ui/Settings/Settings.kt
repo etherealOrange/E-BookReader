@@ -77,6 +77,12 @@ class Settings : ExtendFragment() {
             Log.d("Settings", "onViewCreated: $isNightMode")
             Log.d("Settings", "onViewCreated: ${Configuration.UI_MODE_NIGHT_YES} ${requireContext().resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK}")
 
+            if(nightMode){
+                bind.toggleDayNightTheme.check(bind.toNightThemeBtn.id)
+            }else{
+                bind.toggleDayNightTheme.check(bind.toDayThemeBtn.id)
+            }
+
             if (bind.timeToNotifyEdit.text.toString() != sleepTime){
                 bind.timeToNotifyEdit.setText(sleepTime)
             }
@@ -147,6 +153,19 @@ class Settings : ExtendFragment() {
             }
         }
 
+        bind.toggleDayNightTheme.addOnButtonCheckedListener {
+                group, checkedId, isChecked ->
+            if(isChecked){
+                when (checkedId) {
+                    bind.toDayThemeBtn.id -> {
+                        viewModel.updateOtherConfig(viewModel.otherConfig.value.copy(dayTheme = true))
+                    }
+                    bind.toNightThemeBtn.id -> {
+                        viewModel.updateOtherConfig(viewModel.otherConfig.value.copy(dayTheme = false))
+                    }
+                }
+            }
+        }
         //切换 白天主题
         bind.toDayThemeBtn.setOnClickListener {
             Log.d("Settings","点击了白天主题 ${viewModel.otherConfig.value.dayTheme}")

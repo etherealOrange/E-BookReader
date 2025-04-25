@@ -408,12 +408,6 @@ class BookShelfDataViewModel @Inject constructor (
         }
     }
 
-    private val isFinishedInsert = MutableStateFlow<Boolean>(false)
-
-
-
-
-
 
 
     init {

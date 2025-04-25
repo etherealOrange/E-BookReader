@@ -3,10 +3,10 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:context=".ui.Settings.Settings"
     android:clickable="true"
-    android:focusableInTouchMode="true"
-    >
+    android:focusableInTouchMode="true">
 
 
     <LinearLayout
@@ -88,20 +88,33 @@
                 android:textSize="20sp"
                 android:padding="15dp"
                 />
-            <com.google.android.material.button.MaterialButton
+            <com.google.android.material.button.MaterialButtonToggleGroup
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:id="@+id/to_day_theme_btn"
-                android:text="白天"
-                android:textSize="20sp"
-                />
-            <com.google.android.material.button.MaterialButton
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:id="@+id/to_night_theme_btn"
-                android:text="夜晚"
-                android:textSize="20sp"
-                />
+                android:id="@+id/toggle_day_night_theme"
+                app:singleSelection="true"
+                app:selectionRequired="true"
+                >
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/to_day_theme_btn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:text="白天"
+                    android:textSize="20sp"
+                    app:iconTint="@color/grey" />
+                <com.google.android.material.button.MaterialButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:id="@+id/to_night_theme_btn"
+                    android:text="夜晚"
+                    android:textSize="20sp"
+                    app:iconTint="@color/grey"
+                    />
+            </com.google.android.material.button.MaterialButtonToggleGroup>
+
         </LinearLayout>
         <LinearLayout
             android:layout_width="match_parent"
