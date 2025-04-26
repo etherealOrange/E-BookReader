@@ -3,9 +3,81 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:context=".ui.DataStatistic.DataStatistic"
-    android:orientation="vertical"
-    >
+    android:orientation="vertical">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="10dp"
+        >
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_weight="1"
+            android:layout_gravity="center"
+            >
+            <com.google.android.material.textview.MaterialTextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="已经陪伴您："
+                android:textSize="15sp"
+                />
+            <com.google.android.material.textview.MaterialTextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/days"
+                android:text="10天"
+                android:textSize="15sp"
+                />
+        </LinearLayout>
+
+        <com.google.android.material.button.MaterialButtonToggleGroup
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/toggle_time_start"
+            app:singleSelection="true"
+            app:selectionRequired="true"
+            android:layout_gravity="center"
+            app:checkedButton="@+id/one_month_btn"
+
+            >
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/one_month_btn"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="1个月"
+                android:textSize="15sp"
+                android:minWidth="0dp"
+                android:paddingHorizontal="15dp"
+                />
+            <com.google.android.material.button.MaterialButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:id="@+id/six_month_btn"
+                android:text="6个月"
+                android:minWidth="0dp"
+                android:paddingHorizontal="15dp"
+                android:textSize="15sp"
+                />
+            <com.google.android.material.button.MaterialButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:id="@+id/one_year_btn"
+                android:text="1年"
+                android:minWidth="0dp"
+                android:paddingHorizontal="15dp"
+                android:textSize="15sp"
+                />
+        </com.google.android.material.button.MaterialButtonToggleGroup>
+
+    </LinearLayout>
+
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -15,15 +87,6 @@
             android:layout_height="wrap_content"
             android:orientation="vertical"
             >
-
-            <com.google.android.material.textview.MaterialTextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="这一个月"
-                android:textSize="20sp"
-                android:gravity="center"
-                android:padding="10dp"
-                />
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

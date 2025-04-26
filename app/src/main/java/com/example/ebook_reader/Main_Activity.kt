@@ -39,6 +39,8 @@ class Main_Activity : ExtendAppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        configManager.saveDayToCreate()
+
         if(config.dayTheme){
             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
         }

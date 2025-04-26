@@ -1,13 +1,103 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ui.TimeTravel.TimeTravel">
-
-    <TextView
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    tools:context=".ui.TimeTravel.TimeTravel"
+    android:orientation="vertical">
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:text="Hello" />
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        >
+        <com.google.android.material.textview.MaterialTextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="年份"
+            android:textSize="15sp"
+            android:padding="10dp"
+            />
+        <androidx.recyclerview.widget.RecyclerView
+            android:layout_width="wrap_content"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:paddingVertical="0dp"
+            android:paddingHorizontal="5dp"
+            android:id="@+id/year_recycler_view"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+            android:orientation="horizontal"
+            tools:listitem="@layout/year_item"
+            tools:itemCount="10"
+            />
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        >
 
-</FrameLayout>
+        <com.google.android.material.button.MaterialButtonToggleGroup
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/toggle_mode_change"
+            app:singleSelection="true"
+            app:selectionRequired="true"
+            android:layout_gravity="center"
+            app:checkedButton="@+id/duration_btn"
+            >
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/duration_btn"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="总时长"
+                android:textSize="15sp"
+                android:minWidth="0dp"
+                android:paddingHorizontal="15dp"
+                />
+            <com.google.android.material.button.MaterialButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:id="@+id/perPageTime_btn"
+                android:text="每页时长"
+                android:minWidth="0dp"
+                android:paddingHorizontal="15dp"
+                android:textSize="15sp"
+                />
+            <com.google.android.material.button.MaterialButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:id="@+id/bookMark_btn"
+                android:text="书签数量"
+                android:minWidth="0dp"
+                android:paddingHorizontal="15dp"
+                android:textSize="15sp"
+                />
+        </com.google.android.material.button.MaterialButtonToggleGroup>
+
+        <com.google.android.material.textview.MaterialTextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="前10排名"
+            android:textSize="20sp"
+            android:layout_gravity="center"
+            android:gravity="center"
+            />
+    </LinearLayout>
+
+<androidx.recyclerview.widget.RecyclerView
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:id="@+id/ranking_recycler_view"
+    android:orientation="horizontal"
+    tools:itemCount="5"
+    tools:listitem="@layout/statistic_book_item"
+    />
+
+
+
+
+</LinearLayout>

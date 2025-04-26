@@ -10,11 +10,26 @@ import com.example.ebook_reader.ReadingSetting
 import com.google.gson.Gson
 import androidx.core.content.edit
 import java.io.IOException
+import java.time.LocalDate
+import java.time.ZoneId
 
 class ConfigManager private constructor(context: Context){
     private val prefs = context.getSharedPreferences("ReadingConfig", Context.MODE_PRIVATE)
     private val others = context.getSharedPreferences("OtherConfig", Context.MODE_PRIVATE)
+    private val dayToCreate = context.getSharedPreferences("DayToCreate", Context.MODE_PRIVATE)
     private val gson = Gson()
+
+private val testTimeCreate = LocalDate.now().minusYears(3).withDayOfYear(1).atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
+
+    fun saveDayToCreate(){
+        if(getDayToCreate()==-1L){
+//            dayToCreate.edit { putLong("DayToCreate", System.currentTimeMillis()) }
+            dayToCreate.edit { putLong("DayToCreate",testTimeCreate) }
+        }
+    }
+    fun getDayToCreate(): Long {
+        return dayToCreate.getLong("DayToCreate", -1L)
+    }
 
     fun saveReadingConfig(config : ReadingSetting){
         val json = gson.toJson(config)

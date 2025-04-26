@@ -1,104 +1,107 @@
 package com.example.ebook_reader.ui.DataStatistic
 
-import androidx.lifecycle.ViewModel
+import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.example.ebook_reader.Repository.DataStatistic.BookDataUI
 import com.example.ebook_reader.Repository.DataStatistic.DataRepository
-import com.example.ebook_reader.Repository.DataStatistic.PerPageTime
+import com.example.ebook_reader.ui.DataBaseViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.time.LocalDate
+import java.time.ZoneId
 import javax.inject.Inject
 
 @HiltViewModel
 class DataStatisticViewModel @Inject constructor(
     private val Repo: DataRepository
 
-) : ViewModel() {
-    //总时长
-    val allDuration = Repo.allDuration
+) : DataBaseViewModel(Repo) {
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val longTimeBook = allDuration
+        .flatMapLatest {
+            if (it.isEmpty()) {
+                flowOf(null)
+            } else {
+                val du = it.maxByOrNull {
+                    it.duration
+                }!!
+                Repo.getBookView(du.bookId).map {
+                    if (it == null) {
+                        null
+                    } else {
+                        BookDataUI(
+                            book = it,
+                            long = du.duration,
+                            bookMarkNum = null,
+                            perPageTime = null
+                        )
+                    }
+                }
+            }
+        }
         .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.Companion.WhileSubscribed(500),
+            initialValue = null
+        )
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val longPerPageTimeBook = allPerPageTime
+        .flatMapLatest {
+            if(it.isEmpty()){
+                flowOf(null)
+            }
+            else{
+                val per = it.maxByOrNull { it.time }!!
+                Repo.getBookView(per.bookId).map{
+                    if(it==null){
+                        null
+                    }else{
+                        BookDataUI(
+                            book = it,
+                            long = null,
+                            bookMarkNum = null,
+                            perPageTime = per.time,
+                        )
+                    }
+                }
+            }
+        }.stateIn(
         scope = viewModelScope,
-        started = WhileSubscribed(500),
-        initialValue = emptyList()
+        started = SharingStarted.Companion.WhileSubscribed(500),
+        initialValue = null
     )
-    //总书签数
-    val allMarkNum = Repo.allBookMarkNum.stateIn(
-        scope = viewModelScope,
-        started = WhileSubscribed(500),
-        initialValue = emptyList()
-    )
-    //总页数 分散
-    val allPageDedu = Repo.allPageDedu.stateIn(
-        scope = viewModelScope,
-        started = WhileSubscribed(500),
-        initialValue = emptyList()
-    )
-    //每本书 读的页数
-    val allPagesLong = MutableStateFlow<Map<Long, Long>>(emptyMap())
-    //每本书 每页时间
-    val allPerPageTime = allDuration.combine(allPagesLong) {
-            du,pages->
-        du.map {
-                now->
-            PerPageTime(
-                bookId = now.bookId,
-                time = (now.duration/ pages.getOrElse(now.bookId){1L}).toLong()
-            )
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val bookMarksMostBook = allMarkNum.flatMapLatest {
+        if(it.isEmpty()){
+            flowOf(null)
+        }else{
+            val mark = it.maxByOrNull { it.num }!!
+            Repo.getBookView(mark.bookId).map{
+                if(it==null){
+                    null
+                }else{
+                    BookDataUI(
+                        book = it,
+                        long = null,
+                        bookMarkNum = mark.num,
+                        perPageTime = null
+                    )
+                }
+            }
         }
     }.stateIn(
         scope = viewModelScope,
-        started = WhileSubscribed(500),
-        initialValue = emptyList()
-    )
-
-
-    val longTimeBook = Repo.longTimeBook.map {
-        book->
-        if(book==null) return@map null
-        BookDataUI(
-            book = book,
-            long = allDuration.value.first { it.bookId==book.bookId }.duration,
-            bookMarkNum = null,
-            perPageTime = null
-        )
-    }.stateIn(
-        scope = viewModelScope,
-        started = WhileSubscribed(500),
-        initialValue = null
-    )
-    val longPerPageTimeBook = Repo.longPerPageTimeBook.map {
-        book->
-        if(book==null) return@map null
-        BookDataUI(
-            book = book,
-            long = null,
-            bookMarkNum = null,
-            perPageTime = allPerPageTime.value.first { it.bookId==book.bookId }.time
-        )
-    }.stateIn(
-        scope = viewModelScope,
-        started = WhileSubscribed(500),
-        initialValue = null
-    )
-    val bookMarksMostBook = Repo.bookMarksMostBook.map {
-        book->
-        if(book==null) return@map null
-        BookDataUI(
-            book = book,
-            long = null,
-            bookMarkNum = allMarkNum.value.first { it.bookId==book.bookId }.num,
-            perPageTime = null
-        )
-    }.stateIn(
-        scope = viewModelScope,
-        started = WhileSubscribed(500),
+        started = SharingStarted.Companion.WhileSubscribed(500),
         initialValue = null
     )
 
@@ -112,23 +115,38 @@ class DataStatisticViewModel @Inject constructor(
     }
     val totalBookMarks = MutableStateFlow<Long>(0L)
 
-
+    fun oneMonth(){
+        Repo.noUseRangeTime(
+            LocalDate.now()
+            .withDayOfMonth(1)
+            .atStartOfDay(ZoneId.systemDefault())
+            .toInstant()
+            .toEpochMilli()
+        )
+    }
+    fun sixMonth(){
+        Repo.noUseRangeTime(
+            LocalDate.now()
+            .minusMonths(6)
+            .withDayOfMonth(1)
+            .atStartOfDay(ZoneId.systemDefault())
+            .toInstant()
+            .toEpochMilli()
+        )
+    }
+    fun oneYear(){
+        Repo.noUseRangeTime(
+            LocalDate.now()
+            .minusYears(1)
+            .withDayOfMonth(1)
+            .atStartOfDay(ZoneId.systemDefault())
+            .toInstant()
+            .toEpochMilli()
+        )
+    }
 
     init {
         viewModelScope.launch {
-            launch {
-                allPageDedu.collectLatest {
-                    val ls = mutableMapOf<Long, Long>()
-                    it.groupBy { it.bookId }.forEach {
-                        var sum = 0L
-                        it.value.forEach {
-                            sum += it.pageEnd - it.pageStart
-                        }
-                        ls.put(it.key, sum)
-                    }
-                    allPagesLong.update { ls }
-                }
-            }
             launch {
                 allDuration.collectLatest {
                     totalTime.value = it.sumOf { it.duration }
@@ -136,38 +154,13 @@ class DataStatisticViewModel @Inject constructor(
             }
             launch {
                 allPagesLong.collectLatest {
-                    var sum = 0L
-                    it.forEach { sum += it.value }
-                    totalPages.value = sum
+                    totalPages.value = it.values.sumOf { it }
                 }
             }
             launch {
                 allMarkNum.collectLatest {
                     totalBookMarks.value = it.sumOf { it.num }
                 }
-            }
-            launch {
-                allDuration.collectLatest {
-                    it.maxByOrNull { it.duration }?.let { that ->
-                        Repo.updateLongTimeBookId(that.bookId)
-                    }
-                }
-            }
-            launch {
-                allPerPageTime.collectLatest {
-                    it.maxByOrNull { it.time }?.let { that ->
-                        Repo.updateLongPerPageTimeBookId(that.bookId)
-
-                    }
-                }
-            }
-            launch {
-                allMarkNum.collectLatest {
-                    it.maxByOrNull { it.num }?.let { that ->
-                        Repo.updateBookMarksMostBookId(that.bookId)
-                    }
-                }
-
             }
         }
     }

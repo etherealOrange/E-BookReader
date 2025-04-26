@@ -26,7 +26,7 @@ import androidx.room.PrimaryKey
  * - 开始位置为章节名称那一行 获取内容需要 >
  * - 结束为下一章节开始前一行 获取内容需要 <=
  */
-data class ChapterView(
+data class  ChapterView(
     val bookId: Long,
     val chapterOrder: Long,
     val chapterTitle: String,

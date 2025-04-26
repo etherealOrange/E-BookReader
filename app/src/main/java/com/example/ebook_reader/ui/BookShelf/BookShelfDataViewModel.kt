@@ -6,6 +6,9 @@ import android.util.Log
 import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.ebook_reader.ConfigManager
+import com.example.ebook_reader.DAO.ChapterInfoDao
+import com.example.ebook_reader.DAO.DataInfoDao
 import com.example.ebook_reader.InterfacePackage.BookShelf.BooksAdapterChangePosition
 import com.example.ebook_reader.InterfacePackage.BookShelf.BooksAdapterSelectedControl
 import com.example.ebook_reader.InterfacePackage.BookShelf.FoldersAdapterSelectedControl
@@ -13,9 +16,12 @@ import com.example.ebook_reader.Repository.BookShelf.BookAdapterUIState
 import com.example.ebook_reader.Repository.BookShelf.BookShelfRepository
 import com.example.ebook_reader.Repository.BookShelf.FolderAdapterUIState
 import com.example.ebook_reader.Enum.BookType
+import com.example.ebook_reader.entities.BookMarkView
+import com.example.ebook_reader.entities.BookRecord
 import com.example.ebook_reader.entities.BookView
 import com.example.ebook_reader.entities.ChapterView
 import com.example.ebook_reader.entities.FolderView
+import com.example.ebook_reader.entities.PageDeduplication
 import com.example.ebook_reader.entities.UIFolderView
 import com.example.ebook_reader.ui.ReadingBook.TxtReader
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -35,6 +41,8 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
+import java.time.LocalDate
+import java.time.ZoneId
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import javax.inject.Inject
 import kotlin.Long
@@ -45,7 +53,9 @@ import kotlin.collections.mutableSetOf
 @HiltViewModel
 class BookShelfDataViewModel @Inject constructor (
     @ApplicationContext val context: Context,
-    private val Repo: BookShelfRepository): ViewModel()
+    private val Repo: BookShelfRepository,
+    private val testDao: ChapterInfoDao,
+): ViewModel()
     ,BooksAdapterSelectedControl
     ,BooksAdapterChangePosition
     ,FoldersAdapterSelectedControl
@@ -432,9 +442,16 @@ class BookShelfDataViewModel @Inject constructor (
 
     suspend fun doSimulation(){
         if (Repo.getBooksNum()<=0){
-            simulateInsertBooks()
-            simulateInsertFolders()
-            simulateInsertBooksInFolder(1)
+            viewModelScope.launch {
+                simulateInsertBooks()
+                simulateInsertFolders()
+                simulateInsertBooksInFolder(1)
+                simulateInsertBookRecords()
+                simulateInsertPageDedu()
+                simulateInsertChapterView()
+                simluateInsertBookMarks()
+            }
+
         }
     }
 
@@ -446,48 +463,142 @@ class BookShelfDataViewModel @Inject constructor (
         return Repo.insertBook(book)
     }
     //插入文件夹
-    fun insertFolder(folder: FolderView) {
-        viewModelScope.launch {
-            Repo.insertFolder(folder)
-        }
+    suspend fun insertFolder(folder: FolderView) {
+        Repo.insertFolder(folder)
     }
-    //获取文件夹内书本的数量
-    fun getBooksNumInFolder(folderId: Long): Long {
-        return Books.value.count{it.folderId==folderId}.toLong()
-    }
-    /**
-     * 根据inWhichFolder获取文件夹名称
-     *
-     * 得知当前在文件夹的名称
-     */
-    fun getCurrentFolderName(): String {
-        val folder = Folders.value.find { it.folderId == Repo.inWhichFolder.value }
-        return folder?.title ?: "主页"
-    }
+
     //模拟在主页 插入书本
-    private fun simulateInsertBooks(){
-        viewModelScope.launch {
-            for (i in 0..15){
-                insertBook(BookView(0,"book$i",BookType.TXT,1,10,"","",null))
-            }
+    private suspend fun simulateInsertBooks(){
+        for (i in 0..15){
+            insertBook(BookView(0,"book$i",BookType.TXT,1,100,"","",null))
         }
+
     }
     //模拟在文件夹内 插入书本
-    private fun simulateInsertBooksInFolder(folderId: Long){
-        viewModelScope.launch {
-            for (i in 0..15){
-                insertBook(BookView(0,"bookInFolder$i",BookType.TXT,1,10,"","",folderId))
-            }
+    private suspend fun simulateInsertBooksInFolder(folderId: Long){
+        for (i in 0..15){
+            insertBook(BookView(0,"bookInFolder$i",BookType.TXT,1,100,"","",folderId))
         }
     }
     //模拟插入文件夹
-    private fun simulateInsertFolders(){
-        viewModelScope.launch {
-            for (i in 0..2){
-                insertFolder(FolderView(0,"folder$i",""))
-            }
+    private suspend fun simulateInsertFolders(){
+        for (i in 0..2){
+            insertFolder(FolderView(0,"folder$i",""))
         }
     }
+    val twoMonthAge = LocalDate.now()
+        .minusMonths(2)
+        .atStartOfDay(ZoneId.systemDefault())
+        .toInstant()
+        .toEpochMilli()
+    val sevenMonthAge = LocalDate.now()
+        .minusMonths(7)
+        .atStartOfDay(ZoneId.systemDefault())
+        .toInstant()
+        .toEpochMilli()
+    val month13Age = LocalDate.now()
+        .minusYears(1)
+        .minusMonths(1)
+        .atStartOfDay(ZoneId.systemDefault())
+        .toInstant()
+        .toEpochMilli()
+    private suspend fun simulateInsertBookRecords(){
+        for (i in 1..5){
+            testDao.insertBookRecord(BookRecord(
+                bookId = i.toLong(),
+                timeOfRecord = twoMonthAge,
+                duration = 6000000L
+            ))
+        }
+        for (i in 1..5){
+            testDao.insertBookRecord(BookRecord(
+                bookId = i.toLong(),
+                timeOfRecord = sevenMonthAge,
+                duration = 6000000L
+            ))
+        }
+        for (i in 1..5){
+            testDao.insertBookRecord(BookRecord(
+                bookId = i.toLong(),
+                timeOfRecord = month13Age,
+                duration = 6000000L
+            ))
+        }
+    }
+
+    private suspend fun simulateInsertPageDedu(){
+        for (i in 1..5){
+            testDao.insertPageDeduplication(PageDeduplication(
+                bookId = i.toLong(),
+                timeOfRecord = twoMonthAge,
+                pageStart = 0L,
+                pageEnd = 20L
+            ))
+        }
+        for (i in 1..5){
+            testDao.insertPageDeduplication(PageDeduplication(
+                bookId = i.toLong(),
+                timeOfRecord = sevenMonthAge,
+                pageStart = 21L,
+                pageEnd = 40L
+            ))
+        }
+        for (i in 1..5){
+            testDao.insertPageDeduplication(PageDeduplication(
+                bookId = i.toLong(),
+                timeOfRecord = month13Age,
+                pageStart = 41L,
+                pageEnd = 80L
+            ))
+        }
+    }
+    private suspend fun simulateInsertChapterView(){
+        for (i in 4..8){
+            for(j in 4..20){
+                testDao.insertChapters(listOf(ChapterView(
+                    bookId = i.toLong(),
+                    chapterOrder = j.toLong(),
+                    chapterTitle = "chapter $i",
+                    startBytes = 0L,
+                    endBytes = 0L,
+                    partOrder = 0L
+                ))
+                )
+            }
+
+
+        }
+    }
+
+    private suspend fun simluateInsertBookMarks(){
+        for (i in 4..8){
+            testDao.insertBookMark(BookMarkView(
+                bookId = i.toLong(),
+                timeOfRecord = twoMonthAge,
+                chapterOrder = i.toLong(),
+                content = "你好"
+            ))
+        }
+        for (i in 4..8){
+            testDao.insertBookMark(BookMarkView(
+                bookId = i.toLong(),
+                timeOfRecord = sevenMonthAge,
+                chapterOrder = i.toLong()+5,
+                content = "你好"
+            ))
+        }
+        for (i in 4..8){
+            testDao.insertBookMark(BookMarkView(
+                bookId = i.toLong(),
+                timeOfRecord = month13Age,
+                chapterOrder = i.toLong()+10,
+                content = "你好"
+            ))
+        }
+
+    }
+
+
     /**
      * 删除选中的书本 清空SelectedBooksId
      * - 删除书本的封面
@@ -546,11 +657,7 @@ class BookShelfDataViewModel @Inject constructor (
             Repo.insertFolder(FolderView(0,title,cover))
         }
     }
-    fun insertNewBook(title: String, type: BookType, bookUri: String, cover: String){
-        viewModelScope.launch {
-            Repo.insertBook(BookView(0,title,type,1,10,"",bookUri,null))
-        }
-    }
+
     /**
      * 在主页 重命名单个文件夹
      */

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:paddingVertical="0dp"
+    android:paddingHorizontal="5dp"
+    >
+    <com.google.android.material.button.MaterialButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        style="@style/Widget.Material3.Button.OutlinedButton"
+        android:text="1991"
+        android:id="@+id/year_btn"
+        android:minWidth="0dp"
+        android:paddingHorizontal="10dp"
+        android:paddingVertical="0dp"
+        />
+
+</LinearLayout>

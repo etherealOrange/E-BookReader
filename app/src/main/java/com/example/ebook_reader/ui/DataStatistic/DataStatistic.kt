@@ -9,12 +9,15 @@ import android.view.ViewGroup
 import androidx.core.net.toUri
 import coil3.load
 import coil3.toUri
+import com.example.ebook_reader.ConfigManager
 import com.example.ebook_reader.Enum.BookType
 import com.example.ebook_reader.ExtendFragment
 import com.example.ebook_reader.Repository.DataStatistic.BookDataUI
 import com.example.ebook_reader.Repository.DataStatistic.Duration
+import com.example.ebook_reader.Tools
 import com.example.ebook_reader.databinding.FragmentDataStatisticBinding
 import com.example.ebook_reader.databinding.StatisticBookItemBinding
+import com.example.ebook_reader.ui.DataStatistic.DataStatisticViewModel
 import com.example.ebook_reader.ui.ReadingBook.Reading_EPUB
 import com.example.ebook_reader.ui.ReadingBook.Reading_PDF
 import com.example.ebook_reader.ui.ReadingBook.Reading_TXT
@@ -22,6 +25,8 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.last
 import java.io.File
 import java.nio.file.Files
+import kotlin.math.ceil
+import kotlin.properties.Delegates
 
 @AndroidEntryPoint
 class DataStatistic : ExtendFragment() {
@@ -32,10 +37,15 @@ class DataStatistic : ExtendFragment() {
     private lateinit var mostMarksNumBing: StatisticBookItemBinding
 
 
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        viewModel.oneMonth()
+        val dayToCreate = ConfigManager.getInstance(requireContext()).getDayToCreate()
+        val s = "${ceil((System.currentTimeMillis()-dayToCreate)/1000/60/60/24.0).toLong()}天"
+        bind.days.text = s
         viewModel.totalTime.launchLifeScopeCollectLatest{
-            val s = "${((it/1000/60)%60).toLong()}分钟(${(it/1000/60/60).toLong()}小时)"
+            val s = "${Tools.toMinute(it)}分钟(${Tools.toHour(it)}小时)"
             bind.totalTimes.text = s
         }
         viewModel.totalPages.launchLifeScopeCollectLatest {
@@ -47,32 +57,38 @@ class DataStatistic : ExtendFragment() {
             bind.totalBookMarks.text = s
         }
         viewModel.totalPerPageTime.launchLifeScopeCollectLatest {
-            val s = "${(it/1000).toLong()}秒(${(it/1000/60).toLong()}分钟)"
+            val s = "${Tools.toSecond(it)}秒(${Tools.toMinute(it)}分钟)"
             bind.avgPerPage.text = s
         }
         viewModel.longTimeBook.launchLifeScopeCollectLatest {
-            if(it!=null && it.long!=null && it.book!=null){
-                val s = "共阅读:${((it.long/1000/60)%60).toLong()}分钟(${(it.long/1000/60/60).toLong()}小时)"
-                longTimeBind.showSpecial.text = s
+            if(it!=null && it.book!=null){
+                longTimeBind.showSpecial.text = Tools.longBookTimeS(it.long?:0L)
                 bindICD(longTimeBind,it)
             }
         }
         viewModel.longPerPageTimeBook.launchLifeScopeCollectLatest {
-            if(it!=null && it.perPageTime!=null && it.book!=null){
-                val s = "平均每页:${(it.perPageTime/1000).toLong()}秒(${(it.perPageTime/1000/60).toLong()}分钟)"
-                longPerPageBind.showSpecial.text = s
+            if(it!=null && it.book!=null){
+                longPerPageBind.showSpecial.text = Tools.longPerPageTimeS(it.perPageTime?:0L)
                 bindICD(longPerPageBind,it)
             }
         }
         viewModel.bookMarksMostBook.launchLifeScopeCollectLatest {
-            if(it!=null && it.bookMarkNum!=null && it.book!=null){
-                val s = "创建书签:${it.bookMarkNum}个"
-                mostMarksNumBing.showSpecial.text = s
+            if(it!=null && it.book!=null){
+                mostMarksNumBing.showSpecial.text = Tools.bookMarkNumS(it.bookMarkNum?:0L)
                 bindICD(mostMarksNumBing,it)
             }
         }
 
-
+        bind.toggleTimeStart.addOnButtonCheckedListener {
+                group, checkedId, isChecked ->
+            if(isChecked){
+                when(checkedId){
+                    bind.oneMonthBtn.id->viewModel.oneMonth()
+                    bind.oneYearBtn.id->viewModel.oneYear()
+                    bind.sixMonthBtn.id->viewModel.sixMonth()
+                }
+            }
+        }
 
     }
 
