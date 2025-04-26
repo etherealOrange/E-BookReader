@@ -3,6 +3,7 @@ package com.example.ebook_reader.ui.BookShelf
 import android.content.Context
 import android.graphics.pdf.PdfRenderer
 import android.util.Log
+import android.widget.Toast
 import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -58,7 +59,7 @@ class BookShelfDataViewModel @Inject constructor (
     ,FoldersAdapterSelectedControl
 {
 
-    val isHideActionBar: StateFlow<Boolean> get() = Repo.isHideActionBar
+    val isHideActionBar: StateFlow<Boolean> get()= Repo.isHideActionBar
     val isInFolder: StateFlow<Boolean> get() = Repo.isInFolder
     val inWhichFolder: StateFlow<Long?> get() = Repo.inWhichFolder
     val Folders: StateFlow<List<FolderView>> get() = Repo.allFolders
@@ -215,18 +216,7 @@ class BookShelfDataViewModel @Inject constructor (
         initialValue = false
     )
 
-    //切换编辑模式
-    fun switchEditModel(bookAdapter: BookAdapter?){
-        bookAdapter?.let {
-            when(Repo.isEditModel.value){
-                true->it.closeEditModel()
-                false->it.openEditModel()
-            }
-        }
-        if(Repo.isEditModel.value){clearAllSelected()}
-        Log.d("UIVM _isEditModule","_isEditModule is ${Repo.isEditModel.value}")
-        Repo.switchEditModule()
-    }
+
 
     /**
      * 选中书本时可以移动到文件夹, 选中文件夹时不能移动
@@ -259,12 +249,7 @@ class BookShelfDataViewModel @Inject constructor (
         Log.d("VM goIntoFolder","你的文件夹id $folderId 不存在")
     }
 
-    /**
-     * 原地刷新InWhichFolder
-     */
-    fun flashInWhichFolder(){
-        Repo.flashInWhichFolder()
-    }
+
     /**
      * 通过更改VM中的值 显示ActionBar 退出到主页
      *
@@ -292,8 +277,6 @@ class BookShelfDataViewModel @Inject constructor (
             }
         }
     }
-
-
 
 
 
@@ -621,8 +604,12 @@ class BookShelfDataViewModel @Inject constructor (
                 return@launch
             }
             Log.d("VM RenameFolder","inWhichFolder is ${Repo.inWhichFolder.value}")
-            Repo.renameFolder(selectedFolderId.value.first(), title)
-            flashInWhichFolder()
+            val folder = selectedFolderId.value.firstOrNull()
+            val i = Repo.renameFolder(folder, title)
+            if(i!=1){
+                Toast.makeText(context,"修改文件夹名称失败",Toast.LENGTH_SHORT).show()
+            }
+
         }
     }
     /**
@@ -635,8 +622,10 @@ class BookShelfDataViewModel @Inject constructor (
                 return@launch
             }
             Log.d("VM renameFolderInFolder","inWhichFolder is ${Repo.inWhichFolder.value}")
-            Repo.renameFolder(Repo.inWhichFolder.value!!, title)
-            flashInWhichFolder()
+            val i = Repo.renameFolder(Repo.inWhichFolder.value!!, title)
+            if(i!=1) {
+                Toast.makeText(context, "修改文件夹名称失败", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 }

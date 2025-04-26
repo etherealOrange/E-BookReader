@@ -149,6 +149,9 @@ class BookShelf : ExtendFragment() , BooksAdapterOpenActivity{
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         initAdapter()
+
+        setIsEditMode()
+
         //只有在选中一个文件夹时才可以重命名文件夹
         viewModel.isSingleSelectedFolder.launchLifeScopeCollectLatest {
             Log.d("BS onViewCreated","更新BottomBar的重命名按钮可用性模式 $it")
@@ -172,8 +175,6 @@ class BookShelf : ExtendFragment() , BooksAdapterOpenActivity{
     }
 
     private fun initAdapter(){
-
-
         //设置layoutManager和adapter
         binding.BookRecyclerView.layoutManager = GridLayoutManager(context, 3)
         binding.BookRecyclerView.adapter = bookAdapter
@@ -182,7 +183,6 @@ class BookShelf : ExtendFragment() , BooksAdapterOpenActivity{
             Log.d("BS 初始化Adapter","initAdapter 更新RecyclerView的显示数据")
             bookAdapter.submitList(it)
         }
-
 
     }
 
@@ -232,9 +232,6 @@ class BookShelf : ExtendFragment() , BooksAdapterOpenActivity{
                             outputFile.delete()
                         }
                     }
-//                    if(bookId!=0L){
-//                        UIVM.updateBookCover(bookId,outputFile.path)
-//                    }
                 }
                 override fun onError(request: ImageRequest, result: ErrorResult) {
                     Toast.makeText(requireContext(),"保存图片失败 $result",Toast.LENGTH_SHORT).show()
@@ -305,15 +302,6 @@ class BookShelf : ExtendFragment() , BooksAdapterOpenActivity{
             Toast.makeText(requireContext(),"没有选择文件",Toast.LENGTH_SHORT).show()
         }
     }
-//                    .onSuccess {
-//                        Log.d("BS","等待章节插入 数据库")
-//                        bookId = it.bookId
-//                        viewModel.loadBook(it)
-//                        bookCoverPickerLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
-//                        Log.d("BS","成功把章节插入 数据库")
-//                    }.onFailure {
-//                        Log.d("BS filePickerLauncher","filePickerLauncher 复制文件失败 原因:$it")
-//                    }
 
 
     /**
@@ -404,6 +392,12 @@ class BookShelf : ExtendFragment() , BooksAdapterOpenActivity{
         }
         return null
     }
+
+    private fun setIsEditMode(){
+        UIVM.isEditMode.launchLifeScopeCollectLatest {
+            bookAdapter.setMode(it)
+        }
+    }
     /**
      * 初始化所有TopBar的点击事件
      *
@@ -422,18 +416,18 @@ class BookShelf : ExtendFragment() , BooksAdapterOpenActivity{
     private fun initAllTopICD(){
         //设置在默认页面 Edit模式 进入按钮
         topICD.BookShelfEditBTN.setOnClickListener {
-            viewModel.switchEditModel(bookAdapter)
+            UIVM.setEditMode(true)
         }
         //设置在文件夹内 Edit模式 进入按钮
         topICD.BookShelfEditInFolderBTN.setOnClickListener {
-            viewModel.switchEditModel(bookAdapter)
+            UIVM.setEditMode(true)
         }
         //设置两种页面下 Edit模式 退出按钮   完成按钮
         topICD.BookshelfAllDownBTN.setOnClickListener {
-            viewModel.switchEditModel(bookAdapter)
+            UIVM.setEditMode(false)
         }
         topICD.BookShelfFinishInFolderBTN.setOnClickListener {
-            viewModel.switchEditModel(bookAdapter)
+            UIVM.setEditMode(false)
         }
         //书本导入按钮
         topICD.BookshelfBookImportBTN.setOnClickListener {

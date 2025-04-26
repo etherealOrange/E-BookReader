@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -32,7 +33,6 @@ class BookShelfRepository @Inject constructor (
 
       val allBooks = dao.getAllBooks()
         .debounce(200)
-        .distinctUntilChanged()
         .stateIn(
             scope = appScope,
             started = WhileSubscribed(500),
@@ -42,7 +42,6 @@ class BookShelfRepository @Inject constructor (
 
     val allFolders = dao.getAllFolders()
         .debounce(200)
-        .distinctUntilChanged()
         .stateIn(
             scope = appScope,
             started = WhileSubscribed(500),
@@ -65,9 +64,6 @@ class BookShelfRepository @Inject constructor (
         started = WhileSubscribed(500),
         initialValue = emptyList()
     )
-    suspend fun updateBookCover(bookId: Long,url: String){
-        dao.updateBookCover(bookId,url)
-    }
 
     /**
      *
@@ -96,39 +92,38 @@ class BookShelfRepository @Inject constructor (
 
     private val _inWhichFolder = MutableStateFlow<Long?>(null)
     val inWhichFolder: StateFlow<Long?> get() = _inWhichFolder
-    /**
-     * 原地刷新InWhichFolder
-     */
-    fun flashInWhichFolder(){
-        val tmp = _inWhichFolder.value
-        _inWhichFolder.value = null
-        _inWhichFolder.value=tmp
+    fun setInWhichFolder(folderId: Long?) {
+        _inWhichFolder.value = folderId
     }
+
     //是否隐藏ActionBar的辅助存储 和方法
-    private val _isHideActionBar = MutableStateFlow(false)
-    val isHideActionBar: StateFlow<Boolean> get() = _isHideActionBar
+    val isHideActionBar = _inWhichFolder.map { it != null }.stateIn(
+        scope = CoroutineScope(Dispatchers.Default),
+        started = WhileSubscribed(500),
+        initialValue = false
+    )
     //编辑状态 和 在文件夹内 Boolean 状态
-    private val _isEditModule = MutableStateFlow(false)
-    val isEditModel : StateFlow<Boolean> get() = _isEditModule
-
-
-    private val _isInFolder = MutableStateFlow(false)
-    val isInFolder : StateFlow<Boolean> get() = _isInFolder
-    fun switchEditModule() {
-        _isEditModule.value = !_isEditModule.value
+    private val _isEditMode = MutableStateFlow(false)
+    val isEditMode : StateFlow<Boolean> get() = _isEditMode
+    fun setEditMode(isEditMode: Boolean) {
+        _isEditMode.value = isEditMode
     }
+
+    val isInFolder = _inWhichFolder.map { it != null }.stateIn(
+        scope = CoroutineScope(Dispatchers.Default),
+        started = WhileSubscribed(500),
+        initialValue = false
+    )
+
+
+
     /**
      * 隐藏ActionBar
      *
      * 选择文件夹id 进入文件夹内
      */
     fun goIntoFolder(long: Long){
-
-        Log.d("BSR goIntoFolder","修改三个属性成功 id $long isInFolder ${_isInFolder.value} isHideActionBar ${_isHideActionBar.value}")
         _inWhichFolder.value = long
-        _isInFolder.value = true
-        _isHideActionBar.value = true
-        Log.d("BSR goIntoFolder","修改三个属性成功 id $long isInFolder ${_isInFolder.value} isHideActionBar ${_isHideActionBar.value}")
     }
     /**
      * 通过更改VM中的值 显示ActionBar 退出到主页
@@ -137,8 +132,6 @@ class BookShelfRepository @Inject constructor (
      */
     fun getOutOfFolder(){
         _inWhichFolder.value = null
-        _isInFolder.value = false
-        _isHideActionBar.value = false
     }
 
     /**
@@ -217,9 +210,14 @@ class BookShelfRepository @Inject constructor (
      * @param folderId 文件夹id
      * @param newName 新的文件夹名称
      */
-    suspend fun renameFolder(folderId: Long, newName: String) {
-        dao.renameFolder(folderId, newName)
+    suspend fun renameFolder(folderId: Long?, newName: String):Int {
+        if(folderId == null) return 0
+        return dao.renameFolder(folderId, newName)
     }
+
+
+
+
 
 
 }

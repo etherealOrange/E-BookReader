@@ -8,14 +8,13 @@ import androidx.core.net.toUri
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import coil3.load
-
 import com.example.ebook_reader.InterfacePackage.BookShelf.BooksAdapterChangePosition
 import com.example.ebook_reader.InterfacePackage.BookShelf.BooksAdapterOpenActivity
 import com.example.ebook_reader.InterfacePackage.BookShelf.BooksAdapterSelectedControl
 import com.example.ebook_reader.R
 import com.example.ebook_reader.Repository.BookShelf.BookAdapterUIState
+import com.example.ebook_reader.Repository.BookShelf.FolderAdapterUIState
 import com.example.ebook_reader.databinding.CardviewBinding
-import com.example.ebook_reader.entities.BookAndFolderItem
 import com.example.ebook_reader.entities.BookView
 import com.example.ebook_reader.entities.UIFolderView
 
@@ -60,7 +59,6 @@ class BookAdapter (
                 true->{
                     //跳转到阅读界面
                     openActivity.openActivity(book!!)
-//                    Log.d("BA notInEditModelClickChange", "去到数据id: $thisItemId")
                 }
                 false->{
                     //跳转到文件夹界面
@@ -90,6 +88,13 @@ class BookAdapter (
         }
 
     }
+
+    fun notifyFolderId(itemId: Long){
+        val position = currentList.indexOfFirst { (it.item as UIFolderView ).folder.folderId == itemId }
+        if(position != -1){
+            notifyItemChanged(position)
+        }
+    }
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val binding = CardviewBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         return ViewHolder(binding)
@@ -98,8 +103,6 @@ class BookAdapter (
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val item = getItem(position)
         var itemId: Long = 0
-//        Log.d("BA onBindViewHolder", "onBindViewHolder:在进行ViewBind\n $item")
-
         //处理Book和Folder视图的绑定 并设置itemId
         when(item.item){
             is BookView ->{
@@ -127,22 +130,18 @@ class BookAdapter (
         //给当前ViewHolder提供当前位置的ItemId 和 是否是书本 为了在点击事件中使用
         holder.getHolderCurrentPositionAndIsRefBook(itemId, item)
     }
-    //开始编辑模式
-    fun openEditModel(){
-        _isEditModel=true
+
+    fun setMode(isEditModel: Boolean){
+        _isEditModel = isEditModel
         notifyItemRangeChanged(0,itemCount)
     }
-    fun closeEditModel(){
-        _isEditModel=false
-        notifyItemRangeChanged(0,itemCount)
-    }
+
 
     //绑定 FolderView
     private fun bindFolder(
         holder: ViewHolder,
         view: UIFolderView
     ) {
-//        Log.d("BA bindFolder", "bindFolder: $view")
         val binding = holder.binding
 
         //显示书本 而非文件夹
@@ -166,7 +165,6 @@ class BookAdapter (
         holder: ViewHolder,
         view: BookView
     ) {
-//        Log.d("BA bindBook", "bindBook: $view")
         val binding = holder.binding
 
         //显示文件夹 而不是书本
@@ -178,7 +176,7 @@ class BookAdapter (
             binding.CDBookCoverIV.load(coverUrl.toUri())
         }
         else{
-            binding.CDFolderCoverIV.load(R.drawable.ic_launcher_foreground)
+            binding.CDBookCoverIV.load(R.drawable.ic_launcher_foreground)
         }
         binding.CDBookTitleTV.text = view.title
         val chapterProgressText = "读到第${view.currentPage}页/总共${view.totalPages}页"
@@ -188,9 +186,4 @@ class BookAdapter (
         binding.CDReadProgressPB.progress = readProgress
     }
 
-
-    //更新页面
-    fun flashAllViews(){
-        notifyItemRangeChanged(0,itemCount)
-    }
 }

@@ -9,7 +9,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -19,8 +18,8 @@ import javax.inject.Inject
 class BookShelfUIViewModel @Inject constructor(private val Repo: BookShelfRepository): ViewModel() {
     private var _CoverDir = MutableStateFlow<String>("")
     val CoverDir: StateFlow<String> get() = _CoverDir
-    val isInFolder: StateFlow<Boolean> = Repo.isInFolder
-    val isEditModel: StateFlow<Boolean> = Repo.isEditModel
+    val isInFolder: StateFlow<Boolean> get()= Repo.isInFolder
+    val isEditMode = Repo.isEditMode
 
     fun updateCoverDir(dir: String){
         _CoverDir.value = dir
@@ -28,11 +27,7 @@ class BookShelfUIViewModel @Inject constructor(private val Repo: BookShelfReposi
     fun clearCoverDir(){
         _CoverDir.value=""
     }
-    fun updateBookCover(bookId: Long, cover: String){
-        viewModelScope.launch {
-            Repo.updateBookCover(bookId,cover)
-        }
-    }
+    fun setEditMode(isEditMode: Boolean) = Repo.setEditMode(isEditMode)
 
 
     /**
@@ -49,12 +44,12 @@ class BookShelfUIViewModel @Inject constructor(private val Repo: BookShelfReposi
         initialValue = "主页"
     )
 
-    val state_now = isEditModel.combine(isInFolder) {edit,folder->
+    val state_now = isEditMode.combine(isInFolder) {edit,folder->
         if (edit && folder){
             BookShelfState.InEditInFolder
-        }else if (edit && !folder){
+        }else if (edit){
             BookShelfState.InEditNotInFolder
-        }else if (!edit && folder){
+        }else if (folder){
             BookShelfState.NotInEditInFolder
         }else{
             BookShelfState.NotInEditNotInFolder

@@ -73,11 +73,10 @@ class TimeTravel
     }
 
     override fun openActivity(book: BookView) {
-        var intent: Intent? = null
-        when(book.bookType){
-            BookType.TXT ->{ intent = Intent(requireContext(), Reading_TXT::class.java)}
-            BookType.PDF -> { intent = Intent(requireContext(), Reading_PDF::class.java)}
-            BookType.EPUB -> { intent = Intent(requireContext(), Reading_EPUB::class.java)}
+        val intent = when(book.bookType){
+            BookType.TXT -> Intent(requireContext(), Reading_TXT::class.java)
+            BookType.PDF -> Intent(requireContext(), Reading_PDF::class.java)
+            BookType.EPUB -> Intent(requireContext(), Reading_EPUB::class.java)
         }
         intent.putExtra("book", book)
         startActivity(intent)
