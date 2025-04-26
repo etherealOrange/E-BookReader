@@ -14,14 +14,10 @@ import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -29,12 +25,29 @@ import javax.inject.Singleton
 @Singleton
 class BookShelfRepository @Inject constructor (
     private val chapterDao: ChapterInfoDao
-    ,private val dao: BooksAndFoldersInfoDao) {
+    ,private val dao: BooksAndFoldersInfoDao
+    ,private val appScope: CoroutineScope
+) {
 
-    private val _allBooks = MutableStateFlow<List<BookView>>(emptyList())
-    val allBooks: StateFlow<List<BookView>> get() = _allBooks
-    private val _allFolders = MutableStateFlow<List<FolderView>>(emptyList())
-    val allFolders : StateFlow<List<FolderView>> get() = _allFolders
+
+      val allBooks = dao.getAllBooks()
+        .debounce(200)
+        .distinctUntilChanged()
+        .stateIn(
+            scope = appScope,
+            started = WhileSubscribed(500),
+            initialValue = emptyList()
+        )
+
+
+    val allFolders = dao.getAllFolders()
+        .debounce(200)
+        .distinctUntilChanged()
+        .stateIn(
+            scope = appScope,
+            started = WhileSubscribed(500),
+            initialValue = emptyList()
+        )
     private val _notifyBooksNumChange = MutableStateFlow<Boolean>(false)
     /**
      * 书籍数量变化通知
@@ -42,7 +55,7 @@ class BookShelfRepository @Inject constructor (
     fun notifyBooksNumChange(){
         _notifyBooksNumChange.value = !_notifyBooksNumChange.value
     }
-    val allUIFolders: StateFlow<List<UIFolderView>> get()= combine(_allFolders,_notifyBooksNumChange) {
+    val allUIFolders: StateFlow<List<UIFolderView>> get()= combine(allFolders,_notifyBooksNumChange) {
         folder,notify->
         folder.map {
             UIFolderView(it, dao.getBooksNumInFolder(it.folderId))
@@ -75,34 +88,11 @@ class BookShelfRepository @Inject constructor (
         initialValue = emptyList()
     )
 
-    init {
-        CoroutineScope(Dispatchers.IO).launch {
-            launch {
-                dao.getAllBooks()
-                    .debounce(200)//防抖200
-                    .distinctUntilChanged()//去除查询带来的数据库变化
-                    .collectLatest { _allBooks.value=it }
-            }
-            launch {
-                dao.getAllFolders()
-                    .debounce(200)//防抖200
-                    .distinctUntilChanged()//去除查询带来的数据库变化
-                    .collectLatest { _allFolders.value=it }
-            }
-        }
-    }
-//    suspend fun updateChapters(bookId: Long){
-//        _chapters.value = emptyList()
-//        _chapters.update {
-//            Log.d("BSR updateChapters","更新 前 目前的章节列表")
-//            chapterDao.selectAllChapterFromBookId(bookId)
-//        }
-//        Log.d("BSR updateChapters","更新 完成 目前的章节列表")
-//    }
 
-    suspend fun insertChapter(chapters: List<ChapterView>) {
-        chapterDao.insertChapters(chapters = chapters)
-    }
+
+    suspend fun insertChapter(chapters: List<ChapterView>) = chapterDao.insertChapters(chapters)
+
+
 
     private val _inWhichFolder = MutableStateFlow<Long?>(null)
     val inWhichFolder: StateFlow<Long?> get() = _inWhichFolder
@@ -173,10 +163,9 @@ class BookShelfRepository @Inject constructor (
      * 插入整个书本实例
      * @param book 书本实例
      */
-    suspend fun insertBook(book: BookView): Long {
-        Log.d("BSR","进行插入书本中2")
-        return dao.insertBook(book)
-    }
+    suspend fun insertBook(book: BookView): Long = dao.insertBook(book)
+
+
     /**
      * 插入整个文件夹实例
      * @param folder 文件夹实例
