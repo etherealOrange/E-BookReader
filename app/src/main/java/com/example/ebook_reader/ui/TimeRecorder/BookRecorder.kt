@@ -1,23 +1,27 @@
 package com.example.ebook_reader.ui.TimeRecorder
 
 import android.util.Log
+import androidx.lifecycle.ViewModel
 import com.example.ebook_reader.Repository.ReadingBook.ReadingRepository
 import com.example.ebook_reader.entities.BookRecord
 import com.example.ebook_reader.entities.PageDeduplication
+import kotlinx.coroutines.CompletableJob
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import java.util.concurrent.CancellationException
-import java.util.concurrent.ConcurrentSkipListMap
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.CopyOnWriteArraySet
 
 
 class BookRecorder(
     private val pages: List<PageDeduplication>,
-    private val bookId: Long
+    private val bookId: Long,
+    private val timeToNotify: Int,
 )
 {
 
@@ -26,6 +30,12 @@ class BookRecorder(
 
     //阅读总页数
     private var pagesInRecord = CopyOnWriteArraySet<Long>()
+    private var totalPagesRead = 0L
+
+    private val notifyLock = Mutex()
+
+    private var isPaused = false
+    private var doCancel = false
     /**
      * key: startPage
      * value: endPage
@@ -37,6 +47,55 @@ class BookRecorder(
     //阅读总时间 可以暂停所以需要记录
     private var recordOfResult = 0L
 
+    private fun delaying(): Job{
+        return CoroutineScope(Dispatchers.Default).launch {
+            try {
+                notifyLock.withLock {
+                    repeat(timeToNotify) {
+                        delay(1000*60)
+                        while (isPaused){
+                            delay(1000)
+                        }
+                        if(doCancel){
+                            cancel()
+                        }
+                    }
+                }
+            }catch (e: Exception){
+                Log.d("BRD","提醒延时 被取消了 ${e.message}")
+                cancel()
+            }
+        }
+    }
+    fun pauseNotify(){
+        isPaused =true
+    }
+    fun resumeNotify(){
+        isPaused = false
+    }
+    fun closeNotify(){
+        doCancel = true
+    }
+    suspend fun toNotify(): NotifyContent?{
+        val j = delaying()
+        delay(300)
+        notifyLock.withLock {
+            if(j.isCompleted){
+                //如果倒计时结束， 并且正常完成 进行提醒
+                val time = System.currentTimeMillis() - recordOfStart + recordOfResult
+                mergeRange()
+                val perPageTime = if(totalPagesRead ==0L)0L
+                else (time.toDouble()/totalPagesRead).toLong()
+
+                Log.d("BRD","现在的用时： $time ${time/1000}秒 页数： $perPageTime")
+                return NotifyContent(
+                    time = time,
+                    perPageTime = perPageTime
+                )
+            }
+        }
+        return null
+    }
 
     init {
         pages.forEach {
@@ -61,10 +120,7 @@ class BookRecorder(
         //开始计时
         recordOfStart = System.currentTimeMillis()
         plusPage(pos)
-        Log.d("BRD","开始 当前的页数: $pagesInRecord")
-        recordOfPages.forEach {
-            Log.d("BRD","开始 当前的范围: $it")
-        }
+
     }
 
     fun insertRecord(repo: ReadingRepository) {
@@ -110,6 +166,7 @@ class BookRecorder(
      * 翻页增加页数
      */
     fun plusPage(pos: Long){
+
         if(!isInRange(pos)){
             pagesInRecord.add(pos)
         }
@@ -124,6 +181,7 @@ class BookRecorder(
     //重新计算重合的页数
     private fun mergeRange(){
         Log.d("BRD","开始合并页数")
+        totalPagesRead+=pagesInRecord.size
         synchronized(this) {
             if(pagesInRecord.isEmpty())return
             val sorted = pagesInRecord.map { Range(it,it) }
@@ -151,4 +209,8 @@ class BookRecorder(
 data class Range(
     val start: Long,
     var end: Long
+)
+data class NotifyContent(
+    val time: Long,
+    val perPageTime: Long,
 )

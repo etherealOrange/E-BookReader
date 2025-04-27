@@ -5,11 +5,13 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import coil3.load
 import com.example.ebook_reader.InterfacePackage.BookShelf.BooksAdapterOpenActivity
+import com.example.ebook_reader.R
 import com.example.ebook_reader.Repository.DataStatistic.BookDataUI
 import com.example.ebook_reader.Tools
 import com.example.ebook_reader.databinding.StatisticBookItemBinding
 import com.example.ebook_reader.entities.BookView
 import com.example.ebook_reader.ui.TimeTravel.TimeTravelViewModel.Mode
+import java.io.File
 
 class TopTenBookAdapter(
     private val open: BooksAdapterOpenActivity
@@ -39,7 +41,12 @@ class TopTenBookAdapter(
             holder.setItem(it.book)
             it.book?.let {
                 bind.title.text = it.title
-                bind.image.load(it.coverUrl)
+                if(File(it.coverUrl).isFile){
+                    bind.image.load(it.coverUrl)
+                }else{
+                    bind.image.load(R.drawable.ic_launcher_foreground)
+                }
+
                 val s = "页数 :${it.currentPage}/${it.totalPages}"
                 bind.chapter.text = s
             }

@@ -16,6 +16,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.cachedIn
+import com.example.ebook_reader.ConfigManager
 import com.example.ebook_reader.InterfacePackage.ReadingBook.GetPDFPage
 import com.example.ebook_reader.Repository.ReadingBook.ReadingRepository
 import com.example.ebook_reader.ui.TimeRecorder.BookRecorder
@@ -40,10 +41,11 @@ class ViewModelOnPDF @Inject constructor(
     val recorder get()= _recorder
     private val _isFinished = MutableStateFlow<Boolean>(false)
     val isFinished = _isFinished.asStateFlow()
+    private val otherSetting = ConfigManager.getInstance(context).getOtherConfig()
     init {
         viewModelScope.launch {
             _isFinished.value=false
-            _recorder = BookRecorder(Repo.getPagesDeduplication(book.bookId),book.bookId)
+            _recorder = BookRecorder(Repo.getPagesDeduplication(book.bookId),book.bookId,otherSetting.sleepTime)
             _isFinished.value=true
         }
     }

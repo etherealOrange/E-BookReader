@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.util.Log
 import androidx.activity.viewModels
 import androidx.core.net.toUri
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.PagerSnapHelper
 import androidx.recyclerview.widget.RecyclerView
@@ -12,8 +13,12 @@ import coil3.SingletonImageLoader
 import coil3.request.crossfade
 import com.example.ebook_reader.ExtendAppCompatActivity
 import com.example.ebook_reader.databinding.ActivityReadingPdfBinding
+import com.example.ebook_reader.ui.ReadingBook.Reading_TXT
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class Reading_PDF : ExtendAppCompatActivity() {
@@ -24,10 +29,18 @@ class Reading_PDF : ExtendAppCompatActivity() {
         super.onCreate(savedInstanceState)
         bind = ActivityReadingPdfBinding.inflate(layoutInflater)
         setContentView(bind.root)
+        Log.d("RP","onCreate 成功创建")
+        lifecycleScope.launch {
+            viewModel.isFinished.filter { it }.collectLatest {
+                val notifyContent = viewModel.recorder.toNotify()
+                val dialog = TopSheetDialog(this@Reading_PDF,notifyContent)
+                Log.d("RP","创建了TopSheetDialog ")
+                dialog.show()
+                cancel()
+            }
+        }
 
 
-
-        Log.d("RB","onCreate 成功创建")
 
 
         val pdfPageAdapter = PDFPageAdapter(viewModel)

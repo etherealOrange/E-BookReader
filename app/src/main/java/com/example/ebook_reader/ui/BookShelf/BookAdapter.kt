@@ -89,12 +89,6 @@ class BookAdapter (
 
     }
 
-    fun notifyFolderId(itemId: Long){
-        val position = currentList.indexOfFirst { (it.item as UIFolderView ).folder.folderId == itemId }
-        if(position != -1){
-            notifyItemChanged(position)
-        }
-    }
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val binding = CardviewBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         return ViewHolder(binding)

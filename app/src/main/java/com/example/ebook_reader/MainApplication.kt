@@ -1,7 +1,6 @@
 package com.example.ebook_reader
 
 import android.app.Application
-import com.example.ebook_reader.ui.TimeRecorder.BookRecorder
 import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

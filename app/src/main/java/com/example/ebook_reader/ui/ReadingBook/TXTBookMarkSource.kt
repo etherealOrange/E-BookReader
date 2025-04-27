@@ -16,7 +16,7 @@ class TXTBookMarkSource(
             Log.d("TBMS getRefreshKey", "跳转到位置 ${jump.toPosition}")
             return jump.toPosition
         }
-        return state.anchorPosition?.toLong()?:0L
+        return index.getCurrentPos()
     }
 
     override suspend fun load(params: LoadParams<Long>): LoadResult<Long, BookMarkUI> {

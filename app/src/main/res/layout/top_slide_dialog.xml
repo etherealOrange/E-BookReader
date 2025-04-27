@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:elevation="10dp"
+    android:orientation="vertical"
+    android:paddingVertical="10dp"
+    android:paddingHorizontal="20dp"
+    android:clickable="true"
+    >
+    <com.google.android.material.textview.MaterialTextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="这本书你已经阅读了:"
+        android:textSize="20sp"
+        android:padding="10dp"
+        />
+    <com.google.android.material.textview.MaterialTextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="100分钟"
+        android:padding="5dp"
+        android:id="@+id/LongTime"
+        android:textSize="18sp"
+        />
+    <com.google.android.material.textview.MaterialTextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="平均每页：100秒"
+        android:padding="5dp"
+        android:textSize="18sp"
+        android:id="@+id/perPageTime"
+        />
+    <com.google.android.material.textview.MaterialTextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="注意休息哦！"
+        android:textSize="18sp"
+        android:padding="5dp"
+        />
+
+
+</LinearLayout>

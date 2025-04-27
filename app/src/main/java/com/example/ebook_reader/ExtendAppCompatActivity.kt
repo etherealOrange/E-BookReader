@@ -4,6 +4,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -24,6 +25,14 @@ abstract class ExtendAppCompatActivity:AppCompatActivity() {
                 collectLatest {
                     doCollect(it)
                 }
+            }
+        }
+    }
+    fun <T> Flow<T>.launchLifeScopeCollectLatestCanceled (doCollect: suspend (T) -> Unit) {
+        lifecycleScope.launch {
+            collectLatest {
+                doCollect(it)
+                cancel()
             }
         }
     }

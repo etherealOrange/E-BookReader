@@ -1,14 +1,20 @@
 package com.example.ebook_reader.ui.ReadingBook
 
+import android.util.Log
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
-class JumpSolve {
-    private var _jump: Long = 0L
+class JumpSolve(
+    private val initPos: Long
+) {
+    @Volatile
+    private var _jump: Long = initPos
+    @Volatile
     private var _canJump: Boolean = false
     val toPosition get() = _jump
     val canJump get() = _canJump
     fun setJump(position: Long) {
+        Log.d("JS","跳跃到 位置 $position")
         _jump = position
         _canJump = true
     }
@@ -28,7 +34,6 @@ class JumpSolve {
      * ```
      */
     fun resetJump() {
-        _jump = 0L
         _canJump = false
     }
     private val _notify = MutableStateFlow<Boolean>(false)

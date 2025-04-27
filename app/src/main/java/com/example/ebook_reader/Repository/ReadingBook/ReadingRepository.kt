@@ -6,13 +6,10 @@ import com.example.ebook_reader.entities.BookMarkView
 import com.example.ebook_reader.entities.BookRecord
 import com.example.ebook_reader.entities.ChapterView
 import com.example.ebook_reader.entities.PageDeduplication
-import com.example.ebook_reader.ui.TimeRecorder.BookRecorder
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Singleton

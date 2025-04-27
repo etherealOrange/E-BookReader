@@ -19,7 +19,7 @@ class TXTChapterListSource(
             Log.d("TCLS getRefreshKey", "跳转到位置 $jump")
             return jump.toPosition.toInt()
         }
-        return state.anchorPosition
+        return index.getCurrentPos().toInt()
     }
 
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, ChapterIndex> {

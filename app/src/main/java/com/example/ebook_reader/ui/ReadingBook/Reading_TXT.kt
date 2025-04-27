@@ -7,6 +7,7 @@ import android.view.View
 import androidx.activity.viewModels
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.PagerSnapHelper
 import androidx.recyclerview.widget.RecyclerView
@@ -21,10 +22,12 @@ import com.example.ebook_reader.databinding.LookTextViewBinding
 import com.example.ebook_reader.ui.DialogBuilderFactory
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.last
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class Reading_TXT : ExtendAppCompatActivity()
@@ -46,8 +49,12 @@ class Reading_TXT : ExtendAppCompatActivity()
         Log.d("RB","onCreate 成功创建")
 
 
-
-
+        viewModel.isInitFinished.filter { it }.launchLifeScopeCollectLatestCanceled {
+            val notifyContent = viewModel.recorder.toNotify()
+            val dialog = TopSheetDialog(this@Reading_TXT,notifyContent)
+            Log.d("RB","创建了TopSheetDialog ")
+            dialog.show()
+        }
 
 
 
@@ -83,7 +90,10 @@ class Reading_TXT : ExtendAppCompatActivity()
                         Log.d("RB","当前章节位置 $position")
                         val item = chapterAdapter.peek(position)
                         Log.d("RB","当前章节 ${item?.title} 顺序 ${item?.order}")
-                        viewModel.updatePos(item?.order?:0L)
+                        viewModel.updatePos(item?.order)
+                        viewModel.jumpOfChapter.resetJump()
+                        viewModel.jumpOfList.resetJump()
+                        viewModel.jumpOfBookMark.resetJump()
                         viewModel.recorder.plusPage(item?.order?:viewModel.currentChapterPos.value)
                     }
                 }
@@ -156,6 +166,7 @@ class Reading_TXT : ExtendAppCompatActivity()
         //打开左侧抽屉  章节导航
         bind.chaptersReadingBtn.setOnClickListener {
             bind.main.openDrawer(GravityCompat.START)
+            viewModel.refreshChapterListFlow(viewModel.currentChapterPos.value)
         }
         //打开右边抽屉  书签导航
         bind.lookBookmarkReadingBtn.setOnClickListener {
@@ -206,25 +217,26 @@ class Reading_TXT : ExtendAppCompatActivity()
 
     override fun onResume() {
         super.onResume()
-        viewModel.isInitFinished.filter { it }.launchLifeScopeCollectLatest {
+        viewModel.isInitFinished.filter { it }.launchLifeScopeCollectLatestCanceled {
             viewModel.recorder.start(viewModel.currentChapterPos.value)
-            return@launchLifeScopeCollectLatest
+            viewModel.recorder.resumeNotify()
+            Log.d("RB","onResume 恢复11")
         }
         Log.d("RB","onResume 恢复")
     }
 
     override fun onPause() {
         super.onPause()
-        viewModel.isInitFinished.filter { it }.launchLifeScopeCollectLatest {
+        viewModel.isInitFinished.filter { it }.launchLifeScopeCollectLatestCanceled {
             viewModel.recorder.pause()
-            return@launchLifeScopeCollectLatest
+            viewModel.recorder.pauseNotify()
         }
-
         Log.d("RB","onResume 暂停")
     }
 
     override fun onDestroy() {
         super.onDestroy()
+        viewModel.recorder.closeNotify()
         Log.d("RB","onDestroy 销毁")
     }
 }

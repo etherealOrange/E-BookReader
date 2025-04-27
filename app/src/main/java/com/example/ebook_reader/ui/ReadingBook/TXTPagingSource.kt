@@ -12,18 +12,18 @@ import java.lang.Exception
 class TXTPagingSource (
     private val index: GetChapterIndexes,
     private val reader: TxtReader,
-    private val jump: JumpSolve
+    private val jump: JumpSolve,
 ): PagingSource<Long, ChapterPage>()
 {
 
     override fun getRefreshKey(state: PagingState<Long, ChapterPage>): Long? {
-        Log.d("TPS getRefreshKey","开始 getRefreshKey")
+        Log.d("TPS getRefreshKey","当前情况 ${state.anchorPosition} ${jump.canJump} ${jump.toPosition}")
         if(jump.canJump){
             Log.d("TPS getRefreshKey", "跳转到位置 ${jump.toPosition}")
             return jump.toPosition
         }
         else{
-            return state.anchorPosition?.toLong()
+            return index.getCurrentPos()
         }
     }
     override suspend fun load(params: LoadParams<Long>): LoadResult<Long, ChapterPage> {
@@ -35,11 +35,8 @@ class TXTPagingSource (
                 pageNumber =0
             }
             val chapterIndexes = index.getChapterIndexes(pageNumber,cacheNum.toLong())
-            Log.d("TPS load","章节索引长度 ${chapterIndexes.size}  页码pageNumber $pageNumber")
-            val millis = System.currentTimeMillis()
 
             var chapters = readChapters(chapterIndexes)
-            Log.d("VMT refreshChapterFlow", "刷新章节   耗时 ${System.currentTimeMillis()-millis}ms")
 
             LoadResult.Page(
                 data = chapters,

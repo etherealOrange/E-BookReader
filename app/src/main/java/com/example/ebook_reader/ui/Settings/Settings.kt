@@ -146,10 +146,10 @@ class Settings : ExtendFragment() {
                 bind.timeToNotifyEdit.error = "请输入数字"
                 return@doOnTextChanged
             }
-            if (sleepTime in 0..480){
+            if (sleepTime in 1..480){
                 viewModel.updateOtherConfig(viewModel.otherConfig.value.copy(sleepTime = sleepTime))
             }else{
-                bind.timeToNotifyEdit.error = "请输入范围在0-480之间的数字"
+                bind.timeToNotifyEdit.error = "请输入范围在1-480之间的数字"
             }
         }
 
