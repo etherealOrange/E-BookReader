@@ -19,7 +19,6 @@ import androidx.paging.cachedIn
 import com.example.ebook_reader.ConfigManager
 import com.example.ebook_reader.InterfacePackage.ReadingBook.GetPDFPage
 import com.example.ebook_reader.Repository.ReadingBook.ReadingRepository
-import com.example.ebook_reader.ui.TimeRecorder.BookRecorder
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
@@ -45,7 +44,7 @@ class ViewModelOnPDF @Inject constructor(
     init {
         viewModelScope.launch {
             _isFinished.value=false
-            _recorder = BookRecorder(Repo.getPagesDeduplication(book.bookId),book.bookId,otherSetting.sleepTime)
+            _recorder = BookRecorder(book.bookId,otherSetting.sleepTime)
             _isFinished.value=true
         }
     }
@@ -67,7 +66,8 @@ class ViewModelOnPDF @Inject constructor(
     ).flow.cachedIn(viewModelScope)
 
     fun updateRecord(){
-        recorder.insertRecord(Repo)
+        Repo.insertBookRecord(recorder.getRecord())
+        Repo.insertPageDeduplication(recorder.getPageDedu())
     }
 
     override fun getPage(pageIndex: Long): Bitmap? {

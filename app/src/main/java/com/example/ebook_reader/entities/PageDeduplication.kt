@@ -4,6 +4,7 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 
+
 @Entity(tableName = "PageDeduplication"
 , primaryKeys = ["bookId", "timeOfRecord"]
     , foreignKeys = [

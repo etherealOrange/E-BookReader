@@ -17,7 +17,7 @@ import com.example.ebook_reader.entities.PageDeduplication
     , ChapterView::class
     , BookRecord::class
     , PageDeduplication::class
-                     ], version = 7)
+                     ], version = 8)
 abstract class AppDatabase: RoomDatabase() {
     //封装的 一体式 Dao接口
     abstract fun booksAndFoldersInfoDao(): BooksAndFoldersInfoDao

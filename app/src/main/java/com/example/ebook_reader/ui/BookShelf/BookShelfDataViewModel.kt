@@ -459,30 +459,29 @@ class BookShelfDataViewModel @Inject constructor (
     }
 
     private suspend fun simulateInsertPageDedu(){
+        var p = mutableListOf<PageDeduplication>()
         for (i in 1..5){
-            testDao.insertPageDeduplication(PageDeduplication(
+            p.add(PageDeduplication(
                 bookId = i.toLong(),
                 timeOfRecord = twoMonthAge,
                 pageStart = 0L,
                 pageEnd = 20L
             ))
-        }
-        for (i in 1..5){
-            testDao.insertPageDeduplication(PageDeduplication(
+            p.add(PageDeduplication(
                 bookId = i.toLong(),
                 timeOfRecord = sevenMonthAge,
                 pageStart = 21L,
                 pageEnd = 40L
             ))
-        }
-        for (i in 1..5){
-            testDao.insertPageDeduplication(PageDeduplication(
+            p.add(PageDeduplication(
                 bookId = i.toLong(),
                 timeOfRecord = month13Age,
                 pageStart = 41L,
                 pageEnd = 80L
             ))
         }
+        testDao.insertPageDeduplication(p)
+        p.clear()
     }
     private suspend fun simulateInsertChapterView(){
         for (i in 4..8){

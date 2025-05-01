@@ -2,13 +2,11 @@ package com.example.ebook_reader.DAO
 
 import androidx.room.Dao
 import androidx.room.Query
-import androidx.room.Transaction
 import com.example.ebook_reader.Repository.DataStatistic.BookMarksNum
 import com.example.ebook_reader.Repository.DataStatistic.Duration
 import com.example.ebook_reader.entities.BookView
 import com.example.ebook_reader.entities.PageDeduplication
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.combine
 
 @Dao
 interface DataInfoDao {

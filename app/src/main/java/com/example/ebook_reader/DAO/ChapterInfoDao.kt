@@ -33,7 +33,7 @@ interface ChapterInfoDao {
 
     //插入阅读书页记录
     @Insert
-    suspend fun insertPageDeduplication(pageDeduplication: PageDeduplication)
+    suspend fun insertPageDeduplication(pageDeduplication: List<PageDeduplication>)
     //删除多余的书页记录
     @Query("Delete FROM PageDeduplication Where bookId = :bookId and pageStart = :pageStart")
     suspend fun deletePageDeduplication(bookId: Long, pageStart: Long)

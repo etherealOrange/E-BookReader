@@ -1,11 +1,9 @@
-package com.example.ebook_reader.ui.TimeRecorder
+package com.example.ebook_reader.ui.ReadingBook
 
 import android.util.Log
-import androidx.lifecycle.ViewModel
 import com.example.ebook_reader.Repository.ReadingBook.ReadingRepository
 import com.example.ebook_reader.entities.BookRecord
 import com.example.ebook_reader.entities.PageDeduplication
-import kotlinx.coroutines.CompletableJob
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -19,7 +17,6 @@ import java.util.concurrent.CopyOnWriteArraySet
 
 
 class BookRecorder(
-    private val pages: List<PageDeduplication>,
     private val bookId: Long,
     private val timeToNotify: Int,
 )
@@ -97,11 +94,7 @@ class BookRecorder(
         return null
     }
 
-    init {
-        pages.forEach {
-            recordOfPages.add(Range(it.pageStart,it.pageEnd))
-        }
-    }
+
     private fun isInRange(pos: Long): Boolean{
         recordOfPages
             .sortedBy { it.start }
@@ -123,33 +116,22 @@ class BookRecorder(
 
     }
 
-    fun insertRecord(repo: ReadingRepository) {
-        recordOfResult += System.currentTimeMillis() - recordOfStart
-        repo.insertBookRecord(
-            bookRecord = BookRecord(
-                bookId = bookId,
-                timeOfRecord = System.currentTimeMillis(),
-                duration = recordOfResult
-            )
-        )
-        mergeRange()
-        Log.d("BRD","获取 当前的页数: $pagesInRecord")
-        recordOfPages.forEach {
-            Log.d("BRD","获取 当前的范围: $it")
-        }
-        val ls = recordOfPages
-        Log.d("BRD", "总时长: $recordOfResult ${recordOfResult/1000}")
-        if (ls.isNotEmpty()) {
-            repo.insertPageDeduplication(
-                ls.map {
-                    PageDeduplication(
-                        bookId = bookId,
-                        pageStart = it.start,
-                        pageEnd = it.end,
-                        timeOfRecord = System.currentTimeMillis()
-                    )
-                }
-            )
+    fun getRecord(): BookRecord = BookRecord(
+        bookId = bookId,
+        timeOfRecord = System.currentTimeMillis(),
+        duration = recordOfResult,
+    )
+    fun getPageDedu():List<PageDeduplication> {
+        return if(recordOfPages.isEmpty()) emptyList()
+        else{
+            recordOfPages.map {
+                PageDeduplication(
+                    bookId = bookId,
+                    pageStart = it.start,
+                    pageEnd = it.end,
+                    timeOfRecord = System.currentTimeMillis()
+                )
+            }
         }
     }
     /**
@@ -173,10 +155,7 @@ class BookRecorder(
         if(pagesInRecord.size > 100){
             mergeRange()
         }
-        Log.d("BRD","添加 当前的页数: $pagesInRecord")
-        recordOfPages.forEach {
-            Log.d("BRD","添加 当前的范围: $it")
-        }
+
     }
     //重新计算重合的页数
     private fun mergeRange(){
@@ -201,6 +180,7 @@ class BookRecorder(
                     res.last().end = merge[i].end
                 }
             }
+            pagesInRecord.clear()
             recordOfPages = CopyOnWriteArrayList(res)
         }
     }

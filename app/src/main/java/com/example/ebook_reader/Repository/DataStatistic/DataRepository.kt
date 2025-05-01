@@ -4,6 +4,7 @@ import android.util.Log
 import com.example.ebook_reader.DAO.DataInfoDao
 import com.example.ebook_reader.Gap
 import com.example.ebook_reader.entities.BookView
+import com.example.ebook_reader.entities.PageDeduplication
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -81,7 +82,26 @@ class DataRepository @Inject constructor(
         it.map {
             it.groupBy { it.bookId }
                 .mapValues { (_,group)->
-                    group.sumOf { it.pageEnd-it.pageStart }
+                    var end = -1L
+                    var sum =0L
+                    group.groupBy { it.pageStart }.mapValues { (_,group)->group.maxBy { it.pageEnd } }
+                        .values
+                        .sortedBy { it.pageStart }
+                        .forEach {
+                            if(sum==0L){
+                                sum+=it.pageEnd-it.pageStart
+                                end= it.pageEnd
+                            }else if(it.pageEnd-end>0){
+                                if(it.pageStart <= end+1){
+                                    sum +=it.pageEnd-end
+                                    end = it.pageEnd
+                                }else {
+                                    sum += it.pageEnd - it.pageStart
+                                    end = it.pageEnd
+                                }
+                            }
+                        }
+                    sum
                 }
         }
     }

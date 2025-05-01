@@ -8,25 +8,19 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.core.net.toUri
 import coil3.load
-import coil3.toUri
 import com.example.ebook_reader.ConfigManager
 import com.example.ebook_reader.Enum.BookType
 import com.example.ebook_reader.ExtendFragment
 import com.example.ebook_reader.Repository.DataStatistic.BookDataUI
-import com.example.ebook_reader.Repository.DataStatistic.Duration
 import com.example.ebook_reader.Tools
 import com.example.ebook_reader.databinding.FragmentDataStatisticBinding
 import com.example.ebook_reader.databinding.StatisticBookItemBinding
-import com.example.ebook_reader.ui.DataStatistic.DataStatisticViewModel
 import com.example.ebook_reader.ui.ReadingBook.Reading_EPUB
 import com.example.ebook_reader.ui.ReadingBook.Reading_PDF
 import com.example.ebook_reader.ui.ReadingBook.Reading_TXT
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.flow.last
 import java.io.File
-import java.nio.file.Files
 import kotlin.math.ceil
-import kotlin.properties.Delegates
 
 @AndroidEntryPoint
 class DataStatistic : ExtendFragment() {

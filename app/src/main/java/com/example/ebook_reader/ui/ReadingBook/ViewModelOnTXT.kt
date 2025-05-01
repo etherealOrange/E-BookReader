@@ -21,7 +21,6 @@ import com.example.ebook_reader.Repository.ReadingBook.transferBookMark
 import com.example.ebook_reader.entities.BookMarkView
 import com.example.ebook_reader.entities.ChapterView
 import com.example.ebook_reader.ReadingSetting
-import com.example.ebook_reader.ui.TimeRecorder.BookRecorder
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
@@ -106,7 +105,8 @@ class ViewModelOnTXT @Inject constructor(
     val isInitFinished = _isInitFinished.asStateFlow()
 
     fun updateRecord(){
-        recorder.insertRecord(Repo)
+        Repo.insertBookRecord(recorder.getRecord())
+        Repo.insertPageDeduplication(recorder.getPageDedu())
     }
 
     lateinit var bookMarkFlow: Flow<PagingData<BookMarkUI>>
@@ -302,7 +302,7 @@ class ViewModelOnTXT @Inject constructor(
                 _isInitFinished.value=false
                 _chapters = Repo.getChaptersFromBookId(book.bookId).sortedBy { it.chapterOrder }
                 //加载记录器
-                recorder = BookRecorder(Repo.getPagesDeduplication(book.bookId),book.bookId,otherSetting.sleepTime)
+                recorder = BookRecorder(book.bookId,otherSetting.sleepTime)
 
                 txtReader = TxtReader(File(context.filesDir, book.bookUrl))
                 chapterFlow = Pager(

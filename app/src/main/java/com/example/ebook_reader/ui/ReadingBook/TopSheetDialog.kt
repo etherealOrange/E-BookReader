@@ -6,11 +6,9 @@ import android.os.Bundle
 import android.view.Gravity
 import android.view.Window
 import android.view.WindowManager
-import androidx.core.view.GravityCompat
 import com.example.ebook_reader.R
 import com.example.ebook_reader.Tools
 import com.example.ebook_reader.databinding.TopSlideDialogBinding
-import com.example.ebook_reader.ui.TimeRecorder.NotifyContent
 
 class TopSheetDialog(context: Context,val notify: NotifyContent?):Dialog(context) {
     private val bind: TopSlideDialogBinding by lazy {

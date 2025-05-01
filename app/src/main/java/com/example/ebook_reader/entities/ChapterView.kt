@@ -1,6 +1,5 @@
 package com.example.ebook_reader.entities
 
-import androidx.compose.ui.focus.FocusOrder
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.ForeignKey.Companion.CASCADE

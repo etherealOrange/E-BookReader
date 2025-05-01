@@ -30,28 +30,7 @@ class ReadingRepository@Inject constructor (
     fun insertPageDeduplication(pageDeduplication: List<PageDeduplication>) {
         CoroutineScope(Dispatchers.IO).launch {
             if(pageDeduplication.isEmpty()) return@launch
-            val bookId = pageDeduplication[0].bookId
-            val orgin = getPagesDeduplication(bookId).map { it.pageStart }
-            val needRm = orgin.filterNot { it in pageDeduplication.map { it.pageStart } }
-            needRm.forEach {
-                chapterDao.deletePageDeduplication(bookId, it)
-            }
-            val insertRD = pageDeduplication.filterNot { it.pageStart in orgin }
-            insertRD.forEach {
-                chapterDao.insertPageDeduplication(
-                    PageDeduplication(
-                        bookId = it.bookId,
-                        pageStart = it.pageStart,
-                        pageEnd = it.pageEnd,
-                        timeOfRecord = System.currentTimeMillis()
-                    )
-                )
-            }
-            pageDeduplication
-                .filterNot { it.pageStart in insertRD.map { it.pageStart }}
-                .forEach {
-                chapterDao.updatePageDeduplication(bookId, it.pageStart, it.pageEnd)
-            }
+            chapterDao.insertPageDeduplication(pageDeduplication)
         }
     }
 
