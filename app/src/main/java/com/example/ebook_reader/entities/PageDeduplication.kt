@@ -5,7 +5,7 @@ import androidx.room.ForeignKey
 import androidx.room.Index
 
 @Entity(tableName = "PageDeduplication"
-, primaryKeys = ["bookId", "pageStart"]
+, primaryKeys = ["bookId", "timeOfRecord"]
     , foreignKeys = [
         ForeignKey(
             entity = BookView::class,
@@ -15,7 +15,7 @@ import androidx.room.Index
         )
 
     ],
-    indices = [Index("bookId", "pageStart", unique = true)]
+    indices = [Index("bookId", "timeOfRecord", unique = true)]
 )
 /**
  * @param bookId 书本ID
@@ -24,7 +24,7 @@ import androidx.room.Index
  */
 data class PageDeduplication(
     val bookId:Long,
-    val pageStart:Long,
     val timeOfRecord:Long,
+    val pageStart:Long,
     val pageEnd:Long,
 )
