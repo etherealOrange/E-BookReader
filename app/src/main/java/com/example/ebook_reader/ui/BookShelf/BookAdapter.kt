@@ -147,7 +147,7 @@ class BookAdapter (
             binding.CDFolderCoverIV.load(coverUrl.toUri())
         }
         else{
-            binding.CDFolderCoverIV.load(R.drawable.ic_launcher_foreground)
+            binding.CDFolderCoverIV.load(R.drawable.icons8_folder)
         }
         binding.CDFolderNameTV.text = view.folder.title
         val containBooksText = "共${view.booksNum}本书"
@@ -170,7 +170,7 @@ class BookAdapter (
             binding.CDBookCoverIV.load(coverUrl.toUri())
         }
         else{
-            binding.CDBookCoverIV.load(R.drawable.ic_launcher_foreground)
+            binding.CDBookCoverIV.load(R.drawable.icons8_book)
         }
         binding.CDBookTitleTV.text = view.title
         val chapterProgressText = "读到第${view.currentPage}页/总共${view.totalPages}页"

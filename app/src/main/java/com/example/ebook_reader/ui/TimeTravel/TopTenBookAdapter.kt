@@ -44,7 +44,7 @@ class TopTenBookAdapter(
                 if(File(it.coverUrl).isFile){
                     bind.image.load(it.coverUrl)
                 }else{
-                    bind.image.load(R.drawable.ic_launcher_foreground)
+                    bind.image.load(R.drawable.icons8_book)
                 }
 
                 val s = "页数 :${it.currentPage}/${it.totalPages}"

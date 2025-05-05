@@ -11,6 +11,7 @@ import coil3.load
 import com.example.ebook_reader.ConfigManager
 import com.example.ebook_reader.Enum.BookType
 import com.example.ebook_reader.ExtendFragment
+import com.example.ebook_reader.R
 import com.example.ebook_reader.Repository.DataStatistic.BookDataUI
 import com.example.ebook_reader.Tools
 import com.example.ebook_reader.databinding.FragmentDataStatisticBinding
@@ -90,9 +91,11 @@ class DataStatistic : ExtendFragment() {
         if(book.book==null) return
         bind.title.text = book.book.title
         //这里需要看一下
-        val f = File(requireContext().filesDir,book.book.coverUrl)
+        val f = File(book.book.coverUrl)
         if(f.isFile){
             bind.image.load(f.path.toUri())
+        }else{
+            bind.image.load(R.drawable.icons8_book)
         }
         val c = "章节数:${book.book.currentPage}/${book.book.totalPages}"
         bind.chapter.text = c
