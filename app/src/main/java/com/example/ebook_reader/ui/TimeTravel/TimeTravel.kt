@@ -76,7 +76,6 @@ class TimeTravel
         val intent = when(book.bookType){
             BookType.TXT -> Intent(requireContext(), Reading_TXT::class.java)
             BookType.PDF -> Intent(requireContext(), Reading_PDF::class.java)
-            BookType.EPUB -> Intent(requireContext(), Reading_EPUB::class.java)
         }
         intent.putExtra("book", book)
         startActivity(intent)

@@ -328,11 +328,11 @@ class BookShelf : ExtendFragment() , BooksAdapterOpenActivity{
                 bookType = BookType.TXT
                 Log.d("BS copyFileToFolder","选择的文件格式是TXT")
             }
-            BookTypesName.EPUB.extension ->{
-                folderPath = InsideFolderName.EPUBBOOKSFOLDER.displayName
-                bookType = BookType.EPUB
-                Log.d("BS copyFileToFolder","选择的文件格式是EPUB")
-            }
+//            BookTypesName.EPUB.extension ->{
+//                folderPath = InsideFolderName.EPUBBOOKSFOLDER.displayName
+//                bookType = BookType.EPUB
+//                Log.d("BS copyFileToFolder","选择的文件格式是EPUB")
+//            }
             BookTypesName.PDF.extension ->{
                 folderPath = InsideFolderName.PDFBOOKSFOLDER.displayName
                 bookType = BookType.PDF
@@ -425,6 +425,7 @@ class BookShelf : ExtendFragment() , BooksAdapterOpenActivity{
         //设置两种页面下 Edit模式 退出按钮   完成按钮
         topICD.BookshelfAllDownBTN.setOnClickListener {
             UIVM.setEditMode(false)
+            viewModel.clearAllSelected()
         }
         topICD.BookShelfFinishInFolderBTN.setOnClickListener {
             UIVM.setEditMode(false)
@@ -501,7 +502,7 @@ class BookShelf : ExtendFragment() , BooksAdapterOpenActivity{
         bookCoverResultChannel = Channel<String>(1)
         //选择 保存文件
         filePickerLauncher.launch(arrayOf(
-            "text/plain","application/pdf","application/epub+zip"
+            "text/plain","application/pdf"
         ))
         //选择 保存 封面
         bookCoverPickerLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
@@ -572,7 +573,6 @@ class BookShelf : ExtendFragment() , BooksAdapterOpenActivity{
         val intent = when(book.bookType){
             BookType.TXT ->Intent(requireContext(), Reading_TXT::class.java)
             BookType.PDF -> Intent(requireContext(), Reading_PDF::class.java)
-            BookType.EPUB -> Intent(requireContext(), Reading_EPUB::class.java)
         }
         intent.putExtra("book", book)
         startActivity(intent)

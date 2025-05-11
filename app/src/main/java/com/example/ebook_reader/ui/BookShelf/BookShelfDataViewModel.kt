@@ -269,9 +269,9 @@ class BookShelfDataViewModel @Inject constructor (
             BookType.TXT -> {
                 processTextBook(book)
             }
-            BookType.EPUB -> {
-                processEpubBook(book)
-            }
+//            BookType.EPUB -> {
+//                processEpubBook(book)
+//            }
             BookType.PDF -> {
                 processPdfBook(book)
             }

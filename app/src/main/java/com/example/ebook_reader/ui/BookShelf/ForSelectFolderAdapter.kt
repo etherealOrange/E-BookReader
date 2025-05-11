@@ -82,7 +82,7 @@ class ForSelectFolderAdapter (
             binding.CDFolderCoverIV.load(coverUrl.toUri())
         }
         else{
-            binding.CDFolderCoverIV.load(R.drawable.ic_launcher_foreground)
+            binding.CDFolderCoverIV.load(R.drawable.icons8_folder)
         }
         binding.CDFolderNameTV.text = view.folder.title
         val containBooksText = "共${view.booksNum}本书"

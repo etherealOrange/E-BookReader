@@ -36,9 +36,9 @@ class TimeTravelViewModel @Inject constructor(
             if (it.isEmpty()) {
                 flowOf(listOf(null))
             } else {
-                it.forEach {
-                    Log.d("TTVM","bookId: ${it.bookId} duration: ${it.duration} ")
-                }
+//                it.forEach {
+//                    Log.d("TTVM","bookId: ${it.bookId} duration: ${it.duration} ")
+//                }
                 val du = it.sortedByDescending { it.duration }.take(10)
                 Repo.getBookViews(du.map { it.bookId }).map {
                     if (it.isEmpty()) {

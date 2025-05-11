@@ -104,7 +104,6 @@ class DataStatistic : ExtendFragment() {
             when(book.book.bookType){
                 BookType.TXT ->{ intent = Intent(requireContext(), Reading_TXT::class.java)}
                 BookType.PDF -> { intent = Intent(requireContext(), Reading_PDF::class.java)}
-                BookType.EPUB -> { intent = Intent(requireContext(), Reading_EPUB::class.java)}
             }
             intent.putExtra("book", book.book)
             startActivity(intent)

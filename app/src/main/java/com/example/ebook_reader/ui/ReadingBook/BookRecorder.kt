@@ -122,14 +122,16 @@ class BookRecorder(
         duration = recordOfResult,
     )
     fun getPageDedu():List<PageDeduplication> {
+        mergeRange()
         return if(recordOfPages.isEmpty()) emptyList()
         else{
+            var time = System.currentTimeMillis()
             recordOfPages.map {
                 PageDeduplication(
                     bookId = bookId,
                     pageStart = it.start,
                     pageEnd = it.end,
-                    timeOfRecord = System.currentTimeMillis()
+                    timeOfRecord = time++
                 )
             }
         }
