@@ -19,7 +19,11 @@ class ConfigManager private constructor(context: Context){
     private val dayToCreate = context.getSharedPreferences("DayToCreate", Context.MODE_PRIVATE)
     private val gson = Gson()
 
-private val testTimeCreate = LocalDate.now().minusYears(3).withDayOfYear(1).atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
+    private val testTimeCreate = LocalDate.now()
+        .minusYears(3)
+        .withDayOfYear(1)
+        .atStartOfDay(ZoneId.systemDefault())
+        .toInstant().toEpochMilli()
 
     fun saveDayToCreate(){
         if(getDayToCreate()==-1L){
@@ -42,10 +46,11 @@ private val testTimeCreate = LocalDate.now().minusYears(3).withDayOfYear(1).atSt
     fun saveOtherConfig(other: OtherSetting){
         val json = gson.toJson(other)
         others.edit { putString("OtherConfig",json) }
+        Log.d("ConfigManager", "saveOtherConfig: 保存配置 $json")
     }
     fun getOtherConfig(): OtherSetting{
-        Log.d("ConfigManager", "getOtherConfig: 得到新的配置}")
         val json = others.getString("OtherConfig", null) ?: return OtherSetting()
+        Log.d("ConfigManager", "getOtherConfig: 得到新的配置 $json")
         return gson.fromJson(json, OtherSetting::class.java)
     }
     //导出配置到Download

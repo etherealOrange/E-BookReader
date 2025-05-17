@@ -208,9 +208,8 @@ class Settings : ExtendFragment() {
     }
 
 
-
-    override fun onDestroy() {
-        super.onDestroy()
+    override fun onStop() {
+        super.onStop()
         configManager.saveOtherConfig(viewModel.otherConfig.value)
         configManager.saveReadingConfig(viewModel.readingConfig.value)
     }

@@ -132,9 +132,4 @@ class Main_Activity : ExtendAppCompatActivity() {
         super.onStart()
         config = configManager.getOtherConfig()
     }
-
-    override fun onPause() {
-        super.onPause()
-        configManager.saveOtherConfig(config)
-    }
 }
