@@ -197,6 +197,7 @@ class TxtReader(
                     currentIndex = realEnd
 //                    Log.d("TR loadBook","最后有效行结束 $realByteEnd $realEnd")
                     //还需计算remain的大小
+                    //TODO(如果读取GBK文件可能导致转换后的字节数 超过原始大小)
                     remaining = sumBuffer.copyOfRange(realByteEnd, sumBuffer.size)
                     remainLen = remaining.size
 //                    Log.d("TR loadBook","剩余字节长度 $remainLen ${String(remaining, Charsets.UTF_8)} currentIndex $currentIndex")
@@ -233,7 +234,8 @@ class TxtReader(
                 }
 
             }catch (e: Exception){
-                Log.d("TR loadBook", "读取失败 $e ${e.message}")
+                Log.d("TR loadBook", "读取失败 $e")
+
             }
         }
     }
