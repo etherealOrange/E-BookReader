@@ -10,7 +10,8 @@
 - 时光旅行，显示书本排行榜
 - 可以设置夜晚模式
 ## 展示图：
-![001.jpg](Picture/001.jpg)![002.jpg](Picture/002.jpg)![003.jpg](Picture/003.jpg)![004.jpg](Picture/004.jpg)![005.jpg](Picture/005.jpg)![006.jpg](Picture/006.jpg)
+<img src="Picture/001.jpg" width="10%"><img src="Picture/002.jpg" width="10%"><img src="Picture/003.jpg" width="10%">
+<img src="Picture/004.jpg" width="10%"><img src="Picture/005.jpg" width="10%"><img src="Picture/006.jpg" width="10%">
 ## 目前已知存在问题：
 - 识别章节依靠“\n第X章XX\n”的标识，可能会出现章节不正确识别错误
 - 章节内容至少需要每10240个字节有一个换行符，否则会出现严重错误
