@@ -118,7 +118,6 @@ class TxtReader(
                     if(realLen==-1) {
                         //不存在更多的字节了
                         //需要退出
-                        //如果上一次查询有章节,
                         //如果上一次查询没有章节, 那么在上一个循环结束的时候就添加了章节, 不需要再添加了
                         if(hasChapters ){
                             //需要添加章节 结束位置为文件的长度
@@ -187,6 +186,7 @@ class TxtReader(
 
                     //找到最后完整的一行 的 \n 字符串长度
                     val lastEnd = content.lastIndexOf('\n')
+                    //TODO(存在找不到时候的BUG)
                     //获取到最后一行的字节长度
                     val realByteEnd = content.substring(0, lastEnd).toByteArray(Charsets.UTF_8).size
                     //相对位置 实际位置应该为 索引开始地址 + 相对位置
