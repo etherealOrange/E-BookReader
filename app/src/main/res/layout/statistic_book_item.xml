@@ -23,7 +23,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/show_special"
-            android:text="阅读时间 60分钟"
+            android:text="阅读时间 0分钟"
             android:textSize="17sp"
             android:padding="10dp"
             android:visibility="visible"

@@ -360,9 +360,9 @@ class BookShelfDataViewModel @Inject constructor (
                 Folders.collectLatest {  }
                 Books.collectLatest {  }
             }
-            launch {
-                doSimulation()
-            }
+//            launch {
+//                doSimulation()
+//            }
             launch {
                 Repo.chapters.buffer(1024, BufferOverflow.SUSPEND)
                     .collectLatest {

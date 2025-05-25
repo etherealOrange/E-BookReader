@@ -68,9 +68,13 @@ class ViewModelOnTXT @Inject constructor(
         if(pos==null)return
         _currentChapterPos.value = pos
         viewModelScope.launch(Dispatchers.IO) {
-            Repo.setCurrentBookMark(book.bookId, pos)
+            updateCurrentBookMark()
         }
     }
+    private suspend fun updateCurrentBookMark(){
+        Repo.setCurrentBookMark(book.bookId, _currentChapterPos.value)
+    }
+
     fun changeBookMark(content: String){
         val pos = _currentChapterPos.value
         viewModelScope.launch {
@@ -85,6 +89,7 @@ class ViewModelOnTXT @Inject constructor(
                     timeOfRecord = System.currentTimeMillis()
                 ))
             }
+            updateCurrentBookMark()
             jumpOfBookMark.notifyChange()
         }
     }
