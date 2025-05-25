@@ -20,8 +20,6 @@ class ConfigManager private constructor(context: Context){
     private val gson = Gson()
 
     private val testTimeCreate = LocalDate.now()
-        .minusYears(3)
-        .withDayOfYear(1)
         .atStartOfDay(ZoneId.systemDefault())
         .toInstant().toEpochMilli()
 
